@@ -1,36 +1,37 @@
-extends base
-
-block title
-  title= page.title + " | " + config.title
-
-block main
-
-  // gallery that comes before the header
-  if page.photos
-     if page.photos.length
-      .article-gallery
-        .article-gallery-photos.container
-          for photo in page.photos
-            a.article-gallery-img.fancybox(href=url_for(photo), rel="gallery_" + page._id)
-              img(src=url_for(photo), itemprop="image")
-
-  article.wrapper
-    .post-main
-      .nav
-        nav.container
-          each nav, name in theme.menu
-            +a_with_current(nav, __(name))
-        .container.post-meta
-          if (page.tags && page.tags.length)
-            .post-tags
-              != list_tags(page.tags, {show_count: false, class: 'post-tag', style:'none', separator:''})
-          .post-time= page.date.format(config.date_format)
-
-      .container.post-header
-        h1: = page.title
-
-      .container.post-content
-        != page.content
-
-    .post-main.post-comment
-      include _partial/comments
+<!DOCTYPE html><html><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description" content="Jinge's Blog on Github"><title>googlecartographer/cartographer 源码分析 | Jinge's Blog</title><link rel="stylesheet" type="text/css" href="/css/normalize.css"><link rel="stylesheet" type="text/css" href="/css/highlight.css"><link rel="stylesheet" type="text/css" href="/css/noise.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/font-awesome/4.5.0/css/font-awesome.min.css"><link rel="Shortcut Icon" type="image/x-icon" href="/favicon.ico"><link rel="stylesheet" type="text/css" href="//fonts.useso.com/css?family=Lato"></head><body><!-- gallery that comes before the header--><article class="wrapper"><div class="post-main"><div class="nav"><nav class="container"><a href="/" class="sidebar-nav-item active">Home</a><a href="/archives" class="sidebar-nav-item">Archives</a></nav><div class="container post-meta"><div class="post-tags"><a class="post-tag-link" href="/tags/robotics/">robotics</a></div><div class="post-time">2016-10-29</div></div></div><div class="container post-header"><h1>googlecartographer/cartographer 源码分析</h1></div><div class="container post-content"><p>从这个 repo 的第一次 commit 版本进行会简单一些，因为一般软件代码是越来越复杂的。</p>
+<p>后面通过比对，证明初始版本的相关文件在最新版本中都存在。</p>
+<p>代码中存在很多线程操作（线程锁），还有一些相当于是 assertation 的代码。</p>
+<a id="more"></a>
+<h2 id="第一次-commit-166f256-代码分析"><a href="#第一次-commit-166f256-代码分析" class="headerlink" title="第一次 commit (166f256) 代码分析"></a>第一次 commit (166f256) 代码分析</h2><h3 id="ros-src-cartographer-node-main-cc"><a href="#ros-src-cartographer-node-main-cc" class="headerlink" title="./ros/src/cartographer_node_main.cc"></a>./ros/src/cartographer_node_main.cc</h3><p>是主程序所在位置，里面有 main 函数，且定义了类 Node （ ros 中的处理节点）。</p>
+<p>void Node::Initialize() 用于初始化，最重要的工作是 subscribe 一些 topic，用于接收 ros 其他 node 广播的数据信息。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">ros::Subscriber imu_subscriber_;</div><div class="line">ros::Subscriber laser_2d_subscriber_;</div><div class="line">std::vector&lt;ros::Subscriber&gt; laser_3d_subscribers_;</div></pre></td></tr></table></figure>
+<p>Node::HandleSensorData(const int64 timestamp, std::unique_ptr<sensordata> sensor_data) 用于接收传感器数据，内部进行传感器数据类型的辨别，调用以下三个函数真正接收传感器数据。</sensordata></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">void AddImu(int64 timestamp, const string&amp; frame_id, const proto::Imu&amp; imu);</div><div class="line">void AddHorizontalLaserFan(int64 timestamp, const string&amp; frame_id,</div><div class="line">                           const proto::LaserScan&amp; laser_scan);</div><div class="line">void AddLaserFan3D(int64 timestamp, const string&amp; frame_id,</div><div class="line">                   const proto::LaserFan3D&amp; laser_fan_3d);</div></pre></td></tr></table></figure>
+<p>Node::HandleSensorData 中也分辨了传感器数据的时间进行了分辨，如果超过一定阈值就会进行 Publish 操作（对 submap 和 pose 的 publish）。Publish 的实际意义是后面采集的数据与前面采集的数据并不是连续的，中间隔开了很长时间，且前后的 pose 不会衔接。（这个可以查看 google 提供的所有数据列表，里面有说明又一些数据是分成若干段的。）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">if (last_submap_list_publish_timestamp_ + kSubmapPublishPeriodInUts &lt;</div><div class="line">    timestamp) &#123;</div><div class="line">  PublishSubmapList(timestamp);</div><div class="line">&#125;</div><div class="line"></div><div class="line">if (last_pose_publish_timestamp_ + kPosePublishPeriodInUts &lt; timestamp) &#123;</div><div class="line">  PublishPose(timestamp);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>以 void Node::AddHorizontalLaserFan(…) 为例，内部将激光数据传递给了 trajectory<em>builder</em> （ Node 的成员变量，是 GlobalTrajectoryBuilderInterface 类型）。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">trajectory_builder_-&gt;AddHorizontalLaserFan(time, laser_fan_3d);</div><div class="line"></div><div class="line">// 这个是 trajectory_builder_ 的定义</div><div class="line">std::unique_ptr&lt;::cartographer::mapping::GlobalTrajectoryBuilderInterface&gt;</div><div class="line">      trajectory_builder_ GUARDED_BY(mutex_);</div></pre></td></tr></table></figure>
+<p>GlobalTrajectoryBuilderInterface 定义在 “./mapping/global_trajectory_builder_interface.h”。</p>
+<p>可以在 void Node::Initialize() 中看到 trajectory<em>builder</em> 的初始化，初始化和使用三维激光或二维激光有关。对于二维激光是使用 ::cartographer::mapping_2d::GlobalTrajectoryBuilder 初始化的。</p>
+<p>GlobalTrajectoryBuilder 定义在 “./mapping_2d/global_trajectory_builder.h”。</p>
+<h3 id="cartographer-mapping-2d-global-trajectory-builder-h"><a href="#cartographer-mapping-2d-global-trajectory-builder-h" class="headerlink" title="./cartographer/mapping_2d/global_trajectory_builder.h"></a>./cartographer/mapping_2d/global_trajectory_builder.h</h3><p>找到 void GlobalTrajectoryBuilder::AddHorizontalLaserFan(…) 的实现部分。可以看到激光数据被 local_trajectory<em>builder</em> 的函数 AddHorizontalLaserFan 接收使用了。local_trajectory<em>builder</em> 使用的结果传入了 sparse_pose<em>graph</em> 的函数 AddScan。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">SparsePoseGraph* const sparse_pose_graph_;</div><div class="line">LocalTrajectoryBuilder local_trajectory_builder_;</div></pre></td></tr></table></figure>
+<p>SparsePoseGraph 定义在 “./mapping_2d/sparse_pose_graph.h”，字面理解就是做图优化了，这个头文件中说明了这个类实现的是一篇文章的 Sparse Pose Adjustment。</p>
+<blockquote>
+<p>Konolige, Kurt, et al. “Efficient sparse pose adjustment for 2d mapping.” Intelligent Robots and Systems (IROS), 2010 IEEE/RSJ International Conference on (pp. 22–29). IEEE, 2010.</p>
+</blockquote>
+<p>LocalTrajectoryBuilder 定义在 “./mapping_2d/lobal_trajectory_builder.h”。</p>
+<h3 id="cartographer-mapping-2d-lobal-trajectory-builder-h"><a href="#cartographer-mapping-2d-lobal-trajectory-builder-h" class="headerlink" title="./cartographer/mapping_2d/lobal_trajectory_builder.h"></a>./cartographer/mapping_2d/lobal_trajectory_builder.h</h3><p>这里是比较重要的核心部分。</p>
+<p>找到函数 AddHorizontalLaserFan，主要的流程是：1）Kalman Filter 根据时间预测 pose；2）将 pose 预测的结果代入 ScanMatch；3）将 ScanMatch 的结果更新 Kalman Filter 状态值；4）更新 submaps_。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">// 1）</div><div class="line">transform::Rigid3d pose_prediction;</div><div class="line">kalman_filter::PoseCovariance covariance_prediction;</div><div class="line">pose_tracker_-&gt;GetPoseEstimateMeanAndCovariance(time, &amp;pose_prediction,                                      &amp;covariance_prediction);</div><div class="line">// 2）</div><div class="line">transform::Rigid3d pose_observation;</div><div class="line">kalman_filter::PoseCovariance covariance_observation;</div><div class="line">ScanMatch(time, pose_prediction, tracking_to_tracking_2d,</div><div class="line">          laser_fan_in_tracking_2d, &amp;pose_observation,</div><div class="line">          &amp;covariance_observation);</div><div class="line">// 3）</div><div class="line">  kalman_filter::PoseCovariance covariance_estimate;</div><div class="line">pose_tracker_-&gt;GetPoseEstimateMeanAndCovariance(</div><div class="line">    time, &amp;scan_matcher_pose_estimate_, &amp;covariance_estimate);</div></pre></td></tr></table></figure>
+<p>分析 ScanMatch 函数，函数头如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">void LocalTrajectoryBuilder::ScanMatch(</div><div class="line">    common::Time time, const transform::Rigid3d&amp; pose_prediction,</div><div class="line">    const transform::Rigid3d&amp; tracking_to_tracking_2d,</div><div class="line">    const sensor::LaserFan&amp; laser_fan_in_tracking_2d,</div><div class="line">    transform::Rigid3d* pose_observation,</div><div class="line">    kalman_filter::PoseCovariance* covariance_observation);</div></pre></td></tr></table></figure>
+<p>函数体里面将传入的数据点进行 Voxel Filter，从字面意思上理解就是使得在同一 voxel 中只出现一个点。进行一次 online correlative scan matcher，从传入的参数看，这个过程就是在初始 pose 附近生成一些 pose，计算数据点在这些 pose 下与已有 Occupancy Grid Map 的相关系数，最后用相关系数最高的 pose 更新初始 pose。（Particle Filter）当然从道理上讲，初始 pose 也需要计算相关系数，一起进行比对。</p>
+<p>最后利用前面的到的初始 pose 使用 Ceres 进行优化。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">void LocalTrajectoryBuilder::ScanMatch(...) &#123;</div><div class="line">...</div><div class="line">  if (options_.use_online_correlative_scan_matching()) &#123;</div><div class="line">    real_time_correlative_scan_matcher_.Match(</div><div class="line">        pose_prediction_2d, filtered_point_cloud_in_tracking_2d,</div><div class="line">        probability_grid, &amp;initial_ceres_pose);</div><div class="line">  &#125;</div><div class="line">...</div><div class="line">  ceres_scan_matcher_.Match(</div><div class="line">      transform::Project2D(scan_matcher_pose_estimate_ *</div><div class="line">                           tracking_to_tracking_2d.inverse()),</div><div class="line">      initial_ceres_pose, filtered_point_cloud_in_tracking_2d, probability_grid,</div><div class="line">      &amp;tracking_2d_to_map, &amp;covariance_observation_2d, &amp;summary);</div><div class="line">...</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="cartographer-mapping-2d-scan-matching-ceres-scan-matcher-h"><a href="#cartographer-mapping-2d-scan-matching-ceres-scan-matcher-h" class="headerlink" title="./cartographer/mapping_2d/scan_matching/ceres_scan_matcher.h"></a>./cartographer/mapping_2d/scan_matching/ceres_scan_matcher.h</h3><p>里面 Ceres 的调用代码看不懂，这个可以在掌握 cartographer 结构之后去看 Ceres 的文档。</p>
+<p>现在看来，Ceres 优化的目标函数包括 OccupiedSpaceCost （scan 与 Occupancy Grid Map 不对应引起的代价）、TranslationDeltaCost （位移引起的代价）、RotationDeltaCost （旋转引起的代价）。初略看 Ceres 的介绍文档，优化目标是最小化这些代价函数的和。</p>
+</div></div><div class="post-main post-comment"></div></article><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.css"><script src="//cdn.bootcss.com/jquery/2.0.3/jquery.min.js"></script><script src="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.pack.js"></script><script>$(document).ready(function() {
+    $(".fancybox").fancybox();
+});
+</script></body></html>

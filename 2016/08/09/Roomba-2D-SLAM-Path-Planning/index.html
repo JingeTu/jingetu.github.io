@@ -1,36 +1,85 @@
-extends base
-
-block title
-  title= page.title + " | " + config.title
-
-block main
-
-  // gallery that comes before the header
-  if page.photos
-     if page.photos.length
-      .article-gallery
-        .article-gallery-photos.container
-          for photo in page.photos
-            a.article-gallery-img.fancybox(href=url_for(photo), rel="gallery_" + page._id)
-              img(src=url_for(photo), itemprop="image")
-
-  article.wrapper
-    .post-main
-      .nav
-        nav.container
-          each nav, name in theme.menu
-            +a_with_current(nav, __(name))
-        .container.post-meta
-          if (page.tags && page.tags.length)
-            .post-tags
-              != list_tags(page.tags, {show_count: false, class: 'post-tag', style:'none', separator:''})
-          .post-time= page.date.format(config.date_format)
-
-      .container.post-header
-        h1: = page.title
-
-      .container.post-content
-        != page.content
-
-    .post-main.post-comment
-      include _partial/comments
+<!DOCTYPE html><html><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description" content="Jinge's Blog on Github"><title>Roomba (2D SLAM &amp;&amp; Path Planning) | Jinge's Blog</title><link rel="stylesheet" type="text/css" href="/css/normalize.css"><link rel="stylesheet" type="text/css" href="/css/highlight.css"><link rel="stylesheet" type="text/css" href="/css/noise.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/font-awesome/4.5.0/css/font-awesome.min.css"><link rel="Shortcut Icon" type="image/x-icon" href="/favicon.ico"><link rel="stylesheet" type="text/css" href="//fonts.useso.com/css?family=Lato"></head><body><!-- gallery that comes before the header--><article class="wrapper"><div class="post-main"><div class="nav"><nav class="container"><a href="/" class="sidebar-nav-item active">Home</a><a href="/archives" class="sidebar-nav-item">Archives</a></nav><div class="container post-meta"><div class="post-tags"><a class="post-tag-link" href="/tags/robotics/">robotics</a></div><div class="post-time">2016-08-09</div></div></div><div class="container post-header"><h1>Roomba (2D SLAM &amp;&amp; Path Planning)</h1></div><div class="container post-content"><p>扫地机器人是可自主运动的机器人，功能是通过传感器（sensors）感知外界环境，通过控制器（actuators）运动于整个外界环境，达到清理所有可感知外界地面的功能。</p>
+<p>其传感器是单线激光扫描仪，安装尽可能保证激光扫描仪的扫描平面与机器人地盘平行。</p>
+<p>整个扫地机器人工作时的计算任务包括 <code>SLAM</code> 和 <code>路径规划</code> 两个部分。其中<code>SLAM</code>部分包括 <code>Tracking</code> 和 <code>Mapping</code> 两个小部分。</p>
+<a id="more"></a>
+<h2 id="扫地机器人搭载设备"><a href="#扫地机器人搭载设备" class="headerlink" title="扫地机器人搭载设备"></a>扫地机器人搭载设备</h2><p>扫地机器人上安装的与其自动寻路相关设备包括两个部分传感器、控制器。</p>
+<h3 id="传感器"><a href="#传感器" class="headerlink" title="传感器"></a>传感器</h3><p>传感器前面已经说到，最重要的部分是单线激光扫描仪，可以依据情况增加其他传感器用于辅助，但按成本考虑，一般只安装单线激光扫描仪。</p>
+<p>大多数单线激光扫描仪的覆盖角度是 270 度，角度分辨率为 0.5 度或 0.25 度。下图表示的是扫描仪一次扫描的数据（scan）。如果角度分辨率为 0.5 度，那么一次扫描提供 541 个长度数据对应 541 个点，如果角度分辨率为 0.25 度，那么一次扫描提供 1081 个长度数据对应 1081 个点。当然扫地机器人的激光扫描仪角度分辨率出于成本考虑不会有这么高。</p>
+<p><img src="http://7xqfkw.com1.z0.glb.clouddn.com/2016-08-13-14707135471036.jpg" alt=""></p>
+<h3 id="控制器"><a href="#控制器" class="headerlink" title="控制器"></a>控制器</h3><p>控制器是主要指机器人的轮子，控制器要能够控制机器人运动，同时也需要给出控制数据。仅通过给出的控制数据计算机器人 POSE 的过程叫做 <code>Odometry</code>。具体的 <code>Odometry</code> 过程请参照 <em>Probabilistic Robotics</em> 第五章 <em>Robot Motion</em>。</p>
+<p>可以假设扫地机器人的工作环境是一个平面，不存在倾斜地板与高程的变化。所以机器人在环境中的位置可以使用三个参数表示 $[x,y,\theta]$，其中 $x,y$ 表示机器人的平面位置，$\theta$ 表示机器人的正面朝向（姿态）。</p>
+<p>按照 <code>Odometry</code> 方式的不同，给出的控制数据有两种形式：</p>
+<ol>
+<li>给出固定时间内位移的距离 $L$ 和旋转的方向 $\theta$，也就是机器人在给出控制参数之前已经进行了积分操作；</li>
+<li>给出在某时刻的位移速度 $v$ 和旋转速度 $\omega$，机器人以较高的固定频率给出这两个控制参数，一般为50Hz左右。</li>
+</ol>
+<p>第二种方式优于第一种方式，第二种方式也是更常见的方式。</p>
+<h2 id="扫地机器人计算任务"><a href="#扫地机器人计算任务" class="headerlink" title="扫地机器人计算任务"></a>扫地机器人计算任务</h2><h3 id="SLAM"><a href="#SLAM" class="headerlink" title="SLAM"></a>SLAM</h3><h4 id="Occupancy-Grid-Map-Mapping-过程"><a href="#Occupancy-Grid-Map-Mapping-过程" class="headerlink" title="Occupancy Grid Map - Mapping 过程"></a>Occupancy Grid Map - Mapping 过程</h4><p>在工作中机器人会构建其所在环境的地图，供路径规划使用。地图是格网地图，即将其所在环境平面进行格网化（依据实际功能与计算资源设定格网大小）。</p>
+<p>格网地图中所有的格子都有数字对应，对于路径规划而言，格子中的数字有2种，非 0 即 1，0 表示格子处有障碍物且不可通过，1 表示格子处空闲且可通过。</p>
+<p>对于 SLAM 而言，格子中的数字是 <code>float</code> 类型，是根据从开机到现在的所有传感器数据和控制器数据计算得到格子处的 <code>log(odd)</code>。<code>log(odd)</code> 不是概率，它是由概率计算得到的数字，可以反映概率，但是不可以直接当作概率是用。SLAM 过程中使用的地图如下图所示，这个地图被称作 <code>Occupancy Grid Map</code>。</p>
+<p><img src="http://7xqfkw.com1.z0.glb.clouddn.com/2016-08-13-14707122315525.jpg" alt="14707122315525"></p>
+<p>SLAM 要做的事情就是依据各时刻单线激光扫描仪得到的测量数据（测量值，用 $u$ 表示）和控制器得到的控制数据(控制值，$z$ 表示)，构建出 <code>Occupancy Grid Map</code>。</p>
+<p>整个构建过程是在每一个时刻，向这个过程输入测量值 $u$ 和机器人 POSE $[x,y,\theta]$。且认为机器人的 POSE 不含有误差，当作真值使用。</p>
+<p>注：为叙述方便，假设使用的单线扫描仪角度分辨率为 0.25 度，即每次扫描提供 1081 个距离。</p>
+<p>这个过程涉及到测量坐标（以 m 为单位）到像素坐标（以 pixel 为单位）的转换。过程步骤如下：</p>
+<p>第一步，通过 POSE $[x,y,\theta]$ 计算得到机器人在格网地图中的位置和姿态。<br>第二步，使用测量值 $u$ 的 1081 个距离计算得到所有被占用的格子（这些格子的数量小于等于 1081，因为存在多个点计算得到同一个格子）。随后用这些格子和机器人所在格子连线，求得激光线经过的格子。下图中红叉表示机器人所在格子，黄色点表示被占用格子，浅蓝色格子表示空闲格子。</p>
+<p><img src="http://7xqfkw.com1.z0.glb.clouddn.com/2016-08-13-14707183233068.jpg" alt=""></p>
+<p>第三步，依据上面得到的被占用格子和空闲格子对 <code>Occupancy Grid Map</code> 进行更新。更新过程如下面截图所示。被占用的格子数值增加一个正数，空闲格子数值减少一个正数。当数值超出范围时，将数值拉回最小值或最大值。以这种方式更新下去，有障碍物的被占用的格子数值会达到最大值，而空闲的格子数值会达到最小值。图中的 $log(odd_occ), log(odd_free)$ 是使用贝叶斯理论计算出来的定值，在计算的过程中涉及到真实世界格子被占用或空闲时，机器人检测到格子被占用和空闲的概率。 </p>
+<p><img src="http://7xqfkw.com1.z0.glb.clouddn.com/2016-08-13-14707186549823.jpg" alt=""></p>
+<p>Mapping 过程至此结束。</p>
+<h4 id="Tracking-过程"><a href="#Tracking-过程" class="headerlink" title="Tracking 过程"></a>Tracking 过程</h4><p>Tracking 是确定在每一个测量时刻机器人在已经建立的地图中的 POSE 的过程。</p>
+<p>Tracking 过程的输入是控制值 $u=[v, \omega]^T$ 和测量值 $z$。</p>
+<p>t 时刻的Tracking过程如下：</p>
+<p>首先，进行 <code>Odometry</code>。即通过 $u=[v, \omega]^T$ 和时间间隔 $\Delta t$ ，在 t-1 时刻机器人的 POSE $x_{t-1}$ 的基础上计算得到 t 时刻机器人机器人的 POSE  $\hat{x_t}$。注：$x_t$ 上的 $\hat{}$ 表面得到的并不是可靠的 POSE，是一个初始值，后面需要使用测量值 $z$ 对这个 POSE 进行优化。</p>
+<p>然后，进行 <code>Map Registration</code>。即使用测量值 $z$ 和现有的 <code>Occupancy Grid Map</code> 确定 t 时刻机器人的POSE，当然这个过程使用前面 <code>Odometry</code> 过程得到的 $\hat{x_t}$ 作为初始值。这个过程使用 <code>Particle Filter</code> 方法。</p>
+<p><code>Map Registration</code> 第一步。将 $\hat{x_t}$ 进行 <code>Sample</code>，得到得到一系列的 POSE，每一个 POSE 都被称作为一个 Particle，Particle 数量越大效果越好，但数量影响计算量，在实验过程可以用大数量，在实际使用过程中最好使用100以下的 Particle。这个过程的根据是控制值存在误差，所以得到的 POSE 并准确，真实的 POSE 存在于 $\hat{x_t}$ 的附近。</p>
+<p><code>Map Registration</code> 第二步。使用 <code>Sample</code> 得到的这些 POSE，与测量值 $z$ 计算每一个 POSE 对应的被占用格子。这些 POSE 计算得到的被占用格子与当前<code>Occupancy Grid Map</code> 进行相关系数计算。被占用格子匹配得愈好相关系数越大，相关系数最大的那个 POSE 作为 t 时刻的 POSE $x_t$。<br>注：实际上 $x_t$ 只是与真实的 POSE 很接近，不可能完全等于真实的 POSE。在实际计算过程中，因为计算资源有限，所以对于每一个 POSE 并不计算1081个测量距离对应的被占用格子，而是每隔几十个测量距离，计算一次被占用格子。</p>
+<p><img src="http://7xqfkw.com1.z0.glb.clouddn.com/2016-08-13-14707206336787.jpg" alt=""></p>
+<p><code>Map Registration</code> 第三步。<code>Particle Filter</code> 过程，使用上一步得到的相关系数对所有的 Particle 赋予权值，这些权值可以理解为真实 POSE 在为这些 Particle 的概率。毕竟这些权值的和为1。这些 Particle 的数量会在每次 Sample 过程中增加，当达到一定条件需要进行 Resample 操作，去除那些低权值的 Particle。</p>
+<h3 id="路径规划"><a href="#路径规划" class="headerlink" title="路径规划"></a>路径规划</h3><p>SLAM 过程得到了网格地图，指示了网格中哪些格子是被占用，不可通过的。这些网格地图输入路径规划过程的频率小于等于 SLAM 的 Mapping 过程，所以这些输入的地图大部分都不是完整的地图，整个空间并没有被完全探测。但是因为 SLAM 过程得到的 <code>Occupancy Grid Map</code> 不仅指明了被占用的格子，也指明了激光可以通过的空闲格子。</p>
+<p>在路径规划中机器人所能到达的位置是由空闲格子确定的。</p>
+<p>路径规划过程可大致分为为建立 <code>Configuration Space</code> 与 <code>Path Planning</code>。</p>
+<p>路径规划不仅是对机器人位置的规划，也包括对机器人姿态的规划。如果将机器人的位置和姿态组成一个空间，路径规划可以看做是规划在这个空间中一个点的运动路径，这样就将机器人的位置、姿态规划转化成了更高维空间的路径规划（质点移动规划）。</p>
+<p>在扫地机器人的实际情况下，如果机器人是对地面进行一次清洁。路径规划选择的终点应该是在靠近障碍物格子不能闭合的位置，且终点应该落在已经被激光确定为空闲的格子。在路径规划之上应考虑机器人的历史轨迹、历史覆盖区域。</p>
+<h4 id="构建-Configuration-Space"><a href="#构建-Configuration-Space" class="headerlink" title="构建 Configuration Space"></a>构建 Configuration Space</h4><p>因为扫地机器人的 POSE 为三维变量 $[x,y,\theta]$，所以在这个问题下 Configuration Space 是一个三维空间。</p>
+<p>在实际问题中机器人一般不能看做是一个质点，至少在扫地机器人这个问题上机器人是有一定占地面积和形状的。</p>
+<p>为叙述问题方便，三维空间降维为二维空间，即认为扫地机器人的姿态固定。下图中左侧的图表，黑色表示二维空间中的障碍物，红色表示运动的机器人，将机器人的面积与形状纳入考虑范围，可以得到右侧的 Configuration Space。右侧的 Configuration Space 白色区域表示的是机器人顶部的那一个点所能达到的位置。</p>
+<p><img src="http://7xqfkw.com1.z0.glb.clouddn.com/2016-08-13-14707227431185.jpg" alt=""></p>
+<p>我认为将扫地机器人形状固定为圆柱体，有助于减少构建 Configuration Space 时计算资源。</p>
+<h4 id="Path-Planning"><a href="#Path-Planning" class="headerlink" title="Path Planning"></a>Path Planning</h4><h5 id="最短路径求解"><a href="#最短路径求解" class="headerlink" title="最短路径求解"></a>最短路径求解</h5><p>最短路径求解问题使用的算法常用的有 Grassfire、Dijkstra、A*。</p>
+<p>Grassfire 计算量大，但是它能够在找到最短路径的同时找到所有可能的路径。整个计算过程如同燎原之火，从起点向四周扩散去找到终点。</p>
+<p><img src="http://7xqfkw.com1.z0.glb.clouddn.com/2016-08-13-14707236890510.jpg" alt=""></p>
+<p>Dijkstra 保证能够找到最短路径，但是由于保证找到的是最短路径，所以计算量依旧比较大。</p>
+<p>A* 能够找到一条较短的路径，但是不能够保证是最短路径，计算量比较小。可以看做是有方向性的 Grassfire。</p>
+<h5 id="两种简单的路径求解方法"><a href="#两种简单的路径求解方法" class="headerlink" title="两种简单的路径求解方法"></a>两种简单的路径求解方法</h5><p>两种简单的路径求解方法。如下面两个图所示。</p>
+<p><img src="http://7xqfkw.com1.z0.glb.clouddn.com/2016-08-13-14707240821412.jpg" alt=""></p>
+<p><img src="http://7xqfkw.com1.z0.glb.clouddn.com/2016-08-13-14707241303904.jpg" alt=""></p>
+<p>第一张图是将这些障碍物的边缘角点连线，在连线的过程中需要注意不能使连线穿越障碍物。将边缘角点看做是 node，连线看做是 edge，使用 Dijkstra 可以计算出最短路径。</p>
+<p>第二张图中绿色的点是这些梯形的重心，通过不断寻找相邻梯形，可以找到一条通过目的地的路径。但是这种方式需要满足障碍物是凸多边形，并不容易使用。但是这种方式得到的结果尽可能远离障碍物，碰撞可能性最低。</p>
+<h5 id="Probabilistic-Road-Maps"><a href="#Probabilistic-Road-Maps" class="headerlink" title="Probabilistic Road Maps"></a>Probabilistic Road Maps</h5><p><img src="http://7xqfkw.com1.z0.glb.clouddn.com/2016-08-13-14707257717164.jpg" alt=""></p>
+<p>这个方法里面使用到了随机。方法的大致流程是在 Configuration Space 中不断随机选取空闲区域的点，每一个点生成的时候都会去寻找与它最近的 k 个点（待选点包括前面选取的随机点，也包括起点和终点），并进行连线，当然这其中涉及到连线是否穿越障碍物的检测。最终能够将起点和终点连接起来。具体的方法见下图。</p>
+<p><img src="http://7xqfkw.com1.z0.glb.clouddn.com/2016-08-13-14707259863399.jpg" alt=""></p>
+<p>对于路径不存在的情况，这个方法经过 n 次循环没有找到结果就结束了，认为路径不存在。算法认为的路径不存在并不能保证路径不存在。</p>
+<p>对于下图的情况，因为中间一条狭小的通道在所有空闲空间中所在面积狭小，所以随机选取的点落在通道中的概率有限，所以对于这种情况很有可能在经过 n 次循环后算法直接给出路径不存在的结论。这个算法可以进行改进，增加随机点落在障碍物附近的概率。</p>
+<p><img src="http://7xqfkw.com1.z0.glb.clouddn.com/2016-08-13-14707261865471.jpg" alt=""></p>
+<h5 id="Rapidly-Exploring-Random-Trees"><a href="#Rapidly-Exploring-Random-Trees" class="headerlink" title="Rapidly Exploring Random Trees"></a>Rapidly Exploring Random Trees</h5><p><img src="http://7xqfkw.com1.z0.glb.clouddn.com/2016-08-13-14707270006027.jpg" alt=""></p>
+<p>这个方法的优点是生成的树能够重复利用，能够解决多次路径寻找问题。大致的步骤是，在空闲区域随机产生点，找到已经在树上离它最近的点（保证两点连线不经过障碍物）。如果两个点的距离小于阈值，直接将新生成的点作为离它最近点的子节点加入到树中；如果与距离大于阈值，在连线上找一点替代新生成的点，与树的那一点连线（保证新的连线距离小于阈值），加入到树中。</p>
+<p>树不断生长能够覆盖整个空闲区域，方便多次路径规划。</p>
+<p><img src="http://7xqfkw.com1.z0.glb.clouddn.com/2016-08-13-14707269438673.jpg" alt=""></p>
+<h5 id="Gradient-Based-Planner"><a href="#Gradient-Based-Planner" class="headerlink" title="Gradient Based Planner"></a>Gradient Based Planner</h5><p>上面的方法适用的情况都是障碍物的轮廓清晰，能够用矢量的方式描述。而在扫地机器人的问题上，SLAM 过程输入给路径规划过程的地图是栅格地图。</p>
+<p>现在介绍的方法为栅格的 Configuration Space 设计。</p>
+<p>整体思想是在 Configuration Space 建立势场，通过势能的逐步降低找到路径。</p>
+<p>建立第一个势场，离终点越近势能越低，具体使用距离或距离平方作为势能都可以。建立的势场如下图所示，终点的位置就是颜色最深处。</p>
+<p><img src="http://7xqfkw.com1.z0.glb.clouddn.com/2016-08-13-14707281910722.jpg" alt=""></p>
+<p>建立第二个势场，离障碍物越近势能越高。下面两张图第一张是实际的 Configuration Space，第二张是依照这种方法建立的势场。</p>
+<p><img src="http://7xqfkw.com1.z0.glb.clouddn.com/2016-08-13-14707283842557.jpg" alt=""></p>
+<p><img src="http://7xqfkw.com1.z0.glb.clouddn.com/2016-08-13-14707285442296.jpg" alt=""></p>
+<p>现在将这两个势场合并成为一个势场，使用加权平均的方法，如果认为避撞比效率更重要可以提高第二个势场的权重。合并的势场如图所示。</p>
+<p><img src="http://7xqfkw.com1.z0.glb.clouddn.com/2016-08-13-14707289438142.jpg" alt=""></p>
+<p>依据合并的势场和起点，通过梯度下降的方式求得路径。</p>
+<p>但是这种方式合并生成的势场存在 local minima，需要注意对 local minima 的处理。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p>[1] Coursera 专项课程 <a href="https://www.coursera.org/specializations/robotics" target="_blank" rel="external">Robotics</a>。<br>[2] Thrun S, Burgard W, Fox D. Probabilistic robotics[M]. MIT press, 2005.</p>
+</div></div><div class="post-main post-comment"></div></article><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.css"><script src="//cdn.bootcss.com/jquery/2.0.3/jquery.min.js"></script><script src="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.pack.js"></script><script>$(document).ready(function() {
+    $(".fancybox").fancybox();
+});
+</script></body></html>

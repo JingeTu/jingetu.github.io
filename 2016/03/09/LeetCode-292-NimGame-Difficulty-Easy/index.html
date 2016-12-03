@@ -1,36 +1,18 @@
-extends base
-
-block title
-  title= page.title + " | " + config.title
-
-block main
-
-  // gallery that comes before the header
-  if page.photos
-     if page.photos.length
-      .article-gallery
-        .article-gallery-photos.container
-          for photo in page.photos
-            a.article-gallery-img.fancybox(href=url_for(photo), rel="gallery_" + page._id)
-              img(src=url_for(photo), itemprop="image")
-
-  article.wrapper
-    .post-main
-      .nav
-        nav.container
-          each nav, name in theme.menu
-            +a_with_current(nav, __(name))
-        .container.post-meta
-          if (page.tags && page.tags.length)
-            .post-tags
-              != list_tags(page.tags, {show_count: false, class: 'post-tag', style:'none', separator:''})
-          .post-time= page.date.format(config.date_format)
-
-      .container.post-header
-        h1: = page.title
-
-      .container.post-content
-        != page.content
-
-    .post-main.post-comment
-      include _partial/comments
+<!DOCTYPE html><html><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description" content="Jinge's Blog on Github"><title>LeetCode #292 NimGame (Difficulty: Easy) | Jinge's Blog</title><link rel="stylesheet" type="text/css" href="/css/normalize.css"><link rel="stylesheet" type="text/css" href="/css/highlight.css"><link rel="stylesheet" type="text/css" href="/css/noise.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/font-awesome/4.5.0/css/font-awesome.min.css"><link rel="Shortcut Icon" type="image/x-icon" href="/favicon.ico"><link rel="stylesheet" type="text/css" href="//fonts.useso.com/css?family=Lato"></head><body><!-- gallery that comes before the header--><article class="wrapper"><div class="post-main"><div class="nav"><nav class="container"><a href="/" class="sidebar-nav-item active">Home</a><a href="/archives" class="sidebar-nav-item">Archives</a></nav><div class="container post-meta"><div class="post-tags"><a class="post-tag-link" href="/tags/leetcode/">leetcode</a></div><div class="post-time">2016-03-09</div></div></div><div class="container post-header"><h1>LeetCode #292 NimGame (Difficulty: Easy)</h1></div><div class="container post-content"><p>问题 :</p>
+<blockquote>
+<p>You are playing the following Nim Game with your friend: There is a heap of stones on the table, each time one of you take turns to remove 1 to 3 stones. The one who removes the last stone will be the winner. <strong>You will take the first turn to remove the stones.</strong></p>
+<p>Both of you are very clever and have optimal strategies for the game. Write a function to determine whether you can win the game given the number of stones in the heap.</p>
+<p>For example, if there are 4 stones in the heap, then you will never win the game: no matter 1, 2, or 3 stones you remove, the last stone will always be removed by your friend.</p>
+</blockquote>
+<a id="more"></a>
+<p><a href="https://leetcode.com/problems/nim-game/" target="_blank" rel="external">原题链接</a></p>
+<p>关键在右4个石头在场的时候，你（先手）不可能赢。因为你只能拿1、2、3个石头，对方对应这三种情况，可以分别拿3、2、1个石头打败你。</p>
+<p>对于理智的人来说，想要赢得比赛，需要将最后的局面控制在4个石头，而对方先手。</p>
+<p>同样可以推广到，不论多少个石头，只要一方使得对方在每次只剩4n个石头的时候先手，这一方就能够获胜。因为做到这一点，可以不断地逼迫对手，直到最后只剩4个石头的时候，对方先手。</p>
+<p>所以，最终的答案是如果初始石头的数量能够被4整除， you （先手）不能够获得胜利。</p>
+<p>C++ :</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">class Solution &#123;</div><div class="line">public:</div><div class="line">    bool canWinNim(int n) &#123;</div><div class="line">        if(n%4 == 0) return false;</div><div class="line">        else return true;</div><div class="line">    &#125;</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+</div></div><div class="post-main post-comment"></div></article><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.css"><script src="//cdn.bootcss.com/jquery/2.0.3/jquery.min.js"></script><script src="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.pack.js"></script><script>$(document).ready(function() {
+    $(".fancybox").fancybox();
+});
+</script></body></html>

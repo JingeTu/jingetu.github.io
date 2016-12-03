@@ -1,36 +1,28 @@
-extends base
-
-block title
-  title= page.title + " | " + config.title
-
-block main
-
-  // gallery that comes before the header
-  if page.photos
-     if page.photos.length
-      .article-gallery
-        .article-gallery-photos.container
-          for photo in page.photos
-            a.article-gallery-img.fancybox(href=url_for(photo), rel="gallery_" + page._id)
-              img(src=url_for(photo), itemprop="image")
-
-  article.wrapper
-    .post-main
-      .nav
-        nav.container
-          each nav, name in theme.menu
-            +a_with_current(nav, __(name))
-        .container.post-meta
-          if (page.tags && page.tags.length)
-            .post-tags
-              != list_tags(page.tags, {show_count: false, class: 'post-tag', style:'none', separator:''})
-          .post-time= page.date.format(config.date_format)
-
-      .container.post-header
-        h1: = page.title
-
-      .container.post-content
-        != page.content
-
-    .post-main.post-comment
-      include _partial/comments
+<!DOCTYPE html><html><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description" content="Jinge's Blog on Github"><title>LeetCode #283 Move Zeroes (Difficulty: Easy) | Jinge's Blog</title><link rel="stylesheet" type="text/css" href="/css/normalize.css"><link rel="stylesheet" type="text/css" href="/css/highlight.css"><link rel="stylesheet" type="text/css" href="/css/noise.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/font-awesome/4.5.0/css/font-awesome.min.css"><link rel="Shortcut Icon" type="image/x-icon" href="/favicon.ico"><link rel="stylesheet" type="text/css" href="//fonts.useso.com/css?family=Lato"></head><body><!-- gallery that comes before the header--><article class="wrapper"><div class="post-main"><div class="nav"><nav class="container"><a href="/" class="sidebar-nav-item active">Home</a><a href="/archives" class="sidebar-nav-item">Archives</a></nav><div class="container post-meta"><div class="post-tags"><a class="post-tag-link" href="/tags/leetcode/">leetcode</a></div><div class="post-time">2016-03-09</div></div></div><div class="container post-header"><h1>LeetCode #283 Move Zeroes (Difficulty: Easy)</h1></div><div class="container post-content"><p>问题 :</p>
+<blockquote>
+<p>Given an array nums, write a function to move all 0’s to the end of it while maintaining the relative order of the non-zero elements.</p>
+<p>For example, given nums = [0, 1, 0, 3, 12], after calling your function, nums should be [1, 3, 12, 0, 0].</p>
+<p>Note:</p>
+<ol>
+<li>You must do this in-place without making a copy of the array.</li>
+<li>Minimize the total number of operations.</li>
+</ol>
+</blockquote>
+<a id="more"></a>
+<p><a href="https://leetcode.com/problems/move-zeroes/" target="_blank" rel="external">原题链接</a></p>
+<p>对于这道题目，最先想到的方法，是找到数组里面有多少个0，把它们删了，然后在最后加上这些0。</p>
+<p>C++ : </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line">class Solution &#123;</div><div class="line">public:</div><div class="line">    void moveZeroes(vector&lt;int&gt;&amp; nums) &#123;</div><div class="line">        vector&lt;int&gt;::iterator it = nums.begin();</div><div class="line">        int zeroCount = 0;</div><div class="line">        while(it != nums.end()) &#123;</div><div class="line">            if(*it == 0) &#123;</div><div class="line">                zeroCount ++;</div><div class="line">                nums.erase(it);</div><div class="line">                continue;</div><div class="line">            &#125;</div><div class="line">            it++;</div><div class="line">        &#125;</div><div class="line">        </div><div class="line">        while(zeroCount &gt; 0) &#123;</div><div class="line">            nums.push_back(0);</div><div class="line">            zeroCount--;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+<p>对于 C++ 的 std::vector 这种方法或许可以，但是这种方法建立在可以随意删除数组中任何元素的基础上，对 vector 进行这样的处理更像是对链表的处理。如果中途删去的很多的0， vector 的 capacity 发生改变，就会发生拷贝数组的操作。所以以上的这个代码是错误的。</p>
+<p>下面这个是在<a href="https://leetcode.com/discuss/86152/one-loop-java-0ms-solution" target="_blank" rel="external">讨论区</a>里面找到的代码（我把它改成了C++的）：</p>
+<p>C++ :</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">class Solution &#123;</div><div class="line">public:</div><div class="line">    void moveZeroes(vector&lt;int&gt;&amp; nums) &#123;</div><div class="line">        int movings = 0;</div><div class="line"></div><div class="line">        for(int i = 0; i &lt; nums.size(); i++) &#123;</div><div class="line">            if (nums[i] == 0) &#123;</div><div class="line">                movings ++;</div><div class="line">                continue;</div><div class="line">            &#125; </div><div class="line"></div><div class="line">            if (movings &gt; 0) &#123;</div><div class="line">                nums[i - movings] = nums[i];</div><div class="line">                nums[i] = 0;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+<p>这个代码思路是，在数组里面找到0，然后通过移动后面的数字，来把0一步一步挪到最后。将0区域之后的一个数字和0区域的第一个数字对换位置，不断地进行这个操作，把0区域移动到最后。如果这个过程中遇到了0，那么循环的这一步不进行任何操作，只是将0区域的大小（代码中是 movings ）扩大1。</p>
+<p>也有人直接使用<a href="https://leetcode.com/discuss/91110/one-line-solution-using-stable_partition-stl-algorithm" target="_blank" rel="external"> stl 的函数</a>解决这个问题：</p>
+<p>C++ :</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">class Solution &#123;</div><div class="line">public:</div><div class="line">    void moveZeroes(vector&lt;int&gt;&amp; nums) &#123;</div><div class="line">        stable_partition(nums.begin(), nums.end(), [](int x) &#123;return x != 0;&#125;);</div><div class="line">    &#125;</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+<p>std::stable_partition 的API可以查看<a href="http://www.cplusplus.com/reference/algorithm/stable_partition/" target="_blank" rel="external">cplusplus.com</a>。</p>
+</div></div><div class="post-main post-comment"></div></article><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.css"><script src="//cdn.bootcss.com/jquery/2.0.3/jquery.min.js"></script><script src="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.pack.js"></script><script>$(document).ready(function() {
+    $(".fancybox").fancybox();
+});
+</script></body></html>

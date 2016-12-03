@@ -1,36 +1,17 @@
-extends base
-
-block title
-  title= page.title + " | " + config.title
-
-block main
-
-  // gallery that comes before the header
-  if page.photos
-     if page.photos.length
-      .article-gallery
-        .article-gallery-photos.container
-          for photo in page.photos
-            a.article-gallery-img.fancybox(href=url_for(photo), rel="gallery_" + page._id)
-              img(src=url_for(photo), itemprop="image")
-
-  article.wrapper
-    .post-main
-      .nav
-        nav.container
-          each nav, name in theme.menu
-            +a_with_current(nav, __(name))
-        .container.post-meta
-          if (page.tags && page.tags.length)
-            .post-tags
-              != list_tags(page.tags, {show_count: false, class: 'post-tag', style:'none', separator:''})
-          .post-time= page.date.format(config.date_format)
-
-      .container.post-header
-        h1: = page.title
-
-      .container.post-content
-        != page.content
-
-    .post-main.post-comment
-      include _partial/comments
+<!DOCTYPE html><html><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description" content="Jinge's Blog on Github"><title>LeetCode #238 Product of Array Except Self (Difficulty: Medium) | Jinge's Blog</title><link rel="stylesheet" type="text/css" href="/css/normalize.css"><link rel="stylesheet" type="text/css" href="/css/highlight.css"><link rel="stylesheet" type="text/css" href="/css/noise.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/font-awesome/4.5.0/css/font-awesome.min.css"><link rel="Shortcut Icon" type="image/x-icon" href="/favicon.ico"><link rel="stylesheet" type="text/css" href="//fonts.useso.com/css?family=Lato"></head><body><!-- gallery that comes before the header--><article class="wrapper"><div class="post-main"><div class="nav"><nav class="container"><a href="/" class="sidebar-nav-item active">Home</a><a href="/archives" class="sidebar-nav-item">Archives</a></nav><div class="container post-meta"><div class="post-tags"><a class="post-tag-link" href="/tags/leetcode/">leetcode</a></div><div class="post-time">2016-03-11</div></div></div><div class="container post-header"><h1>LeetCode #238 Product of Array Except Self (Difficulty: Medium)</h1></div><div class="container post-content"><p>问题 :</p>
+<blockquote>
+<p>Given an array of n integers where n &gt; 1, nums, return an array output such that output[i] is equal to the product of all the elements of nums except nums[i].</p>
+<p>Solve it without division and in O(n).</p>
+<p>For example, given [1,2,3,4], return [24,12,8,6].</p>
+<p>Follow up:<br>Could you solve it with constant space complexity? (Note: The output array does not count as extra space for the purpose of space complexity analysis.)</p>
+</blockquote>
+<a id="more"></a>
+<p><a href="https://leetcode.com/problems/product-of-array-except-self/" target="_blank" rel="external">原题链接</a></p>
+<p>这道题目有两个限制。第一，不能使用除法，杜绝了把所有数字相乘，随后逐个使用除法得到答案；第二，复杂度限制在 O(n) 限制了不能够使用嵌套的循环求解。</p>
+<p>对于嵌套的循环直接求解，很多乘法都是可以复用的。即可以创建两个数组，用于存储对输入数组，分别从左和从右求积，记录下各步的结果（左边1个元素、2个元素、3个元素…的积，右边1个元素、2个元素、3个元素…的积）。使用这两个数组中的元素两两求积可以得到最后的结果。</p>
+<p>C++ :</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line">class Solution &#123;</div><div class="line">public:</div><div class="line">    vector&lt;int&gt; productExceptSelf(vector&lt;int&gt;&amp; nums) &#123;</div><div class="line">        vector&lt;int&gt; leftProduct;</div><div class="line">        leftProduct.push_back(1);</div><div class="line">        vector&lt;int&gt; rightProduct;</div><div class="line">        rightProduct.push_back(1);</div><div class="line">        vector&lt;int&gt; outputProduct;</div><div class="line">        for(int i = 0; i &lt; nums.size() - 1; i++) &#123;</div><div class="line">            int product = nums[i]*leftProduct[leftProduct.size()-1];</div><div class="line">            leftProduct.push_back(product);</div><div class="line">        &#125;</div><div class="line">        for(int i = nums.size() - 1; i &gt; 0; i--) &#123;</div><div class="line">            int product = nums[i]*rightProduct[rightProduct.size()-1];</div><div class="line">            rightProduct.push_back(product);</div><div class="line">        &#125;</div><div class="line">        for(int i = 0; i &lt; nums.size(); i++) &#123;</div><div class="line">            outputProduct.push_back(leftProduct[i]*rightProduct[nums.size() - 1 - i]);</div><div class="line">        &#125;</div><div class="line">        return outputProduct;</div><div class="line">    &#125;</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+</div></div><div class="post-main post-comment"></div></article><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.css"><script src="//cdn.bootcss.com/jquery/2.0.3/jquery.min.js"></script><script src="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.pack.js"></script><script>$(document).ready(function() {
+    $(".fancybox").fancybox();
+});
+</script></body></html>

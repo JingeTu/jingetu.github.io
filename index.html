@@ -1,74 +1,32 @@
-extends base
-- var current_title = page.title || tag.name || category.name || site.title
-
-
-
-block title
-  title= config.title + " | " + config.subtitle
-
-block main
-
-    // Blog title and subtitle
-    header.wrapper.header
-      .container.blog-title
-        a#logo.title(href=url_for('.'))= config.title
-        span.subtitle= config.subtitle
-        label#toggle-menu(for="menu", onclick)
-          i.fa.fa-bars
-      // use checkbox hack for toggle nav-bar on small screens
-      input#menu(type="checkbox")
-      .container.nav-items
-        each nav, name in theme.menu
-          +a_with_current(nav, __(name))
-
-
-    article.wrapper
-      #index-main.container.entries
-        for post in page.posts.toArray()
-          .post-entry
-            .post-desc
-              .post-title
-                if post.link
-                    a(href=url_for(post.link),target="_blank", itemprop="url")= post.title
-                else
-                    a(href=url_for(post.path))= post.title
-
-              .post-content
-                if post.description
-                  != post.description
-                else if post.excerpt
-                  != post.excerpt
-                else if post.content
-                  - var br = post.content.indexOf('</p>')
-                  if br < 0
-                    != post.content
-                  else
-                    != post.content.substring(0, br + 4)
-
-              .post-meta
-                if (post.tags && post.tags.length)
-                  .post-tags
-                    != list_tags(post.tags, {show_count: false, class: 'post-tag', style:'none', separator:''})
-                .post-time= post.date.format(config.date_format)
-
-    include _partial/paginator.jade
-
-    footer.footer.wrapper
-      .social
-        +social_icon('email', "mailto:", "fa-envelope-o")
-        +social_icon('twitter', 'http://twitter.com/', 'fa-twitter')
-        +social_icon('weibo', 'http://weibo.com/', 'fa-weibo')
-        +social_icon('github', 'https://github.com/', 'fa-github')
-        +social_icon('googleplus', 'https://plus.google.com/', 'fa-google-plus')
-        +social_icon('rss', "", "fa-rss")
-
-      .footer-content
-        - var year = date(new Date(), 'YYYY');
-        = '© ' + year + ' '
-        a(href='/', rel='nofollow')= config.title
-        = '. Powered by '
-        a(rel='nofollow', target='_blank', href='https://hexo.io') Hexo
-        = '. Theme '
-        a(target='_blank', href='https://github.com/lotabout/hexo-theme-noise') noise
-        |.
-
+<!DOCTYPE html><html><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description" content="Jinge's Blog on Github"><title>Jinge's Blog | Jinge's Blog on Github</title><link rel="stylesheet" type="text/css" href="/css/normalize.css"><link rel="stylesheet" type="text/css" href="/css/highlight.css"><link rel="stylesheet" type="text/css" href="/css/noise.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/font-awesome/4.5.0/css/font-awesome.min.css"><link rel="Shortcut Icon" type="image/x-icon" href="/favicon.ico"><link rel="stylesheet" type="text/css" href="//fonts.useso.com/css?family=Lato"></head><body><!-- Blog title and subtitle--><header class="wrapper header"><div class="container blog-title"><a id="logo" href="/." class="title">Jinge's Blog</a><span class="subtitle">Jinge's Blog on Github</span><label id="toggle-menu" for="menu" onclick><i class="fa fa-bars"></i></label></div><!-- use checkbox hack for toggle nav-bar on small screens--><input id="menu" type="checkbox"><div class="container nav-items"><a href="/" class="sidebar-nav-item active">Home</a><a href="/archives" class="sidebar-nav-item">Archives</a></div></header><article class="wrapper"><div id="index-main" class="container entries"><div class="post-entry"><div class="post-desc"><div class="post-title"><a href="/2016/11/13/cartographer-ros-into-IDE-Debug/">cartographer_ros into IDE Debug</a></div><div class="post-content"><p>根据 cartographer_ros 的文档页面，按照 demo 的安装流程。<br><a href="https://google-cartographer-ros.readthedocs.io/en/latest/">https://google-cartographer-ros.readthedocs.io/en/latest/</a></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"># Install wstool and rosdep.</div><div class="line">sudo apt-get update</div><div class="line">sudo apt-get install -y python-wstool python-rosdep ninja-build</div><div class="line"></div><div class="line"># Create a new workspace in &apos;catkin_ws&apos;.</div><div class="line">mkdir catkin_ws</div><div class="line">cd catkin_ws</div><div class="line">wstool init src</div><div class="line"></div><div class="line"># Merge the cartographer_ros.rosinstall file and fetch code for dependencies.</div><div class="line">wstool merge -t src https://raw.githubusercontent.com/googlecartographer/cartographer_ros/master/cartographer_ros.rosinstall</div><div class="line">wstool update -t src</div><div class="line"></div><div class="line"># Install deb dependencies.</div><div class="line">rosdep init</div><div class="line">rosdep update</div><div class="line">rosdep install --from-paths src --ignore-src --rosdistro=$&#123;ROS_DISTRO&#125; -y</div></pre></td></tr></table></figure>
+<p>前面这些步骤都可以直接按照流程走。</p></div><div class="post-meta"><div class="post-tags"><a class="post-tag-link" href="/tags/robotics/">robotics</a></div><div class="post-time">2016-11-13</div></div></div></div><div class="post-entry"><div class="post-desc"><div class="post-title"><a href="/2016/10/29/googlecartographer-cartographer-源码分析/">googlecartographer/cartographer 源码分析</a></div><div class="post-content"><p>从这个 repo 的第一次 commit 版本进行会简单一些，因为一般软件代码是越来越复杂的。</p>
+<p>后面通过比对，证明初始版本的相关文件在最新版本中都存在。</p>
+<p>代码中存在很多线程操作（线程锁），还有一些相当于是 assertation 的代码。</p></div><div class="post-meta"><div class="post-tags"><a class="post-tag-link" href="/tags/robotics/">robotics</a></div><div class="post-time">2016-10-29</div></div></div></div><div class="post-entry"><div class="post-desc"><div class="post-title"><a href="/2016/08/09/Roomba-2D-SLAM-Path-Planning/">Roomba (2D SLAM &amp;&amp; Path Planning)</a></div><div class="post-content"><p>扫地机器人是可自主运动的机器人，功能是通过传感器（sensors）感知外界环境，通过控制器（actuators）运动于整个外界环境，达到清理所有可感知外界地面的功能。</p>
+<p>其传感器是单线激光扫描仪，安装尽可能保证激光扫描仪的扫描平面与机器人地盘平行。</p>
+<p>整个扫地机器人工作时的计算任务包括 <code>SLAM</code> 和 <code>路径规划</code> 两个部分。其中<code>SLAM</code>部分包括 <code>Tracking</code> 和 <code>Mapping</code> 两个小部分。</p></div><div class="post-meta"><div class="post-tags"><a class="post-tag-link" href="/tags/robotics/">robotics</a></div><div class="post-time">2016-08-09</div></div></div></div><div class="post-entry"><div class="post-desc"><div class="post-title"><a href="/2016/07/12/Kalman-Filter-Probabilistic-Robotics/">Kalman Filter (Probabilistic Robotics)</a></div><div class="post-content"><p>本文是阅读 《Probabilistic Robotics》 Chapter3 Gaussian Filters 的笔记。</p>
+<p>卡尔曼滤波可以看作是贝叶斯滤波在高斯分布下的特例。因为是高斯分布，所以卡尔曼滤波对应的状态值是连续的，而不是离散的。</p></div><div class="post-meta"><div class="post-tags"><a class="post-tag-link" href="/tags/robotics/">robotics</a></div><div class="post-time">2016-07-12</div></div></div></div><div class="post-entry"><div class="post-desc"><div class="post-title"><a href="/2016/07/12/Bayes-Filter-Probabilistic-Robotics/">Bayes Filter (Probabilistic Robotics)</a></div><div class="post-content"><p>本文是阅读 《Probabilistic Robotics》 Chapter2 Recursive State Estimation 的笔记。</p></div><div class="post-meta"><div class="post-tags"><a class="post-tag-link" href="/tags/robotics/">robotics</a></div><div class="post-time">2016-07-12</div></div></div></div><div class="post-entry"><div class="post-desc"><div class="post-title"><a href="/2016/03/21/IMU-误差与其产生原因/">IMU 误差与其产生原因</a></div><div class="post-content"><p>做了很久的 IMU 了，很混沌，不理解。</p>
+<p>今天找到一个介绍 IMU 误差的 PDF 文档，现在对这个文档里面有价值的信息做一个记录。</p>
+<p>文档链接如下：</p>
+<p><a href="http://www.novatel.com/assets/Documents/Bulletins/APN064.pdf">http://www.novatel.com/assets/Documents/Bulletins/APN064.pdf</a></p></div><div class="post-meta"><div class="post-tags"><a class="post-tag-link" href="/tags/IMU/">IMU</a></div><div class="post-time">2016-03-21</div></div></div></div><div class="post-entry"><div class="post-desc"><div class="post-title"><a href="/2016/03/15/LeetCode-146-LRU-Cache-Difficulty-Hard/">LeetCode #146 LRU Cache (Difficulty: Hard)</a></div><div class="post-content"><p>问题 :</p>
+<blockquote>
+<p>Design and implement a data structure for Least Recently Used (LRU) cache. It should support the following operations: <code>get</code> and <code>set</code>.<br><code>get(key)</code> - Get the value (will always be positive) of the key if the key exists in the cache, otherwise return -1.<br><code>set(key, value)</code> - Set or insert the value if the key is not already present. When the cache reached its capacity, it should invalidate the least recently used item before inserting a new item.</p>
+</blockquote></div><div class="post-meta"><div class="post-tags"><a class="post-tag-link" href="/tags/leetcode/">leetcode</a></div><div class="post-time">2016-03-15</div></div></div></div><div class="post-entry"><div class="post-desc"><div class="post-title"><a href="/2016/03/11/LeetCode-237-Delete-Node-in-a-Linked-List-Difficulty-Easy/">LeetCode #237 Delete Node in a Linked List (Difficulty: Easy)</a></div><div class="post-content"><p>问题 :</p>
+<blockquote>
+<p>Write a function to delete a node (except the tail) in a singly linked list, given only access to that node.</p>
+<p>Supposed the linked list is <code>1 -&gt; 2 -&gt; 3 -&gt; 4</code> and you are given the third node with value <code>3</code>, the linked list should become <code>1 -&gt; 2 -&gt; 4</code> after calling your function.</p>
+</blockquote></div><div class="post-meta"><div class="post-tags"><a class="post-tag-link" href="/tags/leetcode/">leetcode</a></div><div class="post-time">2016-03-11</div></div></div></div><div class="post-entry"><div class="post-desc"><div class="post-title"><a href="/2016/03/11/LeetCode-238-Product-of-Array-Except-Self-Difficulty-Medium/">LeetCode #238 Product of Array Except Self (Difficulty: Medium)</a></div><div class="post-content"><p>问题 :</p>
+<blockquote>
+<p>Given an array of n integers where n &gt; 1, nums, return an array output such that output[i] is equal to the product of all the elements of nums except nums[i].</p>
+<p>Solve it without division and in O(n).</p>
+<p>For example, given [1,2,3,4], return [24,12,8,6].</p>
+<p>Follow up:<br>Could you solve it with constant space complexity? (Note: The output array does not count as extra space for the purpose of space complexity analysis.)</p>
+</blockquote></div><div class="post-meta"><div class="post-tags"><a class="post-tag-link" href="/tags/leetcode/">leetcode</a></div><div class="post-time">2016-03-11</div></div></div></div><div class="post-entry"><div class="post-desc"><div class="post-title"><a href="/2016/03/11/LeetCode-242-Valid-Anagram-Difficulty-Easy/">LeetCode #242 Valid Anagram (Difficulty: Easy)</a></div><div class="post-content"><p>问题 :</p>
+<blockquote>
+<p>Given two strings s and t, write a function to determine if t is an anagram of s.</p>
+<p>For example,<br>s = “anagram”, t = “nagaram”, return true.<br>s = “rat”, t = “car”, return false.</p>
+<p>Note:<br>You may assume the string contains only lowercase alphabets.</p>
+</blockquote></div><div class="post-meta"><div class="post-tags"><a class="post-tag-link" href="/tags/leetcode/">leetcode</a></div><div class="post-time">2016-03-11</div></div></div></div></div></article><div class="wrapper page-navigator-wrapper"><div class="page-navigator"><span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/">Next &raquo;</a></div></div><footer class="footer wrapper"><div class="social"><a href="/atom.xml" target="_blank"><i class="fa fa-rss"></i></a></div><div class="footer-content">© 2016 <a href="/" rel="nofollow">Jinge's Blog</a>. Powered by <a rel="nofollow" target="_blank" href="https://hexo.io">Hexo</a>. Theme <a target="_blank" href="https://github.com/lotabout/hexo-theme-noise">noise</a>.</div></footer><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.css"><script src="//cdn.bootcss.com/jquery/2.0.3/jquery.min.js"></script><script src="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.pack.js"></script><script>$(document).ready(function() {
+    $(".fancybox").fancybox();
+});
+</script></body></html>

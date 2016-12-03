@@ -1,36 +1,50 @@
-extends base
-
-block title
-  title= page.title + " | " + config.title
-
-block main
-
-  // gallery that comes before the header
-  if page.photos
-     if page.photos.length
-      .article-gallery
-        .article-gallery-photos.container
-          for photo in page.photos
-            a.article-gallery-img.fancybox(href=url_for(photo), rel="gallery_" + page._id)
-              img(src=url_for(photo), itemprop="image")
-
-  article.wrapper
-    .post-main
-      .nav
-        nav.container
-          each nav, name in theme.menu
-            +a_with_current(nav, __(name))
-        .container.post-meta
-          if (page.tags && page.tags.length)
-            .post-tags
-              != list_tags(page.tags, {show_count: false, class: 'post-tag', style:'none', separator:''})
-          .post-time= page.date.format(config.date_format)
-
-      .container.post-header
-        h1: = page.title
-
-      .container.post-content
-        != page.content
-
-    .post-main.post-comment
-      include _partial/comments
+<!DOCTYPE html><html><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description" content="Jinge's Blog on Github"><title>Bayes Filter (Probabilistic Robotics) | Jinge's Blog</title><link rel="stylesheet" type="text/css" href="/css/normalize.css"><link rel="stylesheet" type="text/css" href="/css/highlight.css"><link rel="stylesheet" type="text/css" href="/css/noise.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/font-awesome/4.5.0/css/font-awesome.min.css"><link rel="Shortcut Icon" type="image/x-icon" href="/favicon.ico"><link rel="stylesheet" type="text/css" href="//fonts.useso.com/css?family=Lato"></head><body><!-- gallery that comes before the header--><article class="wrapper"><div class="post-main"><div class="nav"><nav class="container"><a href="/" class="sidebar-nav-item active">Home</a><a href="/archives" class="sidebar-nav-item">Archives</a></nav><div class="container post-meta"><div class="post-tags"><a class="post-tag-link" href="/tags/robotics/">robotics</a></div><div class="post-time">2016-07-12</div></div></div><div class="container post-header"><h1>Bayes Filter (Probabilistic Robotics)</h1></div><div class="container post-content"><p>本文是阅读 《Probabilistic Robotics》 Chapter2 Recursive State Estimation 的笔记。</p>
+<a id="more"></a>
+<h2 id="背景知识："><a href="#背景知识：" class="headerlink" title="背景知识："></a>背景知识：</h2><h3 id="State-Control-Measurement"><a href="#State-Control-Measurement" class="headerlink" title="State, Control, Measurement"></a>State, Control, Measurement</h3><p>对于一个机器人，机器人具有与周围环境交互的能力，机器人通过它的执行部件（actuators）改变周围的环境，或者通过它的传感器（sensors）感知周围的环境。将机器人通过它的轮子改变自身在环境中所处的位置，也可以看做是改变周围环境，因为从机器人设备坐标系观察周围环境变了。</p>
+<p>可以使用一组状态值来描述机器人在环境中的位置、姿态，环境中的任何一个物体也可以使用一组状态值来描述物体在环境中的位置、姿态。状态值不仅可以用于描述物体的位置和姿态，还可以用于描述一系列其他的内部状态，如机器人内存使用量、物体的颜色等。</p>
+<p>机器人可以通过它的执行部件自身在环境中的位置和姿态，比如机器人发送指令给底盘，使底盘以 2m/s 的速度运动 2s，这个指令就可以看做是一组控制值。控制值造成了机器人的位置、姿态改变，所以改变了机器人的状态值。</p>
+<p>机器人可以通过它的传感器感知周围的环境，一般来说传感器有光学相机、激光扫描仪、深度相机、声呐等。这些传感器获得的数据被称作测量值。这些测量值可以用于计算估计机器人的位置、姿态，即测量值可以计算得到状态值。</p>
+<p>在下文中，我们使用字母 $x$ 表示机器人的状态值，一般的状态值有6个，即三维空间的3个坐标值与3个姿态值。使用字母 $u$ 表示机器人的控制值，使用字母 $z$ 表示机器人的测量值值。</p>
+<h3 id="Belief-Distribution"><a href="#Belief-Distribution" class="headerlink" title="Belief Distribution"></a>Belief Distribution</h3><p>Belief Distribution 是一个后验概率的概率分布。是在已经获得所有数据的条件下，状态值 $x$ 的概率分布。所有数据指的是机器人的控制值 $u$ 与测量值 $z$ 。</p>
+<p>对于 $t$ 时刻机器人的状态值 $x<em>t$ ，与开始时 1 时刻到 $t$ 时刻的所有控制值、测量值都有关系。从 0 时刻机器人初始位置开始，机器人通过所有的控制值 $u</em>{1:t}$ 可以计算出机器人在 $t$ 时刻的状态值，同时所有的测量值 $z_{1:t}$ 可以验证机器人的状态值，因为机器人的控制值存在误差，如机器人运动轮打滑。</p>
+<p>对于这个后验概率的概率分布 <code>belief</code> 可以写成一个条件概率：</p>
+<p>$$ bel(x_t) = p(x<em>t|z</em>{1:t}, u_{1:t}) $$ </p>
+<p>如果在 $t$ 时刻不考虑测量值 $z_t$ ，只考虑控制值 $u_t$ ，在使用控制值 $u_t$ 计算出 $t$ 时刻的状态值 $x_t$ 之后再使用测量值  $z_t$ 验证得到的状态值 $x_t$ 。那么只考虑控制值 $u_t$ 得到的状态值 $x_t$ 的概率分布可以看做是一个预测 <code>prediction</code> ，这种方式得到的后验概率，可以写作：</p>
+<p>$$\overline{bel}(x_t) = p(x<em>t|z</em>{1:t-1}, u_{1:t})$$ </p>
+<h3 id="Markov-Assumption"><a href="#Markov-Assumption" class="headerlink" title="Markov Assumption"></a>Markov Assumption</h3><p>Markov Assumption 也可以称作是 complete state assumption。这个假设是说在知道当前的状态值的条件下，以前获得的所有数据和以后获得的所有数据之间是相互独立的。即预测未来状态值这件事情上，在当前除了当前的状态值 $x_t$ 以外，没有什么其他的数据值能够比 $x_t$ 预测得更好。也就是说 $x<em>t$ 中蕴含了 $z</em>{1:t}$ 和 $u<em>{1:t}$ 的信息，当然也蕴含了 $x</em>{t-1}$ 的信息，因为 $x<em>{t-1}$ 是由 $z</em>{1:t-1}, u_{1:t-1}$ 计算得到的。</p>
+<h2 id="贝叶斯滤波器流程"><a href="#贝叶斯滤波器流程" class="headerlink" title="贝叶斯滤波器流程"></a>贝叶斯滤波器流程</h2><blockquote>
+<p>Algorithm Bayes<em>filter($bel(x</em>{t-1})$, $u_t$, $z_t$):</p>
+<p>​    for all $x_t$ do</p>
+<p>​        $\overline{bel}(x_t) = \int p(x_t|u<em>t, x</em>{t-1})bel(x<em>{t-1})\text{d}x</em>{t-1}$</p>
+<p>​        $bel(x_t) = \eta p(z_t|x_t)\overline{bel}(x_t)$</p>
+<p>​    endfor</p>
+<p>​    return $bel(x_t)$</p>
+</blockquote>
+<h2 id="贝叶斯滤波器数学推导"><a href="#贝叶斯滤波器数学推导" class="headerlink" title="贝叶斯滤波器数学推导"></a>贝叶斯滤波器数学推导</h2><p>贝叶斯滤波器的目的是估计系统在各个时刻的状态值的概率分布。即已知系统在初始时刻的状态值和初始时刻到 $t$ 时刻之间各个时刻的控制命令 $u<em>{1:t}$ 和测量值 $z</em>{1:t}$ 的情况下，求取 $t$ 时刻系统的状态值 $x_t$ 概率分布。</p>
+<p>这个概率分布可以用 $p(x<em>t|z</em>{1:t},u_{1:t})$ 表示。</p>
+<p>而对于三个随机变量$x, y, z$，贝叶斯理论有下面的公式：</p>
+<p>$$p(x|y,z) = \frac{p(y|x,z)p(x|z)}{p(y|z)}$$</p>
+<p>将 $p(x<em>t|z</em>{1:t},u_{1:t})$ 中的 $x_t$ 对应 $x$ ，$z<em>t$ 对应 $y$ ，$(z</em>{1:t-1}, u_{1:t})$ 对应 $z$ ，就能写出下面的式子：</p>
+<p>$$p(x<em>t|z</em>{1:t},u_{1:t})=\frac{p(z_t|x<em>t,z</em>{1:t-1},u_{1:t})p(x<em>t|z</em>{1:t-1},u_{1:t})}{p(z_t|x<em>t,z</em>{1:t-1},u_{1:t})} \ = \eta p(z_t|x<em>t,z</em>{1:t-1},u_{1:t})p(x<em>t|z</em>{1:t-1},u_{1:t})$$$p(z_t|x<em>t,z</em>{1:t-1},u_{1:t})$ 表示的是在已知 $x<em>t,z</em>{1:t-1},u_{1:t}$ 的条件下，$z_t$ 的条件概率。由马尔科夫假设， $x<em>t$ 中蕴含了 $z</em>{1:t-1},u_{1:t}$ 的信息，所以</p>
+<p>$$p(z_t|x<em>t,z</em>{1:t-1},u_{1:t}) = p(z_t|x_t)$$ </p>
+<p>注意，此处的 $x<em>t$ 指只经过 $x</em>{t-1}$ 与 $u_t$ 计算的 $x_t$ 并没有使用 $z_t$ 。</p>
+<p>将 </p>
+<p>$bel(x_t) = p(x<em>t|z</em>{1:t}, u_{1:t})$ </p>
+<p>$\overline{bel}(x_t) = p(x<em>t|z</em>{1:t-1}, u_{1:t})$ </p>
+<p>代入</p>
+<p> $p(x<em>t|z</em>{1:t},u_{1:t}) = \eta p(z_t|x<em>t,z</em>{1:t-1},u_{1:t})p(x<em>t|z</em>{1:t-1},u_{1:t})$</p>
+<p>可以得到：</p>
+<p>$bel(x_t) = \eta p(z_t|x_t)\overline{bel}(x_t)$</p>
+<p>上面这个式子指的是，在整合了 $z_t, u_t$ 之后状态值 $x_t$ 的概率分布。</p>
+<p>对于 $\overline{bel}(x_t)$ 的计算可以用用公式</p>
+<p>$$p(x) = \int p(x|y)p(y) \text{d}y$$</p>
+<p>推导得到。</p>
+<p>$$\overline{bel}(x_t) = p(x<em>t|z</em>{1:t-1}, u_{1:t}) \ = \int p(x<em>t|x</em>{t-1}, z<em>{1:t-1}, u</em>{1:t})p(x<em>{t-1}|z</em>{1:t-1}, u<em>{1:t})\text{d}x</em>{t-1} \ = \int p(x<em>t|x</em>{t-1}, z<em>{1:t-1}, u</em>{1:t-1})p(x<em>{t-1}|z</em>{1:t-1}, u<em>{1:t-1})\text{d}x</em>{t-1}$$  </p>
+<p>由马尔科夫假设</p>
+<p>$$p(x<em>t|x</em>{t-1}, z<em>{1:t-1}, u</em>{1:t}) = p(x<em>t|x</em>{t-1},u_t)$$ </p>
+<p>所以就有</p>
+<p>$$\overline{bel}(x_t) = \int p(x<em>t|x</em>{t-1},u<em>t)p(x</em>{t-1}|z<em>{1:t-1}, u</em>{1:t-1})\text{d}x_{t-1} = \int p(x<em>t|x</em>{t-1},u<em>t)bel(x</em>{t-1})\text{d}x_{t-1}$$ </p>
+</div></div><div class="post-main post-comment"></div></article><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.css"><script src="//cdn.bootcss.com/jquery/2.0.3/jquery.min.js"></script><script src="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.pack.js"></script><script>$(document).ready(function() {
+    $(".fancybox").fancybox();
+});
+</script></body></html>

@@ -1,36 +1,100 @@
-extends base
-
-block title
-  title= page.title + " | " + config.title
-
-block main
-
-  // gallery that comes before the header
-  if page.photos
-     if page.photos.length
-      .article-gallery
-        .article-gallery-photos.container
-          for photo in page.photos
-            a.article-gallery-img.fancybox(href=url_for(photo), rel="gallery_" + page._id)
-              img(src=url_for(photo), itemprop="image")
-
-  article.wrapper
-    .post-main
-      .nav
-        nav.container
-          each nav, name in theme.menu
-            +a_with_current(nav, __(name))
-        .container.post-meta
-          if (page.tags && page.tags.length)
-            .post-tags
-              != list_tags(page.tags, {show_count: false, class: 'post-tag', style:'none', separator:''})
-          .post-time= page.date.format(config.date_format)
-
-      .container.post-header
-        h1: = page.title
-
-      .container.post-content
-        != page.content
-
-    .post-main.post-comment
-      include _partial/comments
+<!DOCTYPE html><html><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description" content="Jinge's Blog on Github"><title>Kalman Filter (Probabilistic Robotics) | Jinge's Blog</title><link rel="stylesheet" type="text/css" href="/css/normalize.css"><link rel="stylesheet" type="text/css" href="/css/highlight.css"><link rel="stylesheet" type="text/css" href="/css/noise.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/font-awesome/4.5.0/css/font-awesome.min.css"><link rel="Shortcut Icon" type="image/x-icon" href="/favicon.ico"><link rel="stylesheet" type="text/css" href="//fonts.useso.com/css?family=Lato"></head><body><!-- gallery that comes before the header--><article class="wrapper"><div class="post-main"><div class="nav"><nav class="container"><a href="/" class="sidebar-nav-item active">Home</a><a href="/archives" class="sidebar-nav-item">Archives</a></nav><div class="container post-meta"><div class="post-tags"><a class="post-tag-link" href="/tags/robotics/">robotics</a></div><div class="post-time">2016-07-12</div></div></div><div class="container post-header"><h1>Kalman Filter (Probabilistic Robotics)</h1></div><div class="container post-content"><p>本文是阅读 《Probabilistic Robotics》 Chapter3 Gaussian Filters 的笔记。</p>
+<p>卡尔曼滤波可以看作是贝叶斯滤波在高斯分布下的特例。因为是高斯分布，所以卡尔曼滤波对应的状态值是连续的，而不是离散的。</p>
+<a id="more"></a>
+<h2 id="Linear-Gaussian-Systems"><a href="#Linear-Gaussian-Systems" class="headerlink" title="Linear Gaussian Systems"></a>Linear Gaussian Systems</h2><h3 id="Multivariate-Normal-Distribution"><a href="#Multivariate-Normal-Distribution" class="headerlink" title="Multivariate Normal Distribution"></a>Multivariate Normal Distribution</h3><p>多元正态分布，多元正态分布可以使用以下公式表示：</p>
+<p>$$ \begin{equation} p(x) = det(2\pi\Sigma)^{- {1 \over 2}} exp{-{1 \over 2}(x-\mu)^T\Sigma^{-1}(x-\mu)} \label{eq: multivariate_normal_distribution}\end{equation} $$</p>
+<p>此分布由两个参数决定，均值 $\mu$ 和协方差矩阵 $\Sigma$ 。均值 $\mu$ 是一个与状态值 $x$ 具有相同维度的列向量。协方差矩阵 $\Sigma$ 是一个二次型矩阵(Quadratic Matrix)，具有对称和半正定(positive-semidefinite)的特点，维度也与状态值 $x$ 的维度相同。</p>
+<h3 id="Linear-Gaussian-Systems-1"><a href="#Linear-Gaussian-Systems-1" class="headerlink" title="Linear Gaussian Systems"></a>Linear Gaussian Systems</h3><p>卡尔曼滤波使用 $t$ 时刻的均值 $\mu_t$ 和协方差矩阵 $\Sigma_t$ 表示 $t$ 时刻的 <code>belief</code>。</p>
+<p>为了保证后验概率和已知的控制值 $z$ 、测量值 $u$ 具有一致的概率分布，即高斯分布。在贝叶斯滤波的马尔科夫假设之外，还需要满足三个条件：</p>
+<ol>
+<li>状态值是这些参数的线性函数与高斯噪声的和。用等式表示为：<br>$$ \begin{equation} x_t = A<em>tx</em>{t-1} + B_tu_t + \varepsilon_t \label{eq: state_transition}\end{equation}<br>$$<br>其中 $x<em>t$, $x</em>{t-1}$ 是状态值向量，维度为 n，$u_t$ 是控制值向量，维度为 m，即</li>
+</ol>
+<p>$$x<em>t = \left[\begin{matrix} x</em>{1,t} \ x<em>{2,t} \ \vdots \ x</em>{n,t}\end{matrix}\right]$$</p>
+<p>$$u<em>t = \left[\begin{matrix} u</em>{1,t} \ u<em>{2,t} \ \vdots \ u</em>{m,t}\end{matrix}\right]$$</p>
+<p>$A_t$ 和 $B_t$ 是矩阵，$A_t$ 是一个大小为 n x n 的方阵，$B_t$ 是一个大小为 n x m 的矩阵。</p>
+<p>$\varepsilon_t$ 是表示状态值 $x_t$ 随机性的随机变量，是一个具有和状态值一样维度 n 的向量。其均值为 0，协方差矩阵用 $R_t$ 表示，$R_t$ 的大小为 n x n。</p>
+<p>将公式 \eqref{eq: state_transition} 代入公式 \eqref{eq: multivariate_normal_distribution}，可以得到状态值转变后概率分布 $p(x_t|u<em>t,x</em>{t-1})$ 的定义 \eqref{eq: state_probability}，这个后验概率分布依旧是高斯概率分布，可以使用均值 $A<em>tx</em>{t-1} + B_tu_t$ 和协方差矩阵 $R_t$ 表示。</p>
+<p>$$ \begin{equation} p(x_t|u<em>t,x</em>{t-1}) = det(2\pi R_t)^{-{1 \over 2}}exp{ -{1\over2}(x_t - A<em>tx</em>{t-1} - B_tu_t)^T R^{-1}_t (x_t - A<em>tx</em>{t-1} - B_tu_t) } \label{eq: state_probability} \end{equation} $$</p>
+<ol>
+<li>测量值也是这些参数的线性函数与高斯噪声的和。用公式表示为：<br>$$ z_t = C_tx_t + \delta_t $$</li>
+</ol>
+<p>$ z_t $ 是测量值向量，维度为 k 。$C_t$ 的大小为 k x n。$ \delta_t $ 描述测量值噪声，服从高斯分布，均值为 0，协方差矩阵用 $Q_t$ 表示。</p>
+<p>测量值 $ z_t $ 在已知状态值 $x_t$ 的条件下的概率分布 $ p(z_t|x_t) $ 为：</p>
+<p>$$ p(z_t|x_t) = det(2\pi Q_t)^{-{1 \over 2}}exp{ -{1 \over 2}(z_t-C_tx_t)^TQ_t^{-1}(z_t-C_tx_t) } $$</p>
+<ol>
+<li><code>belief</code> 的初始值 $bel(x_0)$ 也需要正态分布。这个正态分布使用 $\mu_0$ 和 $\Sigma_0$ 表示：</li>
+</ol>
+<p>$$ bel(x_0) = p(x_0) = det(2\pi\Sigma_0)^{-{1 \over 2}}exp{ -{1 \over 2}(x_0-\mu_0)^T\Sigma^{-1}_0(x_0-\mu_0) } $$</p>
+<h2 id="卡尔曼滤波流程"><a href="#卡尔曼滤波流程" class="headerlink" title="卡尔曼滤波流程"></a>卡尔曼滤波流程</h2><blockquote>
+<p>Algorithm Kalman<em>filter($\mu</em>{t-1}$, $\Sigma_{t-1}$, $u_t$, $z_t$):<br>$\overline{\mu}_t = A<em>t\mu</em>{t-1} +B_tu_t$<br>$\overline{\Sigma}_t = A<em>t\Sigma</em>{t-1}A_t^T + R_t$<br>$K_t = \overline{\Sigma}_tC_t^T(C_t\overline{\Sigma}_tC_t^T+Q_t)^{-1}$<br>$\mu_t = \overline{\mu}_t + K_t(z_t-C_t\overline{\mu}_t)$<br>$\Sigma_t = (I-K_tC_t)\overline{\Sigma}_t$<br>​    return $\mu_t$, $\Sigma_t$</p>
+</blockquote>
+<p>流程的第二行和第三行对 $\overline{\mu}_t$, $\overline{\Sigma}_t$ 是简单的均值传递与协方差传递公式。</p>
+<p>整个流程的关键点在卡尔曼增益 $K_t$ 的求取和后面对均值和方差的更新。</p>
+<p>将贝叶斯滤波流程写下，做一个对照。$\overline{\mu}_t$, $\overline{\Sigma}_t$ 对应贝叶斯流程中 $\overline{bel}(x_t)$，$\mu_t$, $\Sigma_t$ 对应贝叶斯滤波流程中的 $bel(x_t)$。</p>
+<blockquote>
+<p>Algorithm Bayes<em>filter($bel(x</em>{t-1})$, $u_t$, $z_t$):</p>
+<p>​    for all $x_t$ do</p>
+<p>​        $\overline{bel}(x_t) = \int p(x_t|u<em>t, x</em>{t-1})bel(x<em>{t-1})\text{d}x</em>{t-1}$</p>
+<p>​        $bel(x_t) = \eta p(z_t|x_t)\overline{bel}(x_t)$</p>
+<p>​    endfor</p>
+<p>​    return $bel(x_t)$</p>
+</blockquote>
+<h2 id="卡尔曼滤波数学推导"><a href="#卡尔曼滤波数学推导" class="headerlink" title="卡尔曼滤波数学推导"></a>卡尔曼滤波数学推导</h2><p>卡尔曼滤波数据推导的基础是贝叶斯滤波，整个流程是将贝叶斯滤波当中对 $\overline{bel}(x_t)$ 和 $bel(x_t)$ 的计算应用到高斯分布的特例中。</p>
+<h3 id="Prediction"><a href="#Prediction" class="headerlink" title="Prediction"></a>Prediction</h3><p>Prediction 步骤在贝叶斯滤波中用公式表示是：</p>
+<p>$$\begin{equation} \overline{bel}(x_t) = \int p(x_t|u<em>t, x</em>{t-1})bel(x<em>{t-1})\text{d}x</em>{t-1} \label{eq: bayes_prediction}\end{equation}$$</p>
+<p>公式中的 $p(x_t|u<em>t, x</em>{t-1})$ 和 $bel(x_{t-1})$ 服从正态分布：</p>
+<p>$$p(x_t|u<em>t, x</em>{t-1}) \sim \mathcal{N}(x_t;A<em>tx</em>{t-1}+B_tu_t, R<em>t)$$<br>$$bel(x</em>{t-1}) \sim \mathcal{N}(x<em>{t-1};\mu</em>{t-1}, \Sigma_{t-1})$$</p>
+<p>所以公式 \eqref{eq: bayes_prediction} 可以进一步写成：</p>
+<p>$$ \overline{bel}(x_t) = \eta\int exp{ -{1 \over 2}(x_t-A<em>tx</em>{t-1}-B_tu_t)^TR_t^{-1}(x_t-A<em>tx</em>{t-1}-B_tu<em>t) } \ exp{ -{1 \over 2}(x</em>{t-1}-\mu<em>{t-1})^T\Sigma</em>{t-1}^{-1}(x<em>{t-1}-\mu</em>{t-1}) } \text{d}x_{t-1} \ = \eta \int exp(-L<em>t) \text{d}x</em>{t-1} $$</p>
+<p>其中<br>$$ \eta = det(2\pi R<em>t)^{-{1 \over 2}}det(2</em>\pi \Sigma_{t-1})^{-{1 \over 2}} $$<br>$$ L_t = {1 \over 2}(x_t - A<em>tx</em>{t-1} - B_tu_t)^TR_t^{-1}(x_t - A<em>tx</em>{t-1} - B_tu<em>t) + {1 \over 2}(x</em>{t-1}-\mu<em>{t-1})^T\Sigma</em>{t-1}^{-1}(x<em>{t-1}-\mu</em>{t-1}) $$</p>
+<p>因为 $\overline{bel}(x<em>t)$ 表示的是一个概率分布，具有和为 1 的条件，在计算的最后需要进行单位化处理，现在 $\eta$ 的值并不重要。后面的积分项，是对 $x</em>{t-1}$ 求积分，所以可以将 $L<em>t$ 分解成含有 $x</em>{t-1}$ 的项和不含有 $x<em>{t-1}$ 的项，因为 $x</em>{t-1}$ 所在的位置是 e 指数，所以可以将 $L_t$ 分解成这个两项的和即 $L_t = L<em>t(x</em>{t-1}, x_t) + L_t(x<em>t)$ ，将不含有 $x</em>{t-1}$ 的项作为因子分解出去，用公式表示如下：<br>$$ \overline{bel}(x_t) = \eta\int exp(-L<em>t) \text{d}x</em>{t-1} \ = \eta\int exp{ -L<em>t(x</em>{t-1}, x_t) - L_t(x<em>t) } \text{d}x</em>{t-1} \ = \eta exp{ -L_t(x_t) }\int exp{ -L<em>t(x</em>{t-1}, x<em>t) }\text{d}x</em>{t-1} \ = \eta exp{ -L_t(x_t) } $$</p>
+<p>在上式中最后一个 $\eta$ 和前面的 $\eta$ 并不相同。如果我们可以将 $\overline{bel}(x_t)$ 写成这种形式，那么 Prediction 阶段 $x_t$ 的概率分布可以由 $exp{ -L_t(x_t) }$ 决定。当然其中还需要由一个要求，即 $\int exp{ -L<em>t(x</em>{t-1}, x<em>t) }\text{d}x</em>{t-1}$ 与 $x_t$ 无关，在积分之后是有可能与 $x_t$ 无关。</p>
+<p>现在的目标就是寻找一个 $L<em>t(x</em>{t-1}, x_t)$ 使得积分项中不含有 $x_t$。如果将 $L<em>t$ 看作是关于 $x</em>{t-1}$ 的一元函数，那么 $L<em>t$ 就是 $x</em>{t-1}$ 的二次型。</p>
+<p>我们来看看一元二次多项式的分解：<br>$$ y = ax^2+bx+c = a(x+{b \over 2a})^2 + (c-{b^2 \over 4a}) $$</p>
+<p>$L<em>t(x</em>{t-1}, x_t)$ 可以看作是 $a(x+{b \over 2a})^2$ 项，$L_t(x_t)$ 可以看作是 $(c-{b^2 \over 4a})$ 项。</p>
+<p>对 $L_t$ 求一阶导函数和二阶导函数，可以得到：<br>$$ { \partial L<em>t \over \partial x</em>{t-1} } = -{1 \over 2}A^TR_t^{-1}(x_t-A<em>tx</em>{t-1}-B_tu<em>t)+{1 \over 2}\Sigma^{-1}</em>{t-1}(x<em>{t-1}-\mu</em>{t-1}) $$<br>$$ { \partial^2 L<em>t \over \partial x</em>{t-1}^2} = {1 \over 2}A^T_tR^{-1}_tA<em>t + {1 \over 2}\Sigma^{-1}</em>{t-1} =: \Psi^{-1}_t $$</p>
+<p>其中 $\Psi_t$ 表示 $L<em>t(x</em>{t-1}, x_t)$ 的曲率（curvature）。现在令 ${ \partial L<em>t \over \partial x</em>{t-1} }$ 等于0：</p>
+<p>$$ A_t^TR^{-1}_t(x_t-A<em>tx</em>{t-1}-B_tu<em>t)=\Sigma</em>{t-1}^{-1}(x<em>{t-1}-\mu</em>{t-1}) \<br>A_t^TR^{-1}_tA<em>tx</em>{t-1}+\Sigma^{-1}<em>{t-1}x</em>{t-1}=A_t^TR^{-1}_t(x_t-B_tu<em>t)+\Sigma</em>{t-1}^{-1}\mu_{t-1} \<br>(A_t^TR^{-1}_tA<em>t+\Sigma^{-1}</em>{t-1})x_{t-1}=A_t^TR^{-1}_t(x_t-B_tu<em>t)+\Sigma</em>{t-1}^{-1}\mu_{t-1} \<br>\Psi^{-1}<em>tx</em>{t-1}=A_t^TR^{-1}_t(x_t-B_tu<em>t)+\Sigma</em>{t-1}^{-1}\mu<em>{t-1} \<br>x</em>{t-1}=\Psi_tA_t^TR^{-1}_t(x_t-B_tu<em>t)+\Sigma</em>{t-1}^{-1}\mu_{t-1}$$</p>
+<p>我们就可以定义（与 $ax^2+bx+c$ 的分解类比，就可以理解）：<br>$$L<em>t(x</em>{t-1},x<em>t)={1 \over 2}(x</em>{t-1}-\Psi_t[A_t^TR^{-1}_t(x_t-B_tu<em>t)+\Sigma</em>{t-1}^{-1}\mu_{t-1}])^T\Psi^{-1}<em>t\ (x</em>{t-1}-\Psi_t[A_t^TR^{-1}_t(x_t-B_tu<em>t)+\Sigma</em>{t-1}^{-1}\mu_{t-1}])$$</p>
+<p>$det(2\pi\Psi_t)^{-{1\over2}}exp{-L<em>t(x</em>{t-1},x_t)}$ 是一个正态分布的形式，所以：<br>$$ \int det(2\pi\Psi_t)^{-{1\over2}}exp{-L<em>t(x</em>{t-1},x<em>t)} \text{d}x</em>{t-1} = 1 $$<br>$$ \int exp{-L<em>t(x</em>{t-1},x<em>t)} \text{d}x</em>{t-1} = det(2\pi\Psi_t)^{1\over2} $$</p>
+<p>至此，到了一个满足要求的 $L<em>t(x</em>{t-1}, x_t)$ ，可以将 $\overline{bel}(x_t)$ 写作：<br>$$ \overline{bel}(x_t)= \eta exp{ -L_t(x_t) } $$</p>
+<p>那么现在要做的是求出 $L_t(x_t)$，$L_t(x_t)$ 是关于 $x_t$ 的二次型，所以可将 $L_t(x_t)$ 进行分解，得到 $L_t(x_t)$ 的对称轴，这条对称轴也是 $\overline{bel}(x_t)$ 的均值。</p>
+<p>$$ L_t(x_t) = L_t - L<em>t(x</em>{t-1},x_t) \<br>= {1\over2}(x_t-A<em>tx</em>{t-1}-B_tu_t)^TR_t^{-1}(x_t-A<em>tx</em>{t-1}-B_tu_t) \ </p>
+<ul>
+<li>{1\over2}(x<em>{t-1}-\mu</em>{t-1})^T\Sigma^{-1}<em>{t-1}(x</em>{t-1}-\mu_{t-1}) \ </li>
+</ul>
+<ul>
+<li>{1\over2}(x_{t-1}-\Psi_t[A_t^TR_t^{-1}(x_t-B_tu<em>t)+\Sigma^{-1}</em>{t-1}\mu_{t-1}])^T\Psi^{-1}<em>t \ (x</em>{t-1}-\Psi_t[A_t^TR_t^{-1}(x_t-B_tu<em>t)+\Sigma^{-1}</em>{t-1}\mu_{t-1}])$$</li>
+</ul>
+<p>经过一系列繁琐的化简：<br>$$ L_t(x_t) = {1\over2}(x_t-B_tu_t)^TR_t^{-1}(x_t-B_tu<em>t)+{1\over2}\mu</em>{t-1}^T\Sigma<em>{t-1}^{-1}\mu</em>{t-1} \<br>-{1\over2}[A^T_tR_t^{-1}(x_t-B_tu<em>t)+\Sigma^{-1}</em>{t-1}\mu_{t-1}]^T(A_t^TR_t^{-1}A<em>t+\Sigma^{-1}</em>{t-1})^{-1} \<br>[A^T_tR_t^{-1}(x_t-B_tu<em>t)+\Sigma^{-1}</em>{t-1}\mu_{t-1}] $$</p>
+<p>求一阶导函数：</p>
+<p>$$ {\partial L_t(x_t) \over \partial x_t} = R^{-1}_t(x_t-B_tu_t)-R^{-1}_tA_t(A^T_tR_t^{-1}A<em>t+\Sigma</em>{t-1}^{-1})^{-1} \<br>[A^T_tR_t^{-1}(x_t-B_tu<em>t)+\Sigma</em>{t-1}^{-1}\mu_{t-1}] \<br>= <a href="x_t-B_tu_t">R^{-1}_t-R^{-1}_tA_t(A^T_tR_t^{-1}A<em>t+\Sigma</em>{t-1}^{-1})^{-1}A_t^TR_t^{-1}</a> \<br>-R^{-1}_tA_t(A^T_tR_t^{-1}A<em>t+\Sigma</em>{t-1}^{-1})^{-1}\Sigma<em>{t-1}^{-1}\mu</em>{t-1}$$</p>
+<p>由 <code>inversion lemma</code> 可以有化简：<br>$$ R^{-1}_t-R^{-1}_tA_t(A^T_tR_t^{-1}A<em>t+\Sigma</em>{t-1}^{-1})^{-1}A_t^TR_t^{-1} = (R_t+A<em>t\Sigma</em>{t-1}A_t^T)^{-1} $$</p>
+<p>令一阶导函数为 0：<br>$$ (R_t+A<em>t\Sigma</em>{t-1}A_t^T)^{-1}(x_t-B_tu_t) = R_t^{-1}A_t(A^T_tR^{-1}_tA<em>t+\Sigma^{-1}</em>{t-1})^{-1}\Sigma^{-1}<em>{t-1}\mu</em>{t-1} $$</p>
+<p>$$ x_t = B_tu_t+(R_t+A<em>t\Sigma</em>{t-1}A_t^T)R_t^{-1}A_t(A_t^TR^{-1}_tA<em>t+\Sigma^{-1}</em>{t-1})^{-1}\Sigma^{-1}<em>{t-1}\mu</em>{t-1} \<br>= B_tu_t+A<em>t(I+\Sigma</em>{t-1}A_t^TR^{-1}_tA<em>t)(\Sigma</em>{t-1}A_t^TR^{-1}_tA<em>t+I)^{-1}\mu</em>{t-1} \<br>= B_tu_t+A<em>t\mu</em>{t-1} $$</p>
+<p>所以 $\overline{bel}(x_t)$ 的均值为 $B_tu_t+A<em>t\mu</em>{t-1}$ 。</p>
+<p>对 $L_t(x_t)$ 求二阶导数，可以得到协方差矩阵。</p>
+<p>$$ {\partial^2L_t(x_t) \over \partial x^2_t} = (R_t+A<em>t\Sigma</em>{t-1}A_t^T)^{-1} =: \overline{\Sigma}_t^{-1} $$</p>
+<h3 id="Update"><a href="#Update" class="headerlink" title="Update"></a>Update</h3><p>Update 步骤在贝叶斯滤波中用公式表示是：<br>$$ bel(x_t) = \eta p(z_t|x_t)\overline{bel}(x_t) $$</p>
+<p>其中<br>$$ p(z_t|x_t) \sim \mathcal{N}(z_t;C_tx_t,Q_t) $$<br>$$ \overline{bel}(x_t) \sim \mathcal{N}(x_t;\overline{\mu}_t,\overline{\Sigma}_t) $$</p>
+<p>经过整理可以写成：</p>
+<p>$$ bel(x_t) = \eta exp{-J_t} $$</p>
+<p>其中<br>$$ J_t = {1\over2}(z_t-C_tx_t)^TQ^{-1}_t(z_t-C_tx_t) \ </p>
+<ul>
+<li>{1\over2}(x_t-\overline{\mu})^T\overline{\Sigma}^{-1}_t(x_t-\overline{\mu}_t) $$</li>
+</ul>
+<p>对 $J_t$ 求一阶导函数和二阶导函数：<br>$$ {\partial J \over \partial x_t} = -C^T_tQ^{-1}_t(z_t-C_tx_t)+\overline{\Sigma}^{-1}_t(x_t-\overline{\mu}_t) $$<br>$$ {\partial^2 J \over \partial x^2_t} = C^T_tQ^{-1}_tC_t+\overline{\Sigma}^{-1}_t $$</p>
+<p>所以得到了 $bel(x_t)$ 的协方差矩阵：<br>$$ \begin{equation} \Sigma_t = (C^T_tQ^{-1}_tC_t+\overline{\Sigma}^{-1}_t)^{-1} \label{eq: bel_sigma} \end{equation}$$</p>
+<p>令一阶导数等于 0，能够得到 $bel(x_t)$ 的均值 $\mu_t$。现将 $\mu_t$ 直接带入，并令一阶导数等于 0。<br>$$ \begin{equation} C_t^TQ^{-1}_t(z_t-C_t\mu_t) = \overline{\Sigma}^{-1}_t(\mu_t-\overline{\mu}_t) \label{eq: partial_J_one_eq_zero} \end{equation}$$</p>
+<p>等式 \eqref{eq: partial_J_one_eq_zero} 的左边可以展开：<br>$$ \begin{equation} C_t^TQ_t^{-1}(z_t-C_t\mu_t) \<br>= C^T_tQ^{-1}_t(z_t-C_t\mu_t+C_t\overline{\mu}_t-C_t\overline{\mu}_t) \<br>= C^T_tQ^{-1}_t(z_t-C_t\overline{\mu}_t)-C^T_tQ^{-1}_tC_t(\mu_t-\overline{\mu}_t) \label{eq: partial_J_one_eq_zero_ex} \end{equation}$$</p>
+<p>将 \eqref{eq: partial_J_one_eq_zero_ex} 代回 \eqref{eq: partial_J_one_eq_zero} 得到：<br>$$ C_t^TQ^{-1}_t(z_t-C_t\overline{\mu}_t) = (C^T_tQ^{-1}_tC_t+\overline{\Sigma}^{-1}_t)(\mu_t-\overline{\mu}_t) $$</p>
+<p>而由公式 \eqref{eq: bel_sigma} 可以化简：<br>$$ \mu_t = \overline{\mu}_t + \Sigma_tC_t^TQ^{-1}_t(z_t-C_t\overline{\mu}_t) $$</p>
+<p>现在定义 $t$ 时刻的卡尔曼增益为：<br>$$ K_t=\Sigma_tC^T_tQ^{-1}_t $$</p>
+<p>将 $K_t$ 代入 $\mu_t$：</p>
+<p>$$ \mu_t = \overline{\mu}_t + K_t(z_t-C_t\overline{\mu}_t) $$</p>
+<p>卡尔曼增益 $K_t$ 可以经过一些列的运算，将其中的 $\Sigma_t$ 去除。<br>$$ K_t = \Sigma_tC^T_tQ^{-1}_t \<br>= \Sigma_tC^T_tQ^{-1}_t(C_t\overline{\Sigma}_tC^T_t+Q_t)(C_t\overline{\Sigma}_tC^T_t+Q_t)^{-1} \<br>= \Sigma_t(C^T_tQ^{-1}_tC_t\overline{\Sigma}_tC^T_t+C^T_tQ^{-1}_tQ_t)(C_t\overline{\Sigma}_tC^T_t+Q_t)^{-1} \<br>= \Sigma_t(C^T_tQ^{-1}_tC_t\overline{\Sigma}_tC^T_t+C^T_t)(C_t\overline{\Sigma}_tC^T_t+Q_t)^{-1} \<br>= \Sigma_t(C^T_tQ^{-1}_tC_t\overline{\Sigma}_tC^T_t+\overline{\Sigma}_t^{-1}\overline{\Sigma}_tC^T_t)(C_t\overline{\Sigma}_tC^T_t+Q_t)^{-1} \<br>= \Sigma_t(C_t^TQ_t^{-1}C_t+\overline{\Sigma}_t^{-1})\overline{\Sigma}_tC^T_t(C_t\overline{\Sigma}_tC^T_t+Q_t)^{-1} \<br>= \Sigma_t\Sigma_t^{-1}\overline{\Sigma}_tC^T_t(C_t\overline{\Sigma}_tC^T_t+Q_t)^{-1} \<br>= \overline{\Sigma}_tC^T_t(C_t\overline{\Sigma}_tC^T_t+Q_t)^{-1} $$</p>
+<p>随后使用 <code>inversion lemma</code>，可以将 \eqref{eq: bel_sigma} 化简：<br>$$ \Sigma_t = (C_t^TQ^{-1}_tC_t+\overline{\Sigma}^{-1}_t)^{-1} \<br>= \overline{\Sigma}_t-\overline{\Sigma}_tC^T_t(Q_t+C_t\overline{\Sigma}_tC^T_t)^{-1}C_t\overline{\Sigma}_t \<br>= [I - \overline{\Sigma}_tC^T_t(Q_t+C_t\overline{\Sigma}_tC^T_t)^{-1}C_t]\overline{\Sigma}_t \<br>= (I-K_tC_t)\overline{\Sigma}_t $$</p>
+</div></div><div class="post-main post-comment"></div></article><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.css"><script src="//cdn.bootcss.com/jquery/2.0.3/jquery.min.js"></script><script src="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.pack.js"></script><script>$(document).ready(function() {
+    $(".fancybox").fancybox();
+});
+</script></body></html>

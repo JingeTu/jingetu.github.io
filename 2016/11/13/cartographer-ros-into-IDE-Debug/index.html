@@ -1,36 +1,47 @@
-extends base
-
-block title
-  title= page.title + " | " + config.title
-
-block main
-
-  // gallery that comes before the header
-  if page.photos
-     if page.photos.length
-      .article-gallery
-        .article-gallery-photos.container
-          for photo in page.photos
-            a.article-gallery-img.fancybox(href=url_for(photo), rel="gallery_" + page._id)
-              img(src=url_for(photo), itemprop="image")
-
-  article.wrapper
-    .post-main
-      .nav
-        nav.container
-          each nav, name in theme.menu
-            +a_with_current(nav, __(name))
-        .container.post-meta
-          if (page.tags && page.tags.length)
-            .post-tags
-              != list_tags(page.tags, {show_count: false, class: 'post-tag', style:'none', separator:''})
-          .post-time= page.date.format(config.date_format)
-
-      .container.post-header
-        h1: = page.title
-
-      .container.post-content
-        != page.content
-
-    .post-main.post-comment
-      include _partial/comments
+<!DOCTYPE html><html><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description" content="Jinge's Blog on Github"><title>cartographer_ros into IDE Debug | Jinge's Blog</title><link rel="stylesheet" type="text/css" href="/css/normalize.css"><link rel="stylesheet" type="text/css" href="/css/highlight.css"><link rel="stylesheet" type="text/css" href="/css/noise.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/font-awesome/4.5.0/css/font-awesome.min.css"><link rel="Shortcut Icon" type="image/x-icon" href="/favicon.ico"><link rel="stylesheet" type="text/css" href="//fonts.useso.com/css?family=Lato"></head><body><!-- gallery that comes before the header--><article class="wrapper"><div class="post-main"><div class="nav"><nav class="container"><a href="/" class="sidebar-nav-item active">Home</a><a href="/archives" class="sidebar-nav-item">Archives</a></nav><div class="container post-meta"><div class="post-tags"><a class="post-tag-link" href="/tags/robotics/">robotics</a></div><div class="post-time">2016-11-13</div></div></div><div class="container post-header"><h1>cartographer_ros into IDE Debug</h1></div><div class="container post-content"><p>根据 cartographer_ros 的文档页面，按照 demo 的安装流程。<br><a href="https://google-cartographer-ros.readthedocs.io/en/latest/" target="_blank" rel="external">https://google-cartographer-ros.readthedocs.io/en/latest/</a></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"># Install wstool and rosdep.</div><div class="line">sudo apt-get update</div><div class="line">sudo apt-get install -y python-wstool python-rosdep ninja-build</div><div class="line"></div><div class="line"># Create a new workspace in &apos;catkin_ws&apos;.</div><div class="line">mkdir catkin_ws</div><div class="line">cd catkin_ws</div><div class="line">wstool init src</div><div class="line"></div><div class="line"># Merge the cartographer_ros.rosinstall file and fetch code for dependencies.</div><div class="line">wstool merge -t src https://raw.githubusercontent.com/googlecartographer/cartographer_ros/master/cartographer_ros.rosinstall</div><div class="line">wstool update -t src</div><div class="line"></div><div class="line"># Install deb dependencies.</div><div class="line">rosdep init</div><div class="line">rosdep update</div><div class="line">rosdep install --from-paths src --ignore-src --rosdistro=$&#123;ROS_DISTRO&#125; -y</div></pre></td></tr></table></figure>
+<p>前面这些步骤都可以直接按照流程走。</p>
+<a id="more"></a>
+<h2 id="catkin-make-isolated-生成-IDE-工程文件"><a href="#catkin-make-isolated-生成-IDE-工程文件" class="headerlink" title="catkin_make_isolated 生成 IDE 工程文件"></a>catkin_make_isolated 生成 IDE 工程文件</h2><p>在 <code>Build and install</code> 步骤，需要将整个工程 CMake 成 IDE 的工程文件。</p>
+<p>我使用的是 CodeBlocks ，所以使用下面这个语句进行 <code>catkin_make_isolated</code> ：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">catkin_make_isolated -G&quot;CodeBlocks - Unix Makefiles&quot; -DCMAKE_BUILD_TYPE=Debug</div></pre></td></tr></table></figure>
+<p>里面的参数 <code>CodeBlocks - Unix Makefiles</code> 表示要 CMake 生成 CodeBlocks 的工程文件，而且这个工程文件是使用 Unix Makefiles 组织的，这个字符串可以在 CMake 的帮助中找到：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">$: cmake --help</div><div class="line">...</div><div class="line">GeneratorsThe following generators are available on this platform:  Unix Makefiles              = Generates standard UNIX makefiles.  Ninja                       = Generates build.ninja files (experimental).  CodeBlocks - Ninja          = Generates CodeBlocks project files.  CodeBlocks - Unix Makefiles = Generates CodeBlocks project files.  Eclipse CDT4 - Ninja        = Generates Eclipse CDT 4.0 project files.  Eclipse CDT4 - Unix Makefiles                              = Generates Eclipse CDT 4.0 project files.  KDevelop3                   = Generates KDevelop 3 project files.  KDevelop3 - Unix Makefiles  = Generates KDevelop 3 project files.  Sublime Text 2 - Ninja      = Generates Sublime Text 2 project files.  Sublime Text 2 - Unix Makefiles                              = Generates Sublime Text 2 project files.</div></pre></td></tr></table></figure>
+<p>最后几行说明了 cmake 能生成的工程文件。一共两类 <code>Unix Makefiles</code> 和 <code>Ninja</code>，虽然不是很懂这两个东西，但是这两个东西的目的都是组织工程，告诉编译器和链接器应该怎么处理这些源文件，然后编译器和链接器能够准确地生成可执行文件。据说 <code>Ninja</code> 比 <code>make</code> 效率高，是 <code>make</code> 的继承者。</p>
+<h3 id="处理“无法成功”的-git-clone"><a href="#处理“无法成功”的-git-clone" class="headerlink" title="处理“无法成功”的 git clone"></a>处理“无法成功”的 git clone</h3><p>在执行 <code>catkin_make_isolated</code> 的时候会发现，它会 <code>git clone https://ceres-solver.googlesource.com/ceres-solver</code>，至少在我这里这个是极慢，很难成功（因为里面有限制，只尝试3次）。因为我已经有 ceres-solver 可以不需要在线下载，直接将 ceres-solver 放置在合适的位置就行了。这个过程的代码在两个文件中，找到目录 <code>./build_isolated/ceres_solver/devel/ceres_src-prefix/tmp</code>，修改该目录下两个文件 <code>ceres_src-gitclone.cmake</code> 和 <code>ceres_src-gitupdate.cmake</code>。要运行了 <code>catking_make_isolated</code> 才能够看到这两个文件。</p>
+<p>将文件 <code>ceres_src-gitclone.cmake</code> 中注释 “# try the clone 3 times …” 之下的所有内容都删除或注释。文件 <code>cers_src-gitupdate.cmake</code> 只留下最前面的一个 <code>if</code> 即可。具体能不能全删了，我也不知道，因为还没有去试。</p>
+<p>修改好文件之后将源码放入到正确的位置，在文件 <code>ceres_src-gitclone.cmake</code> 中可以找到这个正确位置是 <code>./build_isolated/ceres_solver/devel/ceres_src-prefix/src/ceres_src</code>，<code>mkdir ceres_src</code> 将 <code>https://github.com/ceres-solver/ceres-solver</code> 中根目录下所有内容直接放入。</p>
+<h3 id="cartographer-的-Debug"><a href="#cartographer-的-Debug" class="headerlink" title="cartographer 的 Debug"></a>cartographer 的 Debug</h3><p>随后进行 <code>catking_make_isolated</code> 还是会遇到问题，大致的意思是工程 cartographer 不支持 Debug。</p>
+<p>修改文件 <code>./src/cartographer/cmake/functions.cmake</code> line 350 和 line 352，注释掉。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">  elseif(CMAKE_BUILD_TYPE STREQUAL &quot;Debug&quot;)#    message(FATAL_ERROR &quot;Compiling in debug mode is not supported.&quot;)</div><div class="line">  else()#    message(FATAL_ERROR &quot;Unknown CMAKE_BUILD_TYPE: $&#123;CMAKE_BUILD_TYPE&#125;&quot;)  endif()</div></pre></td></tr></table></figure>
+<p>这样就可以正确 <code>catkin_make_isolated</code>。</p>
+<h3 id="正确打开-IDE"><a href="#正确打开-IDE" class="headerlink" title="正确打开 IDE"></a>正确打开 IDE</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">source ./devel_isolated/setup.bash</div></pre></td></tr></table></figure>
+<p>将环境配置好。</p>
+<p>在同一个 <code>terminal</code> 窗口使用</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">bash -i -c &quot;codeblocks&quot;</div></pre></td></tr></table></figure>
+<p>启动 IDE。</p>
+<p>找到工程文件 <code>./build_isolated/cartographer_ros/cartographer_ros/cartographer_ros.cbp</code> 打开工程。</p>
+<h2 id="Debug-流程"><a href="#Debug-流程" class="headerlink" title="Debug 流程"></a>Debug 流程</h2><p>Debug 流程是为了使得整个软件能够正常运行，而我可以在 IDE 中查看运行过程，所以先弄清楚软件的启动。</p>
+<p>demo 运行是通过下面这一条语句：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">roslaunch cartographer_ros demo_backpack_2d.launch bag_filename:=$&#123;HOME&#125;/Downloads/cartographer_paper_deutsches_museum.bag</div></pre></td></tr></table></figure>
+<p>找到 <code>./src/cartograpehr_ros/cartographer_ros/launch/demo_back_pack_2d.launch</code>。里面 <code>include</code> 了相同文件夹下面的 <code>backpack_2d.launch</code>，打开这个文件里面启动了两个node，前面 name 为 <code>robot_state_publisher</code> 的 node 还不是很理解这个是干什么用的。但是后面的 name 为 <code>cartographer_node</code> 就是主节点了。在 IDE 中对应着可执行文件 <code>cartographer_node</code>，现在将这个可执行文件的运行参数按照 <code>backpack_2d.launch</code> 进行添加。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">&lt;node name=&quot;cartographer_node&quot; pkg=&quot;cartographer_ros&quot;</div><div class="line">    type=&quot;cartographer_node&quot; args=&quot;</div><div class="line">        -configuration_directory $(find cartographer_ros)/configuration_files</div><div class="line">        -configuration_basename backpack_2d.lua&quot;</div><div class="line">    output=&quot;screen&quot;&gt;</div><div class="line">  &lt;remap from=&quot;echoes&quot; to=&quot;horizontal_laser_2d&quot; /&gt;</div><div class="line">&lt;/node&gt;</div></pre></td></tr></table></figure>
+<p>里面的 <code>remap</code> 节点，就是做一个名字的映射，按照链接 <code>http://wiki.ros.org/Remapping%20Arguments</code> 的意思，这个 <code>remap</code> 是可以写在命令行中的，所以整体的命令行参数（args）就是5个：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">// 第二 IDE 启动 node</div><div class="line">-configuration_directory $(find cartographer_ros)/configuration_files -configuration_basename backpack_2d.lua echoes:=horizontal_laser_2d</div></pre></td></tr></table></figure>
+<p>注意将 <code>$(find cartographer_ros)</code> 替换成绝对链接，否则是找不到位置的。</p>
+<p>name 为 <code>robot_state_publisher</code> 是用于将机器人上多个设备的局部坐标系统一成机器人整体坐标的一个节点，机器人各个局部坐标系下的数据发送到这个节点，这个节点将所有数据统一在一个整体的坐标系下。统一了坐标系之后就可以进行发布，发布到需要存储或显示（rivz）的地方。为了能够 Debug 这里需要将这个 node 分离出来，单独运行。新建一个文件<code>./src/cartograpehr_ros/cartographer_ros/launch/backpack_2d_display.launch</code>，文件内写：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">&lt;launch&gt;</div><div class="line">  &lt;param name=&quot;robot_description&quot;</div><div class="line">    textfile=&quot;$(find cartographer_ros)/urdf/backpack_2d.urdf&quot; /&gt;</div><div class="line"></div><div class="line">  &lt;node name=&quot;robot_state_publisher&quot; pkg=&quot;robot_state_publisher&quot;</div><div class="line">    type=&quot;robot_state_publisher&quot; /&gt;</div><div class="line">&lt;/launch&gt;</div></pre></td></tr></table></figure>
+<p>到时候运行的时候就这么运行（不要指明绝对路径，绝对路径会错误）：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">// 第一启动 node</div><div class="line">roslaunch cartographer_ros backpack_2d_display.launch</div></pre></td></tr></table></figure>
+<p>回到文件 <code>demo_backpack_2d.launch</code> 还有两个 node：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">&lt;node name=&quot;rviz&quot; pkg=&quot;rviz&quot; type=&quot;rviz&quot; required=&quot;true&quot;</div><div class="line">    args=&quot;-d $(find cartographer_ros)/configuration_files/demo_2d.rviz&quot; /&gt;</div><div class="line">&lt;node name=&quot;playbag&quot; pkg=&quot;rosbag&quot; type=&quot;play&quot;</div><div class="line">    args=&quot;--clock $(arg bag_filename)&quot; /&gt;</div></pre></td></tr></table></figure>
+<p><code>rviz</code> 这个 node 用于可视化，<code>playbag</code> 用于广播数据。变成命令行启动就是这样的：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">// 第三启动 node</div><div class="line">rviz -d $(find cartographer_ros)/configuration_files/demo_2d.rviz</div><div class="line">// 第四启动 node</div><div class="line">rosbag play --clock $(arg bag_filename)</div></pre></td></tr></table></figure>
+<p>注意替换 <code>$(find cartographer_ros)</code> 和 <code>$(arg bag_filename)</code>。<code>bag_filenam</code> 对应着 demo 运行命令的 <code>bag_filename</code>，所以替换为 <code>${HOME}/Downloads/cartographer_paper_deutsches_museum.bag</code>。</p>
+<p>按照前面各个 node 的顺序分别启动，需要注意的是开启的每一个 shell 都需要先进行 source 将工程的内容加载进入环境。</p>
+<p>当然，需要先启动 <code>roscore</code>。</p>
+<h2 id="后话"><a href="#后话" class="headerlink" title="后话"></a>后话</h2><p>然而并这么做并没有什么用，Debug 运行太慢，在 CodeBlocks 中调试极为不方便，我认为还是别调试好。</p>
+</div></div><div class="post-main post-comment"></div></article><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.css"><script src="//cdn.bootcss.com/jquery/2.0.3/jquery.min.js"></script><script src="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.pack.js"></script><script>$(document).ready(function() {
+    $(".fancybox").fancybox();
+});
+</script></body></html>

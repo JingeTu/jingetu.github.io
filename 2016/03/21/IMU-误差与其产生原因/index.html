@@ -1,36 +1,38 @@
-extends base
-
-block title
-  title= page.title + " | " + config.title
-
-block main
-
-  // gallery that comes before the header
-  if page.photos
-     if page.photos.length
-      .article-gallery
-        .article-gallery-photos.container
-          for photo in page.photos
-            a.article-gallery-img.fancybox(href=url_for(photo), rel="gallery_" + page._id)
-              img(src=url_for(photo), itemprop="image")
-
-  article.wrapper
-    .post-main
-      .nav
-        nav.container
-          each nav, name in theme.menu
-            +a_with_current(nav, __(name))
-        .container.post-meta
-          if (page.tags && page.tags.length)
-            .post-tags
-              != list_tags(page.tags, {show_count: false, class: 'post-tag', style:'none', separator:''})
-          .post-time= page.date.format(config.date_format)
-
-      .container.post-header
-        h1: = page.title
-
-      .container.post-content
-        != page.content
-
-    .post-main.post-comment
-      include _partial/comments
+<!DOCTYPE html><html><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description" content="Jinge's Blog on Github"><title>IMU 误差与其产生原因 | Jinge's Blog</title><link rel="stylesheet" type="text/css" href="/css/normalize.css"><link rel="stylesheet" type="text/css" href="/css/highlight.css"><link rel="stylesheet" type="text/css" href="/css/noise.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/font-awesome/4.5.0/css/font-awesome.min.css"><link rel="Shortcut Icon" type="image/x-icon" href="/favicon.ico"><link rel="stylesheet" type="text/css" href="//fonts.useso.com/css?family=Lato"></head><body><!-- gallery that comes before the header--><article class="wrapper"><div class="post-main"><div class="nav"><nav class="container"><a href="/" class="sidebar-nav-item active">Home</a><a href="/archives" class="sidebar-nav-item">Archives</a></nav><div class="container post-meta"><div class="post-tags"><a class="post-tag-link" href="/tags/IMU/">IMU</a></div><div class="post-time">2016-03-21</div></div></div><div class="container post-header"><h1>IMU 误差与其产生原因</h1></div><div class="container post-content"><p>做了很久的 IMU 了，很混沌，不理解。</p>
+<p>今天找到一个介绍 IMU 误差的 PDF 文档，现在对这个文档里面有价值的信息做一个记录。</p>
+<p>文档链接如下：</p>
+<p><a href="http://www.novatel.com/assets/Documents/Bulletins/APN064.pdf" target="_blank" rel="external">http://www.novatel.com/assets/Documents/Bulletins/APN064.pdf</a></p>
+<a id="more"></a>
+<h2 id="地球重力与自转的影响"><a href="#地球重力与自转的影响" class="headerlink" title="地球重力与自转的影响"></a>地球重力与自转的影响</h2><p>地球重力对 IMU 的影响体现在加速度计上，如果保持 IMU 静止，重力加速度计在各个轴上的测量值得到的矢量和就是重力加速度。</p>
+<p>地球自转对 IMU 的影响体现在陀螺仪上，如果将 IMU 完全水平地放置在赤道上，并且其一个轴对着极点，就可以测量到地球自转的角速度。因为地球自转的角速度只有 15 degrees/h ，这个量对 IMU 测量影响很小。</p>
+<h2 id="误差类型"><a href="#误差类型" class="headerlink" title="误差类型"></a>误差类型</h2><h3 id="测量范围"><a href="#测量范围" class="headerlink" title="测量范围"></a>测量范围</h3><p>在选择 IMU 时需要注意到使用环境下的最大加速度或者角速度有多少，要避免响应饱和使得测量值不准确。</p>
+<h3 id="偏移值（Bias）"><a href="#偏移值（Bias）" class="headerlink" title="偏移值（Bias）"></a>偏移值（Bias）</h3><p>真实值与测量值之间的关系可以使用公式<br>$$ x = Sf(x) + b $$<br>表示。</p>
+<p>其中的 $ b $ 就是偏移值。</p>
+<p>单位 $ deg/hr,\ m/s^2 $</p>
+<h3 id="偏移值可重复性（Bias-Repeatability）"><a href="#偏移值可重复性（Bias-Repeatability）" class="headerlink" title="偏移值可重复性（Bias Repeatability）"></a>偏移值可重复性（Bias Repeatability）</h3><p>IMU 每次开机（powerup）的初始偏移值是不一样的，很多因素可以造成这个现象。如，IMU 所处的物理环境（XSENS MTi 除了具备加速度计、陀螺仪、磁力计的功能，还可以测量大气压）和处理器的初始条件。</p>
+<p>单位 $ deg/hr,\ m/s^2 $</p>
+<h3 id="偏移值稳定性（Bias-Stability）"><a href="#偏移值稳定性（Bias-Stability）" class="headerlink" title="偏移值稳定性（Bias Stability）"></a>偏移值稳定性（Bias Stability）</h3><p>IMU 在同一次开机之后偏移值也会随着时间改变。温度、时间、机械强度对这个都有影响。</p>
+<blockquote>
+<p>An INS filter constantly estimates the bias by making use of external sources of information (GNSS, DMI, barometer). The estimated bias value is removed from the IMU measurements before using them in the mechanization.</p>
+</blockquote>
+<p>使用 IMU 的时候需要将其它信息一起接收，然后估计偏移值。</p>
+<p>单位 $ deg/hr/hr,\ m/s^2/hr $</p>
+<h3 id="比例因子（Scale-Factor）"><a href="#比例因子（Scale-Factor）" class="headerlink" title="比例因子（Scale Factor）"></a>比例因子（Scale Factor）</h3><p>比例因子即公式 $$ x = Sf(x) + b $$ 中的 $ S $。比例因子描述的是其中的线性部分。</p>
+<p>单位 $ ppm $</p>
+<p>如果有 2％ 的误差，那么就说有 20000ppm 的误差。这个单位的意思不太懂。</p>
+<h3 id="比例因子线性度（Scale-Factor-Linearity）"><a href="#比例因子线性度（Scale-Factor-Linearity）" class="headerlink" title="比例因子线性度（Scale Factor Linearity）"></a>比例因子线性度（Scale Factor Linearity）</h3><p>即比例因子的非线性部分。</p>
+<p>单位 $ ppm $</p>
+<p>其实这个我也不知道是什么意思。</p>
+<h3 id="随机误差"><a href="#随机误差" class="headerlink" title="随机误差"></a>随机误差</h3><p>服从正态分布的误差，可以利用统计规律去除。</p>
+<p>单位 $ deg/\sqrt{hr},\ m/s/\sqrt{hr} $</p>
+<h3 id="非正交"><a href="#非正交" class="headerlink" title="非正交"></a>非正交</h3><p>使得测量值之间具有相关性。</p>
+<p>单位 $ mrad $</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>按我看来最重要的是补偿好偏移值和比例因子的误差。</p>
+<blockquote>
+<p>A bias error, if not removed from the measurement, is integrated twice as part of the mechanization process. In this case, a constant bias (error) in acceleration becomes a linear error in velocity and a quadratic error in position. A constant bias in attitude rate (gyro) becomes a quadratic error in velocity and a cubic error in position.</p>
+</blockquote>
+<p>事实确实如此，我在重新测量陀螺仪的偏移值，并补偿之后，得到的结果好很多。</p>
+</div></div><div class="post-main post-comment"></div></article><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.css"><script src="//cdn.bootcss.com/jquery/2.0.3/jquery.min.js"></script><script src="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.pack.js"></script><script>$(document).ready(function() {
+    $(".fancybox").fancybox();
+});
+</script></body></html>

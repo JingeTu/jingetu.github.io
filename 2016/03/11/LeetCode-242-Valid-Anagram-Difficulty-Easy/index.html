@@ -1,36 +1,17 @@
-extends base
-
-block title
-  title= page.title + " | " + config.title
-
-block main
-
-  // gallery that comes before the header
-  if page.photos
-     if page.photos.length
-      .article-gallery
-        .article-gallery-photos.container
-          for photo in page.photos
-            a.article-gallery-img.fancybox(href=url_for(photo), rel="gallery_" + page._id)
-              img(src=url_for(photo), itemprop="image")
-
-  article.wrapper
-    .post-main
-      .nav
-        nav.container
-          each nav, name in theme.menu
-            +a_with_current(nav, __(name))
-        .container.post-meta
-          if (page.tags && page.tags.length)
-            .post-tags
-              != list_tags(page.tags, {show_count: false, class: 'post-tag', style:'none', separator:''})
-          .post-time= page.date.format(config.date_format)
-
-      .container.post-header
-        h1: = page.title
-
-      .container.post-content
-        != page.content
-
-    .post-main.post-comment
-      include _partial/comments
+<!DOCTYPE html><html><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description" content="Jinge's Blog on Github"><title>LeetCode #242 Valid Anagram (Difficulty: Easy) | Jinge's Blog</title><link rel="stylesheet" type="text/css" href="/css/normalize.css"><link rel="stylesheet" type="text/css" href="/css/highlight.css"><link rel="stylesheet" type="text/css" href="/css/noise.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/font-awesome/4.5.0/css/font-awesome.min.css"><link rel="Shortcut Icon" type="image/x-icon" href="/favicon.ico"><link rel="stylesheet" type="text/css" href="//fonts.useso.com/css?family=Lato"></head><body><!-- gallery that comes before the header--><article class="wrapper"><div class="post-main"><div class="nav"><nav class="container"><a href="/" class="sidebar-nav-item active">Home</a><a href="/archives" class="sidebar-nav-item">Archives</a></nav><div class="container post-meta"><div class="post-tags"><a class="post-tag-link" href="/tags/leetcode/">leetcode</a></div><div class="post-time">2016-03-11</div></div></div><div class="container post-header"><h1>LeetCode #242 Valid Anagram (Difficulty: Easy)</h1></div><div class="container post-content"><p>问题 :</p>
+<blockquote>
+<p>Given two strings s and t, write a function to determine if t is an anagram of s.</p>
+<p>For example,<br>s = “anagram”, t = “nagaram”, return true.<br>s = “rat”, t = “car”, return false.</p>
+<p>Note:<br>You may assume the string contains only lowercase alphabets.</p>
+</blockquote>
+<a id="more"></a>
+<p><a href="https://leetcode.com/problems/move-zeroes/" target="_blank" rel="external">原题链接</a></p>
+<p>此题就是判断两个 string 它们所含的字母及各字母的数量是否相同。</p>
+<p>C++ :</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">class Solution &#123;</div><div class="line">public:</div><div class="line">    bool isAnagram(string s, string t) &#123;</div><div class="line">        if(s.size() == 0 || t.size() == 0) return true;</div><div class="line">        if(s.size() != t.size()) return false;</div><div class="line">        int charactersNum[26] = &#123;0&#125;;</div><div class="line">        for(int i = 0; i &lt; s.size(); i++) &#123;</div><div class="line">            charactersNum[s[i] - &apos;a&apos;] ++;</div><div class="line">            charactersNum[t[i] - &apos;a&apos;] --;</div><div class="line">        &#125;</div><div class="line">        for(int i = 0;i &lt; 26; i++) &#123;</div><div class="line">            if(charactersNum[i] != 0) &#123;</div><div class="line">                return false;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        return true;</div><div class="line">    &#125;</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+<p>思路简单，创建一个26个元素的数组用来记录每个字母出现的次数。遍历两个 string ，其中一个 string 出现字母将对应位置加1，另一个 string 则相应减1。如果它们互为 anagram ，则最后这个26个元素的数组，各个元素应为0。</p>
+<p>这里注意的是，两个 string 可以同时遍历。对于每个字母的索引，可以将此字符减去字符a得到，同样如果对于字符数字，要恢复成数字，可以减去字符0得到。</p>
+</div></div><div class="post-main post-comment"></div></article><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.css"><script src="//cdn.bootcss.com/jquery/2.0.3/jquery.min.js"></script><script src="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.pack.js"></script><script>$(document).ready(function() {
+    $(".fancybox").fancybox();
+});
+</script></body></html>
