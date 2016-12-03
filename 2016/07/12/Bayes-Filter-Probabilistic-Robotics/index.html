@@ -1,50 +1,558 @@
-<!DOCTYPE html><html><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description" content="Jinge's Blog on Github"><title>Bayes Filter (Probabilistic Robotics) | Jinge's Blog</title><link rel="stylesheet" type="text/css" href="/css/normalize.css"><link rel="stylesheet" type="text/css" href="/css/highlight.css"><link rel="stylesheet" type="text/css" href="/css/noise.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/font-awesome/4.5.0/css/font-awesome.min.css"><link rel="Shortcut Icon" type="image/x-icon" href="/favicon.ico"><link rel="stylesheet" type="text/css" href="//fonts.useso.com/css?family=Lato"></head><body><!-- gallery that comes before the header--><article class="wrapper"><div class="post-main"><div class="nav"><nav class="container"><a href="/" class="sidebar-nav-item active">Home</a><a href="/archives" class="sidebar-nav-item">Archives</a></nav><div class="container post-meta"><div class="post-tags"><a class="post-tag-link" href="/tags/robotics/">robotics</a></div><div class="post-time">2016-07-12</div></div></div><div class="container post-header"><h1>Bayes Filter (Probabilistic Robotics)</h1></div><div class="container post-content"><p>本文是阅读 《Probabilistic Robotics》 Chapter2 Recursive State Estimation 的笔记。</p>
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+  
+    <title>Bayes Filter (Probabilistic Robotics) | Jinge&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Jinge Tu">
+    
+
+    
+    <meta name="description" content="本文是阅读 《Probabilistic Robotics》 Chapter2 Recursive State Estimation 的笔记。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Bayes Filter (Probabilistic Robotics)">
+<meta property="og:url" content="http://jingetu.github.io/2016/07/12/Bayes-Filter-Probabilistic-Robotics/index.html">
+<meta property="og:site_name" content="Jinge's Blog">
+<meta property="og:description" content="本文是阅读 《Probabilistic Robotics》 Chapter2 Recursive State Estimation 的笔记。">
+<meta property="og:updated_time" content="2016-12-03T11:15:04.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Bayes Filter (Probabilistic Robotics)">
+<meta name="twitter:description" content="本文是阅读 《Probabilistic Robotics》 Chapter2 Recursive State Estimation 的笔记。">
+
+    
+    <link rel="alternative" href="/atom.xml" title="Jinge&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css"><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+</head>
+
+  <body>
+    <!-- hexo-inject:begin --><!-- hexo-inject:end --><header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.png" alt="Jinge&#39;s Blog" title="Jinge&#39;s Blog"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Jinge&#39;s Blog">Jinge&#39;s Blog</a></h1>
+				<h2 class="blog-motto">Jinge&#39;s Blog on Github</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+						<li><a href="/about">About</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" name="q" autocomplete="off" maxlength="20" placeholder="搜索" />
+						<input type="hidden" name="q" value="site:jingetu.github.io">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/07/12/Bayes-Filter-Probabilistic-Robotics/" title="Bayes Filter (Probabilistic Robotics)" itemprop="url">Bayes Filter (Probabilistic Robotics)</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Jinge Tu" target="_blank" itemprop="author">Jinge Tu</a>
+		
+  <p class="article-time">
+    <time datetime="2016-07-12T13:55:25.000Z" itemprop="datePublished"> 发表于 2016-07-12</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		
+			<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#背景知识"><span class="toc-number">1.</span> <span class="toc-text">背景知识：</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#state-control-measurement"><span class="toc-number">1.1.</span> <span class="toc-text">State, Control, Measurement</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#belief-distribution"><span class="toc-number">1.2.</span> <span class="toc-text">Belief Distribution</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#markov-assumption"><span class="toc-number">1.3.</span> <span class="toc-text">Markov Assumption</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#贝叶斯滤波器流程"><span class="toc-number">2.</span> <span class="toc-text">贝叶斯滤波器流程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#贝叶斯滤波器数学推导"><span class="toc-number">3.</span> <span class="toc-text">贝叶斯滤波器数学推导</span></a></li></ol>
+		
+		</div>
+		
+		<p>本文是阅读 《Probabilistic Robotics》 Chapter2 Recursive State Estimation 的笔记。</p>
 <a id="more"></a>
-<h2 id="背景知识："><a href="#背景知识：" class="headerlink" title="背景知识："></a>背景知识：</h2><h3 id="State-Control-Measurement"><a href="#State-Control-Measurement" class="headerlink" title="State, Control, Measurement"></a>State, Control, Measurement</h3><p>对于一个机器人，机器人具有与周围环境交互的能力，机器人通过它的执行部件（actuators）改变周围的环境，或者通过它的传感器（sensors）感知周围的环境。将机器人通过它的轮子改变自身在环境中所处的位置，也可以看做是改变周围环境，因为从机器人设备坐标系观察周围环境变了。</p>
+<h2 id="背景知识">背景知识：</h2>
+<h3 id="state-control-measurement">State, Control, Measurement</h3>
+<p>对于一个机器人，机器人具有与周围环境交互的能力，机器人通过它的执行部件（actuators）改变周围的环境，或者通过它的传感器（sensors）感知周围的环境。将机器人通过它的轮子改变自身在环境中所处的位置，也可以看做是改变周围环境，因为从机器人设备坐标系观察周围环境变了。</p>
 <p>可以使用一组状态值来描述机器人在环境中的位置、姿态，环境中的任何一个物体也可以使用一组状态值来描述物体在环境中的位置、姿态。状态值不仅可以用于描述物体的位置和姿态，还可以用于描述一系列其他的内部状态，如机器人内存使用量、物体的颜色等。</p>
 <p>机器人可以通过它的执行部件自身在环境中的位置和姿态，比如机器人发送指令给底盘，使底盘以 2m/s 的速度运动 2s，这个指令就可以看做是一组控制值。控制值造成了机器人的位置、姿态改变，所以改变了机器人的状态值。</p>
 <p>机器人可以通过它的传感器感知周围的环境，一般来说传感器有光学相机、激光扫描仪、深度相机、声呐等。这些传感器获得的数据被称作测量值。这些测量值可以用于计算估计机器人的位置、姿态，即测量值可以计算得到状态值。</p>
-<p>在下文中，我们使用字母 $x$ 表示机器人的状态值，一般的状态值有6个，即三维空间的3个坐标值与3个姿态值。使用字母 $u$ 表示机器人的控制值，使用字母 $z$ 表示机器人的测量值值。</p>
-<h3 id="Belief-Distribution"><a href="#Belief-Distribution" class="headerlink" title="Belief Distribution"></a>Belief Distribution</h3><p>Belief Distribution 是一个后验概率的概率分布。是在已经获得所有数据的条件下，状态值 $x$ 的概率分布。所有数据指的是机器人的控制值 $u$ 与测量值 $z$ 。</p>
-<p>对于 $t$ 时刻机器人的状态值 $x<em>t$ ，与开始时 1 时刻到 $t$ 时刻的所有控制值、测量值都有关系。从 0 时刻机器人初始位置开始，机器人通过所有的控制值 $u</em>{1:t}$ 可以计算出机器人在 $t$ 时刻的状态值，同时所有的测量值 $z_{1:t}$ 可以验证机器人的状态值，因为机器人的控制值存在误差，如机器人运动轮打滑。</p>
+<p>在下文中，我们使用字母 <span class="math inline">x</span> 表示机器人的状态值，一般的状态值有6个，即三维空间的3个坐标值与3个姿态值。使用字母 <span class="math inline">u</span> 表示机器人的控制值，使用字母 <span class="math inline">z</span> 表示机器人的测量值值。</p>
+<h3 id="belief-distribution">Belief Distribution</h3>
+<p>Belief Distribution 是一个后验概率的概率分布。是在已经获得所有数据的条件下，状态值 <span class="math inline">x</span> 的概率分布。所有数据指的是机器人的控制值 <span class="math inline">u</span> 与测量值 <span class="math inline">z</span> 。</p>
+<p>对于 <span class="math inline">t</span> 时刻机器人的状态值 <span class="math inline">x_t</span> ，与开始时 1 时刻到 <span class="math inline">t</span> 时刻的所有控制值、测量值都有关系。从 0 时刻机器人初始位置开始，机器人通过所有的控制值 <span class="math inline">u_{1:t}</span> 可以计算出机器人在 <span class="math inline">t</span> 时刻的状态值，同时所有的测量值 <span class="math inline">z_{1:t}</span> 可以验证机器人的状态值，因为机器人的控制值存在误差，如机器人运动轮打滑。</p>
 <p>对于这个后验概率的概率分布 <code>belief</code> 可以写成一个条件概率：</p>
-<p>$$ bel(x_t) = p(x<em>t|z</em>{1:t}, u_{1:t}) $$ </p>
-<p>如果在 $t$ 时刻不考虑测量值 $z_t$ ，只考虑控制值 $u_t$ ，在使用控制值 $u_t$ 计算出 $t$ 时刻的状态值 $x_t$ 之后再使用测量值  $z_t$ 验证得到的状态值 $x_t$ 。那么只考虑控制值 $u_t$ 得到的状态值 $x_t$ 的概率分布可以看做是一个预测 <code>prediction</code> ，这种方式得到的后验概率，可以写作：</p>
-<p>$$\overline{bel}(x_t) = p(x<em>t|z</em>{1:t-1}, u_{1:t})$$ </p>
-<h3 id="Markov-Assumption"><a href="#Markov-Assumption" class="headerlink" title="Markov Assumption"></a>Markov Assumption</h3><p>Markov Assumption 也可以称作是 complete state assumption。这个假设是说在知道当前的状态值的条件下，以前获得的所有数据和以后获得的所有数据之间是相互独立的。即预测未来状态值这件事情上，在当前除了当前的状态值 $x_t$ 以外，没有什么其他的数据值能够比 $x_t$ 预测得更好。也就是说 $x<em>t$ 中蕴含了 $z</em>{1:t}$ 和 $u<em>{1:t}$ 的信息，当然也蕴含了 $x</em>{t-1}$ 的信息，因为 $x<em>{t-1}$ 是由 $z</em>{1:t-1}, u_{1:t-1}$ 计算得到的。</p>
-<h2 id="贝叶斯滤波器流程"><a href="#贝叶斯滤波器流程" class="headerlink" title="贝叶斯滤波器流程"></a>贝叶斯滤波器流程</h2><blockquote>
-<p>Algorithm Bayes<em>filter($bel(x</em>{t-1})$, $u_t$, $z_t$):</p>
-<p>​    for all $x_t$ do</p>
-<p>​        $\overline{bel}(x_t) = \int p(x_t|u<em>t, x</em>{t-1})bel(x<em>{t-1})\text{d}x</em>{t-1}$</p>
-<p>​        $bel(x_t) = \eta p(z_t|x_t)\overline{bel}(x_t)$</p>
-<p>​    endfor</p>
-<p>​    return $bel(x_t)$</p>
+<p><span class="math display">\displaystyle  bel(x_t) = p(x_t|z_{1:t}, u_{1:t}) </span></p>
+<p>如果在 <span class="math inline">t</span> 时刻不考虑测量值 <span class="math inline">z_t</span> ，只考虑控制值 <span class="math inline">u_t</span> ，在使用控制值 <span class="math inline">u_t</span> 计算出 <span class="math inline">t</span> 时刻的状态值 <span class="math inline">x_t</span> 之后再使用测量值 <span class="math inline">z_t</span> 验证得到的状态值 <span class="math inline">x_t</span> 。那么只考虑控制值 <span class="math inline">u_t</span> 得到的状态值 <span class="math inline">x_t</span> 的概率分布可以看做是一个预测 <code>prediction</code> ，这种方式得到的后验概率，可以写作：</p>
+<p><span class="math display">\displaystyle \overline{bel}(x_t) = p(x_t|z_{1:t-1}, u_{1:t})</span></p>
+<h3 id="markov-assumption">Markov Assumption</h3>
+<p>Markov Assumption 也可以称作是 complete state assumption。这个假设是说在知道当前的状态值的条件下，以前获得的所有数据和以后获得的所有数据之间是相互独立的。即预测未来状态值这件事情上，在当前除了当前的状态值 <span class="math inline">x_t</span> 以外，没有什么其他的数据值能够比 <span class="math inline">x_t</span> 预测得更好。也就是说 <span class="math inline">x_t</span> 中蕴含了 <span class="math inline">z_{1:t}</span> 和 <span class="math inline">u_{1:t}</span> 的信息，当然也蕴含了 <span class="math inline">x_{t-1}</span> 的信息，因为 <span class="math inline">x_{t-1}</span> 是由 <span class="math inline">z_{1:t-1}, u_{1:t-1}</span> 计算得到的。</p>
+<h2 id="贝叶斯滤波器流程">贝叶斯滤波器流程</h2>
+<blockquote>
+<p>Algorithm Bayes_filter(<span class="math inline">bel(x_{t-1})</span>, <span class="math inline">u_t</span>, <span class="math inline">z_t</span>):</p>
+<p>​ for all <span class="math inline">x_t</span> do</p>
+<p>​ <span class="math inline">\overline{bel}(x_t) = \int p(x_t|u_t, x_{t-1})bel(x_{t-1})\text{d}x_{t-1}</span></p>
+<p>​ <span class="math inline">bel(x_t) = \eta p(z_t|x_t)\overline{bel}(x_t)</span></p>
+<p>​ endfor</p>
+<p>​ return <span class="math inline">bel(x_t)</span></p>
 </blockquote>
-<h2 id="贝叶斯滤波器数学推导"><a href="#贝叶斯滤波器数学推导" class="headerlink" title="贝叶斯滤波器数学推导"></a>贝叶斯滤波器数学推导</h2><p>贝叶斯滤波器的目的是估计系统在各个时刻的状态值的概率分布。即已知系统在初始时刻的状态值和初始时刻到 $t$ 时刻之间各个时刻的控制命令 $u<em>{1:t}$ 和测量值 $z</em>{1:t}$ 的情况下，求取 $t$ 时刻系统的状态值 $x_t$ 概率分布。</p>
-<p>这个概率分布可以用 $p(x<em>t|z</em>{1:t},u_{1:t})$ 表示。</p>
-<p>而对于三个随机变量$x, y, z$，贝叶斯理论有下面的公式：</p>
-<p>$$p(x|y,z) = \frac{p(y|x,z)p(x|z)}{p(y|z)}$$</p>
-<p>将 $p(x<em>t|z</em>{1:t},u_{1:t})$ 中的 $x_t$ 对应 $x$ ，$z<em>t$ 对应 $y$ ，$(z</em>{1:t-1}, u_{1:t})$ 对应 $z$ ，就能写出下面的式子：</p>
-<p>$$p(x<em>t|z</em>{1:t},u_{1:t})=\frac{p(z_t|x<em>t,z</em>{1:t-1},u_{1:t})p(x<em>t|z</em>{1:t-1},u_{1:t})}{p(z_t|x<em>t,z</em>{1:t-1},u_{1:t})} \ = \eta p(z_t|x<em>t,z</em>{1:t-1},u_{1:t})p(x<em>t|z</em>{1:t-1},u_{1:t})$$$p(z_t|x<em>t,z</em>{1:t-1},u_{1:t})$ 表示的是在已知 $x<em>t,z</em>{1:t-1},u_{1:t}$ 的条件下，$z_t$ 的条件概率。由马尔科夫假设， $x<em>t$ 中蕴含了 $z</em>{1:t-1},u_{1:t}$ 的信息，所以</p>
-<p>$$p(z_t|x<em>t,z</em>{1:t-1},u_{1:t}) = p(z_t|x_t)$$ </p>
-<p>注意，此处的 $x<em>t$ 指只经过 $x</em>{t-1}$ 与 $u_t$ 计算的 $x_t$ 并没有使用 $z_t$ 。</p>
-<p>将 </p>
-<p>$bel(x_t) = p(x<em>t|z</em>{1:t}, u_{1:t})$ </p>
-<p>$\overline{bel}(x_t) = p(x<em>t|z</em>{1:t-1}, u_{1:t})$ </p>
+<h2 id="贝叶斯滤波器数学推导">贝叶斯滤波器数学推导</h2>
+<p>贝叶斯滤波器的目的是估计系统在各个时刻的状态值的概率分布。即已知系统在初始时刻的状态值和初始时刻到 <span class="math inline">t</span> 时刻之间各个时刻的控制命令 <span class="math inline">u_{1:t}</span> 和测量值 <span class="math inline">z_{1:t}</span> 的情况下，求取 <span class="math inline">t</span> 时刻系统的状态值 <span class="math inline">x_t</span> 概率分布。</p>
+<p>这个概率分布可以用 <span class="math inline">p(x_t|z_{1:t},u_{1:t})</span> 表示。</p>
+<p>而对于三个随机变量<span class="math inline">x, y, z</span>，贝叶斯理论有下面的公式：</p>
+<p><span class="math display">\displaystyle p(x|y,z) = \frac{p(y|x,z)p(x|z)}{p(y|z)}</span></p>
+<p>将 <span class="math inline">p(x_t|z_{1:t},u_{1:t})</span> 中的 <span class="math inline">x_t</span> 对应 <span class="math inline">x</span> ，<span class="math inline">z_t</span> 对应 <span class="math inline">y</span> ，<span class="math inline">(z_{1:t-1}, u_{1:t})</span> 对应 <span class="math inline">z</span> ，就能写出下面的式子：</p>
+<p><span class="math display">\displaystyle p(x_t|z_{1:t},u_{1:t})=\frac{p(z_t|x_t,z_{1:t-1},u_{1:t})p(x_t|z_{1:t-1},u_{1:t})}{p(z_t|x_t,z_{1:t-1},u_{1:t})} \\ = \eta p(z_t|x_t,z_{1:t-1},u_{1:t})p(x_t|z_{1:t-1},u_{1:t})</span><span class="math inline">p(z_t|x_t,z_{1:t-1},u_{1:t})</span> 表示的是在已知 <span class="math inline">x_t,z_{1:t-1},u_{1:t}</span> 的条件下，<span class="math inline">z_t</span> 的条件概率。由马尔科夫假设， <span class="math inline">x_t</span> 中蕴含了 <span class="math inline">z_{1:t-1},u_{1:t}</span> 的信息，所以</p>
+<p><span class="math display">\displaystyle p(z_t|x_t,z_{1:t-1},u_{1:t}) = p(z_t|x_t)</span></p>
+<p>注意，此处的 <span class="math inline">x_t</span> 指只经过 <span class="math inline">x_{t-1}</span> 与 <span class="math inline">u_t</span> 计算的 <span class="math inline">x_t</span> 并没有使用 <span class="math inline">z_t</span> 。</p>
+<p>将</p>
+<p><span class="math inline">bel(x_t) = p(x_t|z_{1:t}, u_{1:t})</span></p>
+<p><span class="math inline">\overline{bel}(x_t) = p(x_t|z_{1:t-1}, u_{1:t})</span></p>
 <p>代入</p>
-<p> $p(x<em>t|z</em>{1:t},u_{1:t}) = \eta p(z_t|x<em>t,z</em>{1:t-1},u_{1:t})p(x<em>t|z</em>{1:t-1},u_{1:t})$</p>
+<p><span class="math inline">p(x_t|z_{1:t},u_{1:t}) = \eta p(z_t|x_t,z_{1:t-1},u_{1:t})p(x_t|z_{1:t-1},u_{1:t})</span></p>
 <p>可以得到：</p>
-<p>$bel(x_t) = \eta p(z_t|x_t)\overline{bel}(x_t)$</p>
-<p>上面这个式子指的是，在整合了 $z_t, u_t$ 之后状态值 $x_t$ 的概率分布。</p>
-<p>对于 $\overline{bel}(x_t)$ 的计算可以用用公式</p>
-<p>$$p(x) = \int p(x|y)p(y) \text{d}y$$</p>
+<p><span class="math inline">bel(x_t) = \eta p(z_t|x_t)\overline{bel}(x_t)</span></p>
+<p>上面这个式子指的是，在整合了 <span class="math inline">z_t, u_t</span> 之后状态值 <span class="math inline">x_t</span> 的概率分布。</p>
+<p>对于 <span class="math inline">\overline{bel}(x_t)</span> 的计算可以用用公式</p>
+<p><span class="math display">\displaystyle p(x) = \int p(x|y)p(y) \text{d}y</span></p>
 <p>推导得到。</p>
-<p>$$\overline{bel}(x_t) = p(x<em>t|z</em>{1:t-1}, u_{1:t}) \ = \int p(x<em>t|x</em>{t-1}, z<em>{1:t-1}, u</em>{1:t})p(x<em>{t-1}|z</em>{1:t-1}, u<em>{1:t})\text{d}x</em>{t-1} \ = \int p(x<em>t|x</em>{t-1}, z<em>{1:t-1}, u</em>{1:t-1})p(x<em>{t-1}|z</em>{1:t-1}, u<em>{1:t-1})\text{d}x</em>{t-1}$$  </p>
+<p><span class="math display">\displaystyle \overline{bel}(x_t) = p(x_t|z_{1:t-1}, u_{1:t}) \\ = \int p(x_t|x_{t-1}, z_{1:t-1}, u_{1:t})p(x_{t-1}|z_{1:t-1}, u_{1:t})\text{d}x_{t-1} \\ = \int p(x_t|x_{t-1}, z_{1:t-1}, u_{1:t-1})p(x_{t-1}|z_{1:t-1}, u_{1:t-1})\text{d}x_{t-1}</span></p>
 <p>由马尔科夫假设</p>
-<p>$$p(x<em>t|x</em>{t-1}, z<em>{1:t-1}, u</em>{1:t}) = p(x<em>t|x</em>{t-1},u_t)$$ </p>
+<p><span class="math display">\displaystyle p(x_t|x_{t-1}, z_{1:t-1}, u_{1:t}) = p(x_t|x_{t-1},u_t)</span></p>
 <p>所以就有</p>
-<p>$$\overline{bel}(x_t) = \int p(x<em>t|x</em>{t-1},u<em>t)p(x</em>{t-1}|z<em>{1:t-1}, u</em>{1:t-1})\text{d}x_{t-1} = \int p(x<em>t|x</em>{t-1},u<em>t)bel(x</em>{t-1})\text{d}x_{t-1}$$ </p>
-</div></div><div class="post-main post-comment"></div></article><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.css"><script src="//cdn.bootcss.com/jquery/2.0.3/jquery.min.js"></script><script src="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.pack.js"></script><script>$(document).ready(function() {
-    $(".fancybox").fancybox();
+<p><span class="math display">\displaystyle \overline{bel}(x_t) = \int p(x_t|x_{t-1},u_t)p(x_{t-1}|z_{1:t-1}, u_{1:t-1})\text{d}x_{t-1} = \int p(x_t|x_{t-1},u_t)bel(x_{t-1})\text{d}x_{t-1}</span></p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/robotics/">robotics</a>
+  </div>
+
+</div>
+
+
+
+	<div class="article-share" id="share">
+	
+	  <div data-url="http://jingetu.github.io/2016/07/12/Bayes-Filter-Probabilistic-Robotics/" data-title="Bayes Filter (Probabilistic Robotics) | Jinge&#39;s Blog" data-tsina="null" class="share clearfix">
+	  </div>
+	
+	</div>
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2016/07/12/Kalman-Filter-Probabilistic-Robotics/" title="Kalman Filter (Probabilistic Robotics)">
+  <strong>上一篇：</strong><br/>
+  <span>
+  Kalman Filter (Probabilistic Robotics)</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2016/03/21/IMU-误差与其产生原因/"  title="IMU 误差与其产生原因">
+ <strong>下一篇：</strong><br/> 
+ <span>IMU 误差与其产生原因
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#背景知识"><span class="toc-number">1.</span> <span class="toc-text">背景知识：</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#state-control-measurement"><span class="toc-number">1.1.</span> <span class="toc-text">State, Control, Measurement</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#belief-distribution"><span class="toc-number">1.2.</span> <span class="toc-text">Belief Distribution</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#markov-assumption"><span class="toc-number">1.3.</span> <span class="toc-text">Markov Assumption</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#贝叶斯滤波器流程"><span class="toc-number">2.</span> <span class="toc-text">贝叶斯滤波器流程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#贝叶斯滤波器数学推导"><span class="toc-number">3.</span> <span class="toc-text">贝叶斯滤波器数学推导</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+
+
+  
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/leetcode/" title="leetcode">leetcode<sup>7</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/robotics/" title="robotics">robotics<sup>5</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/IMU/" title="IMU">IMU<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://coderq.com" target="_blank" title="一个面向程序员交流分享的新一代社区">码农圈</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://wuchong.me" target="_blank" title="Jark&#39;s Blog">Jark&#39;s Blog</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+  <div class="weiboshow">
+  <p class="asidetitle">新浪微博</p>
+    <iframe width="100%" height="119" class="share_self"  frameborder="0" scrolling="no" src="http://widget.weibo.com/weiboshow/index.php?language=&width=0&height=119&fansRow=2&ptype=1&speed=0&skin=9&isTitle=1&noborder=1&isWeibo=0&isFans=0&uid=null&verifier=b3593ceb&dpc=1"></iframe>
+</div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<section class="info">
+		<p> Hello ,I&#39;m Larry Page in Google. <br/>
+			This is my blog,believe it or not.</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		<a href="http://weibo.com/2176287895" target="_blank" class="icon-weibo" title="微博"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+	</div>
+			
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2016 
+		
+		<a href="/about" target="_blank" title="Jinge Tu">Jinge Tu</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
 });
-</script></body></html>
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<div class="hoverqrcode clearfix"></div>',
+  '<a class="overlay" id="qrcode"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+
+  $('.hoverqrcode').hide();
+
+  var myWidth = 0;
+  function updatehoverqrcode(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+    var qrsize = myWidth > 1024 ? 200:100;
+    var options = {render: 'image', size: qrsize, fill: '#2ca6cb', text: url, radius: 0.5, quiet: 1};
+    var p = $('.article-share-qrcode').position();
+    $('.hoverqrcode').empty().css('width', qrsize).css('height', qrsize)
+                          .css('left', p.left-qrsize/2+20).css('top', p.top-qrsize-10)
+                          .qrcode(options);
+  };
+  $(window).resize(function(){
+    $('.hoverqrcode').hide();
+  });
+  $('.article-share-qrcode').click(function(){
+    updatehoverqrcode();
+    $('.hoverqrcode').toggle();
+  });
+  $('.article-share-qrcode').hover(function(){}, function(){
+      $('.hoverqrcode').hide();
+  });
+});   
+</script>
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?e6d1f421bbc9962127a50488f9ed37d1";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="返回顶部"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+            processEscapes: true
+        }
+    });
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax();
+        for (var i = 0; i < all.length; ++i)
+            all[i].SourceElement().parentNode.className += ' has-jax';
+    });
+</script>
+<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+</body>
+</html>

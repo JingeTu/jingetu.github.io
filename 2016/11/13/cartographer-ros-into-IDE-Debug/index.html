@@ -1,27 +1,137 @@
-<!DOCTYPE html><html><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description" content="Jinge's Blog on Github"><title>cartographer_ros into IDE Debug | Jinge's Blog</title><link rel="stylesheet" type="text/css" href="/css/normalize.css"><link rel="stylesheet" type="text/css" href="/css/highlight.css"><link rel="stylesheet" type="text/css" href="/css/noise.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/font-awesome/4.5.0/css/font-awesome.min.css"><link rel="Shortcut Icon" type="image/x-icon" href="/favicon.ico"><link rel="stylesheet" type="text/css" href="//fonts.useso.com/css?family=Lato"></head><body><!-- gallery that comes before the header--><article class="wrapper"><div class="post-main"><div class="nav"><nav class="container"><a href="/" class="sidebar-nav-item active">Home</a><a href="/archives" class="sidebar-nav-item">Archives</a></nav><div class="container post-meta"><div class="post-tags"><a class="post-tag-link" href="/tags/robotics/">robotics</a></div><div class="post-time">2016-11-13</div></div></div><div class="container post-header"><h1>cartographer_ros into IDE Debug</h1></div><div class="container post-content"><p>根据 cartographer_ros 的文档页面，按照 demo 的安装流程。<br><a href="https://google-cartographer-ros.readthedocs.io/en/latest/" target="_blank" rel="external">https://google-cartographer-ros.readthedocs.io/en/latest/</a></p>
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+  
+    <title>cartographer_ros into IDE Debug | Jinge&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Jinge Tu">
+    
+
+    
+    <meta name="description" content="根据 cartographer_ros 的文档页面，按照 demo 的安装流程。 https://google-cartographer-ros.readthedocs.io/en/latest/
+1234567891011121314151617# Install wstool and rosdep.sudo apt-get updatesudo apt-get install -y pytho">
+<meta property="og:type" content="article">
+<meta property="og:title" content="cartographer_ros into IDE Debug">
+<meta property="og:url" content="http://jingetu.github.io/2016/11/13/cartographer-ros-into-IDE-Debug/index.html">
+<meta property="og:site_name" content="Jinge's Blog">
+<meta property="og:description" content="根据 cartographer_ros 的文档页面，按照 demo 的安装流程。 https://google-cartographer-ros.readthedocs.io/en/latest/
+1234567891011121314151617# Install wstool and rosdep.sudo apt-get updatesudo apt-get install -y pytho">
+<meta property="og:updated_time" content="2016-12-03T10:23:57.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="cartographer_ros into IDE Debug">
+<meta name="twitter:description" content="根据 cartographer_ros 的文档页面，按照 demo 的安装流程。 https://google-cartographer-ros.readthedocs.io/en/latest/
+1234567891011121314151617# Install wstool and rosdep.sudo apt-get updatesudo apt-get install -y pytho">
+
+    
+    <link rel="alternative" href="/atom.xml" title="Jinge&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css"><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+</head>
+
+  <body>
+    <!-- hexo-inject:begin --><!-- hexo-inject:end --><header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.png" alt="Jinge&#39;s Blog" title="Jinge&#39;s Blog"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Jinge&#39;s Blog">Jinge&#39;s Blog</a></h1>
+				<h2 class="blog-motto">Jinge&#39;s Blog on Github</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+						<li><a href="/about">About</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" name="q" autocomplete="off" maxlength="20" placeholder="搜索" />
+						<input type="hidden" name="q" value="site:jingetu.github.io">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/11/13/cartographer-ros-into-IDE-Debug/" title="cartographer_ros into IDE Debug" itemprop="url">cartographer_ros into IDE Debug</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Jinge Tu" target="_blank" itemprop="author">Jinge Tu</a>
+		
+  <p class="article-time">
+    <time datetime="2016-11-13T02:28:07.000Z" itemprop="datePublished"> 发表于 2016-11-13</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		
+			<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#catkin_make_isolated-生成-ide-工程文件"><span class="toc-number">1.</span> <span class="toc-text">catkin_make_isolated 生成 IDE 工程文件</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#处理无法成功的-git-clone"><span class="toc-number">1.1.</span> <span class="toc-text">处理“无法成功”的 git clone</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#cartographer-的-debug"><span class="toc-number">1.2.</span> <span class="toc-text">cartographer 的 Debug</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#正确打开-ide"><span class="toc-number">1.3.</span> <span class="toc-text">正确打开 IDE</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#debug-流程"><span class="toc-number">2.</span> <span class="toc-text">Debug 流程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#后话"><span class="toc-number">3.</span> <span class="toc-text">后话</span></a></li></ol>
+		
+		</div>
+		
+		<p>根据 cartographer_ros 的文档页面，按照 demo 的安装流程。 https://google-cartographer-ros.readthedocs.io/en/latest/</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"># Install wstool and rosdep.</div><div class="line">sudo apt-get update</div><div class="line">sudo apt-get install -y python-wstool python-rosdep ninja-build</div><div class="line"></div><div class="line"># Create a new workspace in &apos;catkin_ws&apos;.</div><div class="line">mkdir catkin_ws</div><div class="line">cd catkin_ws</div><div class="line">wstool init src</div><div class="line"></div><div class="line"># Merge the cartographer_ros.rosinstall file and fetch code for dependencies.</div><div class="line">wstool merge -t src https://raw.githubusercontent.com/googlecartographer/cartographer_ros/master/cartographer_ros.rosinstall</div><div class="line">wstool update -t src</div><div class="line"></div><div class="line"># Install deb dependencies.</div><div class="line">rosdep init</div><div class="line">rosdep update</div><div class="line">rosdep install --from-paths src --ignore-src --rosdistro=$&#123;ROS_DISTRO&#125; -y</div></pre></td></tr></table></figure>
 <p>前面这些步骤都可以直接按照流程走。</p>
 <a id="more"></a>
-<h2 id="catkin-make-isolated-生成-IDE-工程文件"><a href="#catkin-make-isolated-生成-IDE-工程文件" class="headerlink" title="catkin_make_isolated 生成 IDE 工程文件"></a>catkin_make_isolated 生成 IDE 工程文件</h2><p>在 <code>Build and install</code> 步骤，需要将整个工程 CMake 成 IDE 的工程文件。</p>
+<h2 id="catkin_make_isolated-生成-ide-工程文件">catkin_make_isolated 生成 IDE 工程文件</h2>
+<p>在 <code>Build and install</code> 步骤，需要将整个工程 CMake 成 IDE 的工程文件。</p>
 <p>我使用的是 CodeBlocks ，所以使用下面这个语句进行 <code>catkin_make_isolated</code> ：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">catkin_make_isolated -G&quot;CodeBlocks - Unix Makefiles&quot; -DCMAKE_BUILD_TYPE=Debug</div></pre></td></tr></table></figure>
 <p>里面的参数 <code>CodeBlocks - Unix Makefiles</code> 表示要 CMake 生成 CodeBlocks 的工程文件，而且这个工程文件是使用 Unix Makefiles 组织的，这个字符串可以在 CMake 的帮助中找到：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">$: cmake --help</div><div class="line">...</div><div class="line">GeneratorsThe following generators are available on this platform:  Unix Makefiles              = Generates standard UNIX makefiles.  Ninja                       = Generates build.ninja files (experimental).  CodeBlocks - Ninja          = Generates CodeBlocks project files.  CodeBlocks - Unix Makefiles = Generates CodeBlocks project files.  Eclipse CDT4 - Ninja        = Generates Eclipse CDT 4.0 project files.  Eclipse CDT4 - Unix Makefiles                              = Generates Eclipse CDT 4.0 project files.  KDevelop3                   = Generates KDevelop 3 project files.  KDevelop3 - Unix Makefiles  = Generates KDevelop 3 project files.  Sublime Text 2 - Ninja      = Generates Sublime Text 2 project files.  Sublime Text 2 - Unix Makefiles                              = Generates Sublime Text 2 project files.</div></pre></td></tr></table></figure>
 <p>最后几行说明了 cmake 能生成的工程文件。一共两类 <code>Unix Makefiles</code> 和 <code>Ninja</code>，虽然不是很懂这两个东西，但是这两个东西的目的都是组织工程，告诉编译器和链接器应该怎么处理这些源文件，然后编译器和链接器能够准确地生成可执行文件。据说 <code>Ninja</code> 比 <code>make</code> 效率高，是 <code>make</code> 的继承者。</p>
-<h3 id="处理“无法成功”的-git-clone"><a href="#处理“无法成功”的-git-clone" class="headerlink" title="处理“无法成功”的 git clone"></a>处理“无法成功”的 git clone</h3><p>在执行 <code>catkin_make_isolated</code> 的时候会发现，它会 <code>git clone https://ceres-solver.googlesource.com/ceres-solver</code>，至少在我这里这个是极慢，很难成功（因为里面有限制，只尝试3次）。因为我已经有 ceres-solver 可以不需要在线下载，直接将 ceres-solver 放置在合适的位置就行了。这个过程的代码在两个文件中，找到目录 <code>./build_isolated/ceres_solver/devel/ceres_src-prefix/tmp</code>，修改该目录下两个文件 <code>ceres_src-gitclone.cmake</code> 和 <code>ceres_src-gitupdate.cmake</code>。要运行了 <code>catking_make_isolated</code> 才能够看到这两个文件。</p>
+<h3 id="处理无法成功的-git-clone">处理“无法成功”的 git clone</h3>
+<p>在执行 <code>catkin_make_isolated</code> 的时候会发现，它会 <code>git clone https://ceres-solver.googlesource.com/ceres-solver</code>，至少在我这里这个是极慢，很难成功（因为里面有限制，只尝试3次）。因为我已经有 ceres-solver 可以不需要在线下载，直接将 ceres-solver 放置在合适的位置就行了。这个过程的代码在两个文件中，找到目录 <code>./build_isolated/ceres_solver/devel/ceres_src-prefix/tmp</code>，修改该目录下两个文件 <code>ceres_src-gitclone.cmake</code> 和 <code>ceres_src-gitupdate.cmake</code>。要运行了 <code>catking_make_isolated</code> 才能够看到这两个文件。</p>
 <p>将文件 <code>ceres_src-gitclone.cmake</code> 中注释 “# try the clone 3 times …” 之下的所有内容都删除或注释。文件 <code>cers_src-gitupdate.cmake</code> 只留下最前面的一个 <code>if</code> 即可。具体能不能全删了，我也不知道，因为还没有去试。</p>
 <p>修改好文件之后将源码放入到正确的位置，在文件 <code>ceres_src-gitclone.cmake</code> 中可以找到这个正确位置是 <code>./build_isolated/ceres_solver/devel/ceres_src-prefix/src/ceres_src</code>，<code>mkdir ceres_src</code> 将 <code>https://github.com/ceres-solver/ceres-solver</code> 中根目录下所有内容直接放入。</p>
-<h3 id="cartographer-的-Debug"><a href="#cartographer-的-Debug" class="headerlink" title="cartographer 的 Debug"></a>cartographer 的 Debug</h3><p>随后进行 <code>catking_make_isolated</code> 还是会遇到问题，大致的意思是工程 cartographer 不支持 Debug。</p>
+<h3 id="cartographer-的-debug">cartographer 的 Debug</h3>
+<p>随后进行 <code>catking_make_isolated</code> 还是会遇到问题，大致的意思是工程 cartographer 不支持 Debug。</p>
 <p>修改文件 <code>./src/cartographer/cmake/functions.cmake</code> line 350 和 line 352，注释掉。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">  elseif(CMAKE_BUILD_TYPE STREQUAL &quot;Debug&quot;)#    message(FATAL_ERROR &quot;Compiling in debug mode is not supported.&quot;)</div><div class="line">  else()#    message(FATAL_ERROR &quot;Unknown CMAKE_BUILD_TYPE: $&#123;CMAKE_BUILD_TYPE&#125;&quot;)  endif()</div></pre></td></tr></table></figure>
 <p>这样就可以正确 <code>catkin_make_isolated</code>。</p>
-<h3 id="正确打开-IDE"><a href="#正确打开-IDE" class="headerlink" title="正确打开 IDE"></a>正确打开 IDE</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">source ./devel_isolated/setup.bash</div></pre></td></tr></table></figure>
+<h3 id="正确打开-ide">正确打开 IDE</h3>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">source ./devel_isolated/setup.bash</div></pre></td></tr></table></figure>
 <p>将环境配置好。</p>
 <p>在同一个 <code>terminal</code> 窗口使用</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">bash -i -c &quot;codeblocks&quot;</div></pre></td></tr></table></figure>
 <p>启动 IDE。</p>
 <p>找到工程文件 <code>./build_isolated/cartographer_ros/cartographer_ros/cartographer_ros.cbp</code> 打开工程。</p>
-<h2 id="Debug-流程"><a href="#Debug-流程" class="headerlink" title="Debug 流程"></a>Debug 流程</h2><p>Debug 流程是为了使得整个软件能够正常运行，而我可以在 IDE 中查看运行过程，所以先弄清楚软件的启动。</p>
+<h2 id="debug-流程">Debug 流程</h2>
+<p>Debug 流程是为了使得整个软件能够正常运行，而我可以在 IDE 中查看运行过程，所以先弄清楚软件的启动。</p>
 <p>demo 运行是通过下面这一条语句：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">roslaunch cartographer_ros demo_backpack_2d.launch bag_filename:=$&#123;HOME&#125;/Downloads/cartographer_paper_deutsches_museum.bag</div></pre></td></tr></table></figure>
 <p>找到 <code>./src/cartograpehr_ros/cartographer_ros/launch/demo_back_pack_2d.launch</code>。里面 <code>include</code> 了相同文件夹下面的 <code>backpack_2d.launch</code>，打开这个文件里面启动了两个node，前面 name 为 <code>robot_state_publisher</code> 的 node 还不是很理解这个是干什么用的。但是后面的 name 为 <code>cartographer_node</code> 就是主节点了。在 IDE 中对应着可执行文件 <code>cartographer_node</code>，现在将这个可执行文件的运行参数按照 <code>backpack_2d.launch</code> 进行添加。</p>
@@ -40,8 +150,401 @@
 <p>注意替换 <code>$(find cartographer_ros)</code> 和 <code>$(arg bag_filename)</code>。<code>bag_filenam</code> 对应着 demo 运行命令的 <code>bag_filename</code>，所以替换为 <code>${HOME}/Downloads/cartographer_paper_deutsches_museum.bag</code>。</p>
 <p>按照前面各个 node 的顺序分别启动，需要注意的是开启的每一个 shell 都需要先进行 source 将工程的内容加载进入环境。</p>
 <p>当然，需要先启动 <code>roscore</code>。</p>
-<h2 id="后话"><a href="#后话" class="headerlink" title="后话"></a>后话</h2><p>然而并这么做并没有什么用，Debug 运行太慢，在 CodeBlocks 中调试极为不方便，我认为还是别调试好。</p>
-</div></div><div class="post-main post-comment"></div></article><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.css"><script src="//cdn.bootcss.com/jquery/2.0.3/jquery.min.js"></script><script src="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.pack.js"></script><script>$(document).ready(function() {
-    $(".fancybox").fancybox();
+<h2 id="后话">后话</h2>
+<p>然而并这么做并没有什么用，Debug 运行太慢，在 CodeBlocks 中调试极为不方便，我认为还是别调试好。</p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/robotics/">robotics</a>
+  </div>
+
+</div>
+
+
+
+	<div class="article-share" id="share">
+	
+	  <div data-url="http://jingetu.github.io/2016/11/13/cartographer-ros-into-IDE-Debug/" data-title="cartographer_ros into IDE Debug | Jinge&#39;s Blog" data-tsina="null" class="share clearfix">
+	  </div>
+	
+	</div>
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+
+<div class="next">
+<a href="/2016/10/29/googlecartographer-cartographer-源码分析/"  title="googlecartographer/cartographer 源码分析">
+ <strong>下一篇：</strong><br/> 
+ <span>googlecartographer/cartographer 源码分析
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#catkin_make_isolated-生成-ide-工程文件"><span class="toc-number">1.</span> <span class="toc-text">catkin_make_isolated 生成 IDE 工程文件</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#处理无法成功的-git-clone"><span class="toc-number">1.1.</span> <span class="toc-text">处理“无法成功”的 git clone</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#cartographer-的-debug"><span class="toc-number">1.2.</span> <span class="toc-text">cartographer 的 Debug</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#正确打开-ide"><span class="toc-number">1.3.</span> <span class="toc-text">正确打开 IDE</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#debug-流程"><span class="toc-number">2.</span> <span class="toc-text">Debug 流程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#后话"><span class="toc-number">3.</span> <span class="toc-text">后话</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+
+
+  
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/leetcode/" title="leetcode">leetcode<sup>7</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/robotics/" title="robotics">robotics<sup>5</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/IMU/" title="IMU">IMU<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://coderq.com" target="_blank" title="一个面向程序员交流分享的新一代社区">码农圈</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://wuchong.me" target="_blank" title="Jark&#39;s Blog">Jark&#39;s Blog</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+  <div class="weiboshow">
+  <p class="asidetitle">新浪微博</p>
+    <iframe width="100%" height="119" class="share_self"  frameborder="0" scrolling="no" src="http://widget.weibo.com/weiboshow/index.php?language=&width=0&height=119&fansRow=2&ptype=1&speed=0&skin=9&isTitle=1&noborder=1&isWeibo=0&isFans=0&uid=null&verifier=b3593ceb&dpc=1"></iframe>
+</div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<section class="info">
+		<p> Hello ,I&#39;m Larry Page in Google. <br/>
+			This is my blog,believe it or not.</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		<a href="http://weibo.com/2176287895" target="_blank" class="icon-weibo" title="微博"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+	</div>
+			
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2016 
+		
+		<a href="/about" target="_blank" title="Jinge Tu">Jinge Tu</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
 });
-</script></body></html>
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<div class="hoverqrcode clearfix"></div>',
+  '<a class="overlay" id="qrcode"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+
+  $('.hoverqrcode').hide();
+
+  var myWidth = 0;
+  function updatehoverqrcode(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+    var qrsize = myWidth > 1024 ? 200:100;
+    var options = {render: 'image', size: qrsize, fill: '#2ca6cb', text: url, radius: 0.5, quiet: 1};
+    var p = $('.article-share-qrcode').position();
+    $('.hoverqrcode').empty().css('width', qrsize).css('height', qrsize)
+                          .css('left', p.left-qrsize/2+20).css('top', p.top-qrsize-10)
+                          .qrcode(options);
+  };
+  $(window).resize(function(){
+    $('.hoverqrcode').hide();
+  });
+  $('.article-share-qrcode').click(function(){
+    updatehoverqrcode();
+    $('.hoverqrcode').toggle();
+  });
+  $('.article-share-qrcode').hover(function(){}, function(){
+      $('.hoverqrcode').hide();
+  });
+});   
+</script>
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?e6d1f421bbc9962127a50488f9ed37d1";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="返回顶部"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+            processEscapes: true
+        }
+    });
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax();
+        for (var i = 0; i < all.length; ++i)
+            all[i].SourceElement().parentNode.className += ' has-jax';
+    });
+</script>
+<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+</body>
+</html>

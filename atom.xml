@@ -1,0 +1,810 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Jinge&#39;s Blog</title>
+  <subtitle>Jinge&#39;s Blog on Github</subtitle>
+  <link href="/atom.xml" rel="self"/>
+  
+  <link href="http://jingetu.github.io/"/>
+  <updated>2016-12-03T10:23:57.000Z</updated>
+  <id>http://jingetu.github.io/</id>
+  
+  <author>
+    <name>Jinge Tu</name>
+    
+  </author>
+  
+  <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>cartographer_ros into IDE Debug</title>
+    <link href="http://jingetu.github.io/2016/11/13/cartographer-ros-into-IDE-Debug/"/>
+    <id>http://jingetu.github.io/2016/11/13/cartographer-ros-into-IDE-Debug/</id>
+    <published>2016-11-13T02:28:07.000Z</published>
+    <updated>2016-12-03T10:23:57.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>根据 cartographer_ros 的文档页面，按照 demo 的安装流程。 https://google-cartographer-ros.readthedocs.io/en/latest/</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"># Install wstool and rosdep.</div><div class="line">sudo apt-get update</div><div class="line">sudo apt-get install -y python-wstool python-rosdep ninja-build</div><div class="line"></div><div class="line"># Create a new workspace in &apos;catkin_ws&apos;.</div><div class="line">mkdir catkin_ws</div><div class="line">cd catkin_ws</div><div class="line">wstool init src</div><div class="line"></div><div class="line"># Merge the cartographer_ros.rosinstall file and fetch code for dependencies.</div><div class="line">wstool merge -t src https://raw.githubusercontent.com/googlecartographer/cartographer_ros/master/cartographer_ros.rosinstall</div><div class="line">wstool update -t src</div><div class="line"></div><div class="line"># Install deb dependencies.</div><div class="line">rosdep init</div><div class="line">rosdep update</div><div class="line">rosdep install --from-paths src --ignore-src --rosdistro=$&#123;ROS_DISTRO&#125; -y</div></pre></td></tr></table></figure>
+<p>前面这些步骤都可以直接按照流程走。</p>
+<a id="more"></a>
+<h2 id="catkin_make_isolated-生成-ide-工程文件">catkin_make_isolated 生成 IDE 工程文件</h2>
+<p>在 <code>Build and install</code> 步骤，需要将整个工程 CMake 成 IDE 的工程文件。</p>
+<p>我使用的是 CodeBlocks ，所以使用下面这个语句进行 <code>catkin_make_isolated</code> ：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">catkin_make_isolated -G&quot;CodeBlocks - Unix Makefiles&quot; -DCMAKE_BUILD_TYPE=Debug</div></pre></td></tr></table></figure>
+<p>里面的参数 <code>CodeBlocks - Unix Makefiles</code> 表示要 CMake 生成 CodeBlocks 的工程文件，而且这个工程文件是使用 Unix Makefiles 组织的，这个字符串可以在 CMake 的帮助中找到：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">$: cmake --help</div><div class="line">...</div><div class="line">GeneratorsThe following generators are available on this platform:  Unix Makefiles              = Generates standard UNIX makefiles.  Ninja                       = Generates build.ninja files (experimental).  CodeBlocks - Ninja          = Generates CodeBlocks project files.  CodeBlocks - Unix Makefiles = Generates CodeBlocks project files.  Eclipse CDT4 - Ninja        = Generates Eclipse CDT 4.0 project files.  Eclipse CDT4 - Unix Makefiles                              = Generates Eclipse CDT 4.0 project files.  KDevelop3                   = Generates KDevelop 3 project files.  KDevelop3 - Unix Makefiles  = Generates KDevelop 3 project files.  Sublime Text 2 - Ninja      = Generates Sublime Text 2 project files.  Sublime Text 2 - Unix Makefiles                              = Generates Sublime Text 2 project files.</div></pre></td></tr></table></figure>
+<p>最后几行说明了 cmake 能生成的工程文件。一共两类 <code>Unix Makefiles</code> 和 <code>Ninja</code>，虽然不是很懂这两个东西，但是这两个东西的目的都是组织工程，告诉编译器和链接器应该怎么处理这些源文件，然后编译器和链接器能够准确地生成可执行文件。据说 <code>Ninja</code> 比 <code>make</code> 效率高，是 <code>make</code> 的继承者。</p>
+<h3 id="处理无法成功的-git-clone">处理“无法成功”的 git clone</h3>
+<p>在执行 <code>catkin_make_isolated</code> 的时候会发现，它会 <code>git clone https://ceres-solver.googlesource.com/ceres-solver</code>，至少在我这里这个是极慢，很难成功（因为里面有限制，只尝试3次）。因为我已经有 ceres-solver 可以不需要在线下载，直接将 ceres-solver 放置在合适的位置就行了。这个过程的代码在两个文件中，找到目录 <code>./build_isolated/ceres_solver/devel/ceres_src-prefix/tmp</code>，修改该目录下两个文件 <code>ceres_src-gitclone.cmake</code> 和 <code>ceres_src-gitupdate.cmake</code>。要运行了 <code>catking_make_isolated</code> 才能够看到这两个文件。</p>
+<p>将文件 <code>ceres_src-gitclone.cmake</code> 中注释 “# try the clone 3 times …” 之下的所有内容都删除或注释。文件 <code>cers_src-gitupdate.cmake</code> 只留下最前面的一个 <code>if</code> 即可。具体能不能全删了，我也不知道，因为还没有去试。</p>
+<p>修改好文件之后将源码放入到正确的位置，在文件 <code>ceres_src-gitclone.cmake</code> 中可以找到这个正确位置是 <code>./build_isolated/ceres_solver/devel/ceres_src-prefix/src/ceres_src</code>，<code>mkdir ceres_src</code> 将 <code>https://github.com/ceres-solver/ceres-solver</code> 中根目录下所有内容直接放入。</p>
+<h3 id="cartographer-的-debug">cartographer 的 Debug</h3>
+<p>随后进行 <code>catking_make_isolated</code> 还是会遇到问题，大致的意思是工程 cartographer 不支持 Debug。</p>
+<p>修改文件 <code>./src/cartographer/cmake/functions.cmake</code> line 350 和 line 352，注释掉。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">  elseif(CMAKE_BUILD_TYPE STREQUAL &quot;Debug&quot;)#    message(FATAL_ERROR &quot;Compiling in debug mode is not supported.&quot;)</div><div class="line">  else()#    message(FATAL_ERROR &quot;Unknown CMAKE_BUILD_TYPE: $&#123;CMAKE_BUILD_TYPE&#125;&quot;)  endif()</div></pre></td></tr></table></figure>
+<p>这样就可以正确 <code>catkin_make_isolated</code>。</p>
+<h3 id="正确打开-ide">正确打开 IDE</h3>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">source ./devel_isolated/setup.bash</div></pre></td></tr></table></figure>
+<p>将环境配置好。</p>
+<p>在同一个 <code>terminal</code> 窗口使用</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">bash -i -c &quot;codeblocks&quot;</div></pre></td></tr></table></figure>
+<p>启动 IDE。</p>
+<p>找到工程文件 <code>./build_isolated/cartographer_ros/cartographer_ros/cartographer_ros.cbp</code> 打开工程。</p>
+<h2 id="debug-流程">Debug 流程</h2>
+<p>Debug 流程是为了使得整个软件能够正常运行，而我可以在 IDE 中查看运行过程，所以先弄清楚软件的启动。</p>
+<p>demo 运行是通过下面这一条语句：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">roslaunch cartographer_ros demo_backpack_2d.launch bag_filename:=$&#123;HOME&#125;/Downloads/cartographer_paper_deutsches_museum.bag</div></pre></td></tr></table></figure>
+<p>找到 <code>./src/cartograpehr_ros/cartographer_ros/launch/demo_back_pack_2d.launch</code>。里面 <code>include</code> 了相同文件夹下面的 <code>backpack_2d.launch</code>，打开这个文件里面启动了两个node，前面 name 为 <code>robot_state_publisher</code> 的 node 还不是很理解这个是干什么用的。但是后面的 name 为 <code>cartographer_node</code> 就是主节点了。在 IDE 中对应着可执行文件 <code>cartographer_node</code>，现在将这个可执行文件的运行参数按照 <code>backpack_2d.launch</code> 进行添加。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">&lt;node name=&quot;cartographer_node&quot; pkg=&quot;cartographer_ros&quot;</div><div class="line">    type=&quot;cartographer_node&quot; args=&quot;</div><div class="line">        -configuration_directory $(find cartographer_ros)/configuration_files</div><div class="line">        -configuration_basename backpack_2d.lua&quot;</div><div class="line">    output=&quot;screen&quot;&gt;</div><div class="line">  &lt;remap from=&quot;echoes&quot; to=&quot;horizontal_laser_2d&quot; /&gt;</div><div class="line">&lt;/node&gt;</div></pre></td></tr></table></figure>
+<p>里面的 <code>remap</code> 节点，就是做一个名字的映射，按照链接 <code>http://wiki.ros.org/Remapping%20Arguments</code> 的意思，这个 <code>remap</code> 是可以写在命令行中的，所以整体的命令行参数（args）就是5个：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">// 第二 IDE 启动 node</div><div class="line">-configuration_directory $(find cartographer_ros)/configuration_files -configuration_basename backpack_2d.lua echoes:=horizontal_laser_2d</div></pre></td></tr></table></figure>
+<p>注意将 <code>$(find cartographer_ros)</code> 替换成绝对链接，否则是找不到位置的。</p>
+<p>name 为 <code>robot_state_publisher</code> 是用于将机器人上多个设备的局部坐标系统一成机器人整体坐标的一个节点，机器人各个局部坐标系下的数据发送到这个节点，这个节点将所有数据统一在一个整体的坐标系下。统一了坐标系之后就可以进行发布，发布到需要存储或显示（rivz）的地方。为了能够 Debug 这里需要将这个 node 分离出来，单独运行。新建一个文件<code>./src/cartograpehr_ros/cartographer_ros/launch/backpack_2d_display.launch</code>，文件内写：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">&lt;launch&gt;</div><div class="line">  &lt;param name=&quot;robot_description&quot;</div><div class="line">    textfile=&quot;$(find cartographer_ros)/urdf/backpack_2d.urdf&quot; /&gt;</div><div class="line"></div><div class="line">  &lt;node name=&quot;robot_state_publisher&quot; pkg=&quot;robot_state_publisher&quot;</div><div class="line">    type=&quot;robot_state_publisher&quot; /&gt;</div><div class="line">&lt;/launch&gt;</div></pre></td></tr></table></figure>
+<p>到时候运行的时候就这么运行（不要指明绝对路径，绝对路径会错误）：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">// 第一启动 node</div><div class="line">roslaunch cartographer_ros backpack_2d_display.launch</div></pre></td></tr></table></figure>
+<p>回到文件 <code>demo_backpack_2d.launch</code> 还有两个 node：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">&lt;node name=&quot;rviz&quot; pkg=&quot;rviz&quot; type=&quot;rviz&quot; required=&quot;true&quot;</div><div class="line">    args=&quot;-d $(find cartographer_ros)/configuration_files/demo_2d.rviz&quot; /&gt;</div><div class="line">&lt;node name=&quot;playbag&quot; pkg=&quot;rosbag&quot; type=&quot;play&quot;</div><div class="line">    args=&quot;--clock $(arg bag_filename)&quot; /&gt;</div></pre></td></tr></table></figure>
+<p><code>rviz</code> 这个 node 用于可视化，<code>playbag</code> 用于广播数据。变成命令行启动就是这样的：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">// 第三启动 node</div><div class="line">rviz -d $(find cartographer_ros)/configuration_files/demo_2d.rviz</div><div class="line">// 第四启动 node</div><div class="line">rosbag play --clock $(arg bag_filename)</div></pre></td></tr></table></figure>
+<p>注意替换 <code>$(find cartographer_ros)</code> 和 <code>$(arg bag_filename)</code>。<code>bag_filenam</code> 对应着 demo 运行命令的 <code>bag_filename</code>，所以替换为 <code>${HOME}/Downloads/cartographer_paper_deutsches_museum.bag</code>。</p>
+<p>按照前面各个 node 的顺序分别启动，需要注意的是开启的每一个 shell 都需要先进行 source 将工程的内容加载进入环境。</p>
+<p>当然，需要先启动 <code>roscore</code>。</p>
+<h2 id="后话">后话</h2>
+<p>然而并这么做并没有什么用，Debug 运行太慢，在 CodeBlocks 中调试极为不方便，我认为还是别调试好。</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;根据 cartographer_ros 的文档页面，按照 demo 的安装流程。 https://google-cartographer-ros.readthedocs.io/en/latest/&lt;/p&gt;
+&lt;figure class=&quot;highlight plain&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;div class=&quot;line&quot;&gt;1&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;2&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;3&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;4&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;5&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;6&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;7&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;8&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;9&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;10&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;11&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;12&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;13&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;14&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;15&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;16&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;17&lt;/div&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;div class=&quot;line&quot;&gt;# Install wstool and rosdep.&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;sudo apt-get update&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;sudo apt-get install -y python-wstool python-rosdep ninja-build&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;# Create a new workspace in &amp;apos;catkin_ws&amp;apos;.&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;mkdir catkin_ws&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;cd catkin_ws&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;wstool init src&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;# Merge the cartographer_ros.rosinstall file and fetch code for dependencies.&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;wstool merge -t src https://raw.githubusercontent.com/googlecartographer/cartographer_ros/master/cartographer_ros.rosinstall&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;wstool update -t src&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;# Install deb dependencies.&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;rosdep init&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;rosdep update&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;rosdep install --from-paths src --ignore-src --rosdistro=$&amp;#123;ROS_DISTRO&amp;#125; -y&lt;/div&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
+&lt;p&gt;前面这些步骤都可以直接按照流程走。&lt;/p&gt;
+    
+    </summary>
+    
+    
+      <category term="robotics" scheme="http://jingetu.github.io/tags/robotics/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>googlecartographer/cartographer 源码分析</title>
+    <link href="http://jingetu.github.io/2016/10/29/googlecartographer-cartographer-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/"/>
+    <id>http://jingetu.github.io/2016/10/29/googlecartographer-cartographer-源码分析/</id>
+    <published>2016-10-29T13:37:54.000Z</published>
+    <updated>2016-12-03T10:08:29.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>从这个 repo 的第一次 commit 版本进行会简单一些，因为一般软件代码是越来越复杂的。</p>
+<p>后面通过比对，证明初始版本的相关文件在最新版本中都存在。</p>
+<p>代码中存在很多线程操作（线程锁），还有一些相当于是 assertation 的代码。</p>
+<a id="more"></a>
+<h2 id="第一次-commit-166f256-代码分析">第一次 commit (166f256) 代码分析</h2>
+<h3 id="rossrccartographer_node_main.cc">./ros/src/cartographer_node_main.cc</h3>
+<p>是主程序所在位置，里面有 main 函数，且定义了类 Node （ ros 中的处理节点）。</p>
+<p>void Node::Initialize() 用于初始化，最重要的工作是 subscribe 一些 topic，用于接收 ros 其他 node 广播的数据信息。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">ros::Subscriber imu_subscriber_;</div><div class="line">ros::Subscriber laser_2d_subscriber_;</div><div class="line">std::vector&lt;ros::Subscriber&gt; laser_3d_subscribers_;</div></pre></td></tr></table></figure>
+<p>Node::HandleSensorData(const int64 timestamp, std::unique_ptr<sensordata> sensor_data) 用于接收传感器数据，内部进行传感器数据类型的辨别，调用以下三个函数真正接收传感器数据。</sensordata></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">void AddImu(int64 timestamp, const string&amp; frame_id, const proto::Imu&amp; imu);</div><div class="line">void AddHorizontalLaserFan(int64 timestamp, const string&amp; frame_id,</div><div class="line">                           const proto::LaserScan&amp; laser_scan);</div><div class="line">void AddLaserFan3D(int64 timestamp, const string&amp; frame_id,</div><div class="line">                   const proto::LaserFan3D&amp; laser_fan_3d);</div></pre></td></tr></table></figure>
+<p>Node::HandleSensorData 中也分辨了传感器数据的时间进行了分辨，如果超过一定阈值就会进行 Publish 操作（对 submap 和 pose 的 publish）。Publish 的实际意义是后面采集的数据与前面采集的数据并不是连续的，中间隔开了很长时间，且前后的 pose 不会衔接。（这个可以查看 google 提供的所有数据列表，里面有说明又一些数据是分成若干段的。）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">if (last_submap_list_publish_timestamp_ + kSubmapPublishPeriodInUts &lt;</div><div class="line">    timestamp) &#123;</div><div class="line">  PublishSubmapList(timestamp);</div><div class="line">&#125;</div><div class="line"></div><div class="line">if (last_pose_publish_timestamp_ + kPosePublishPeriodInUts &lt; timestamp) &#123;</div><div class="line">  PublishPose(timestamp);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>以 void Node::AddHorizontalLaserFan(…) 为例，内部将激光数据传递给了 trajectory_builder_ （ Node 的成员变量，是 GlobalTrajectoryBuilderInterface 类型）。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">trajectory_builder_-&gt;AddHorizontalLaserFan(time, laser_fan_3d);</div><div class="line"></div><div class="line">// 这个是 trajectory_builder_ 的定义</div><div class="line">std::unique_ptr&lt;::cartographer::mapping::GlobalTrajectoryBuilderInterface&gt;</div><div class="line">      trajectory_builder_ GUARDED_BY(mutex_);</div></pre></td></tr></table></figure>
+<p>GlobalTrajectoryBuilderInterface 定义在 “./mapping/global_trajectory_builder_interface.h”。</p>
+<p>可以在 void Node::Initialize() 中看到 trajectory_builder_ 的初始化，初始化和使用三维激光或二维激光有关。对于二维激光是使用 ::cartographer::mapping_2d::GlobalTrajectoryBuilder 初始化的。</p>
+<p>GlobalTrajectoryBuilder 定义在 “./mapping_2d/global_trajectory_builder.h”。</p>
+<h3 id="cartographermapping_2dglobal_trajectory_builder.h">./cartographer/mapping_2d/global_trajectory_builder.h</h3>
+<p>找到 void GlobalTrajectoryBuilder::AddHorizontalLaserFan(…) 的实现部分。可以看到激光数据被 local_trajectory_builder_ 的函数 AddHorizontalLaserFan 接收使用了。local_trajectory_builder_ 使用的结果传入了 sparse_pose_graph_ 的函数 AddScan。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">SparsePoseGraph* const sparse_pose_graph_;</div><div class="line">LocalTrajectoryBuilder local_trajectory_builder_;</div></pre></td></tr></table></figure>
+<p>SparsePoseGraph 定义在 “./mapping_2d/sparse_pose_graph.h”，字面理解就是做图优化了，这个头文件中说明了这个类实现的是一篇文章的 Sparse Pose Adjustment。</p>
+<blockquote>
+<p>Konolige, Kurt, et al. “Efficient sparse pose adjustment for 2d mapping.” Intelligent Robots and Systems (IROS), 2010 IEEE/RSJ International Conference on (pp. 22–29). IEEE, 2010.</p>
+</blockquote>
+<p>LocalTrajectoryBuilder 定义在 “./mapping_2d/lobal_trajectory_builder.h”。</p>
+<h3 id="cartographermapping_2dlobal_trajectory_builder.h">./cartographer/mapping_2d/lobal_trajectory_builder.h</h3>
+<p>这里是比较重要的核心部分。</p>
+<p>找到函数 AddHorizontalLaserFan，主要的流程是：1）Kalman Filter 根据时间预测 pose；2）将 pose 预测的结果代入 ScanMatch；3）将 ScanMatch 的结果更新 Kalman Filter 状态值；4）更新 submaps_。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">// 1）</div><div class="line">transform::Rigid3d pose_prediction;</div><div class="line">kalman_filter::PoseCovariance covariance_prediction;</div><div class="line">pose_tracker_-&gt;GetPoseEstimateMeanAndCovariance(time, &amp;pose_prediction,                                      &amp;covariance_prediction);</div><div class="line">// 2）</div><div class="line">transform::Rigid3d pose_observation;</div><div class="line">kalman_filter::PoseCovariance covariance_observation;</div><div class="line">ScanMatch(time, pose_prediction, tracking_to_tracking_2d,</div><div class="line">          laser_fan_in_tracking_2d, &amp;pose_observation,</div><div class="line">          &amp;covariance_observation);</div><div class="line">// 3）</div><div class="line">  kalman_filter::PoseCovariance covariance_estimate;</div><div class="line">pose_tracker_-&gt;GetPoseEstimateMeanAndCovariance(</div><div class="line">    time, &amp;scan_matcher_pose_estimate_, &amp;covariance_estimate);</div></pre></td></tr></table></figure>
+<p>分析 ScanMatch 函数，函数头如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">void LocalTrajectoryBuilder::ScanMatch(</div><div class="line">    common::Time time, const transform::Rigid3d&amp; pose_prediction,</div><div class="line">    const transform::Rigid3d&amp; tracking_to_tracking_2d,</div><div class="line">    const sensor::LaserFan&amp; laser_fan_in_tracking_2d,</div><div class="line">    transform::Rigid3d* pose_observation,</div><div class="line">    kalman_filter::PoseCovariance* covariance_observation);</div></pre></td></tr></table></figure>
+<p>函数体里面将传入的数据点进行 Voxel Filter，从字面意思上理解就是使得在同一 voxel 中只出现一个点。进行一次 online correlative scan matcher，从传入的参数看，这个过程就是在初始 pose 附近生成一些 pose，计算数据点在这些 pose 下与已有 Occupancy Grid Map 的相关系数，最后用相关系数最高的 pose 更新初始 pose。（Particle Filter）当然从道理上讲，初始 pose 也需要计算相关系数，一起进行比对。</p>
+<p>最后利用前面的到的初始 pose 使用 Ceres 进行优化。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">void LocalTrajectoryBuilder::ScanMatch(...) &#123;</div><div class="line">...</div><div class="line">  if (options_.use_online_correlative_scan_matching()) &#123;</div><div class="line">    real_time_correlative_scan_matcher_.Match(</div><div class="line">        pose_prediction_2d, filtered_point_cloud_in_tracking_2d,</div><div class="line">        probability_grid, &amp;initial_ceres_pose);</div><div class="line">  &#125;</div><div class="line">...</div><div class="line">  ceres_scan_matcher_.Match(</div><div class="line">      transform::Project2D(scan_matcher_pose_estimate_ *</div><div class="line">                           tracking_to_tracking_2d.inverse()),</div><div class="line">      initial_ceres_pose, filtered_point_cloud_in_tracking_2d, probability_grid,</div><div class="line">      &amp;tracking_2d_to_map, &amp;covariance_observation_2d, &amp;summary);</div><div class="line">...</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="cartographermapping_2dscan_matchingceres_scan_matcher.h">./cartographer/mapping_2d/scan_matching/ceres_scan_matcher.h</h3>
+<p>里面 Ceres 的调用代码看不懂，这个可以在掌握 cartographer 结构之后去看 Ceres 的文档。</p>
+<p>现在看来，Ceres 优化的目标函数包括 OccupiedSpaceCost （scan 与 Occupancy Grid Map 不对应引起的代价）、TranslationDeltaCost （位移引起的代价）、RotationDeltaCost （旋转引起的代价）。初略看 Ceres 的介绍文档，优化目标是最小化这些代价函数的和。</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;从这个 repo 的第一次 commit 版本进行会简单一些，因为一般软件代码是越来越复杂的。&lt;/p&gt;
+&lt;p&gt;后面通过比对，证明初始版本的相关文件在最新版本中都存在。&lt;/p&gt;
+&lt;p&gt;代码中存在很多线程操作（线程锁），还有一些相当于是 assertation 的代码。&lt;/p&gt;
+    
+    </summary>
+    
+    
+      <category term="robotics" scheme="http://jingetu.github.io/tags/robotics/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Roomba (2D SLAM &amp;&amp; Path Planning)</title>
+    <link href="http://jingetu.github.io/2016/08/09/Roomba-2D-SLAM-Path-Planning/"/>
+    <id>http://jingetu.github.io/2016/08/09/Roomba-2D-SLAM-Path-Planning/</id>
+    <published>2016-08-09T02:32:03.000Z</published>
+    <updated>2016-12-03T10:24:52.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>扫地机器人是可自主运动的机器人，功能是通过传感器（sensors）感知外界环境，通过控制器（actuators）运动于整个外界环境，达到清理所有可感知外界地面的功能。</p>
+<p>其传感器是单线激光扫描仪，安装尽可能保证激光扫描仪的扫描平面与机器人地盘平行。</p>
+<p>整个扫地机器人工作时的计算任务包括 <code>SLAM</code> 和 <code>路径规划</code> 两个部分。其中<code>SLAM</code>部分包括 <code>Tracking</code> 和 <code>Mapping</code> 两个小部分。</p>
+<a id="more"></a>
+<h2 id="扫地机器人搭载设备">扫地机器人搭载设备</h2>
+<p>扫地机器人上安装的与其自动寻路相关设备包括两个部分传感器、控制器。</p>
+<h3 id="传感器">传感器</h3>
+<p>传感器前面已经说到，最重要的部分是单线激光扫描仪，可以依据情况增加其他传感器用于辅助，但按成本考虑，一般只安装单线激光扫描仪。</p>
+<p>大多数单线激光扫描仪的覆盖角度是 270 度，角度分辨率为 0.5 度或 0.25 度。下图表示的是扫描仪一次扫描的数据（scan）。如果角度分辨率为 0.5 度，那么一次扫描提供 541 个长度数据对应 541 个点，如果角度分辨率为 0.25 度，那么一次扫描提供 1081 个长度数据对应 1081 个点。当然扫地机器人的激光扫描仪角度分辨率出于成本考虑不会有这么高。</p>
+<div class="figure">
+<img src="http://7xqfkw.com1.z0.glb.clouddn.com/2016-08-13-14707135471036.jpg" alt="">
+
+</div>
+<h3 id="控制器">控制器</h3>
+<p>控制器是主要指机器人的轮子，控制器要能够控制机器人运动，同时也需要给出控制数据。仅通过给出的控制数据计算机器人 POSE 的过程叫做 <code>Odometry</code>。具体的 <code>Odometry</code> 过程请参照 <em>Probabilistic Robotics</em> 第五章 <em>Robot Motion</em>。</p>
+<p>可以假设扫地机器人的工作环境是一个平面，不存在倾斜地板与高程的变化。所以机器人在环境中的位置可以使用三个参数表示 <span class="math inline">[x,y,\theta]</span>，其中 <span class="math inline">x,y</span> 表示机器人的平面位置，<span class="math inline">\theta</span> 表示机器人的正面朝向（姿态）。</p>
+<p>按照 <code>Odometry</code> 方式的不同，给出的控制数据有两种形式： 1. 给出固定时间内位移的距离 <span class="math inline">L</span> 和旋转的方向 <span class="math inline">\theta</span>，也就是机器人在给出控制参数之前已经进行了积分操作； 2. 给出在某时刻的位移速度 <span class="math inline">v</span> 和旋转速度 <span class="math inline">\omega</span>，机器人以较高的固定频率给出这两个控制参数，一般为50Hz左右。</p>
+<p>第二种方式优于第一种方式，第二种方式也是更常见的方式。</p>
+<h2 id="扫地机器人计算任务">扫地机器人计算任务</h2>
+<h3 id="slam">SLAM</h3>
+<h4 id="occupancy-grid-map---mapping-过程">Occupancy Grid Map - Mapping 过程</h4>
+<p>在工作中机器人会构建其所在环境的地图，供路径规划使用。地图是格网地图，即将其所在环境平面进行格网化（依据实际功能与计算资源设定格网大小）。</p>
+<p>格网地图中所有的格子都有数字对应，对于路径规划而言，格子中的数字有2种，非 0 即 1，0 表示格子处有障碍物且不可通过，1 表示格子处空闲且可通过。</p>
+<p>对于 SLAM 而言，格子中的数字是 <code>float</code> 类型，是根据从开机到现在的所有传感器数据和控制器数据计算得到格子处的 <code>log(odd)</code>。<code>log(odd)</code> 不是概率，它是由概率计算得到的数字，可以反映概率，但是不可以直接当作概率是用。SLAM 过程中使用的地图如下图所示，这个地图被称作 <code>Occupancy Grid Map</code>。</p>
+<div class="figure">
+<img src="http://7xqfkw.com1.z0.glb.clouddn.com/2016-08-13-14707122315525.jpg" alt="14707122315525">
+<p class="caption">14707122315525</p>
+</div>
+<p>SLAM 要做的事情就是依据各时刻单线激光扫描仪得到的测量数据（测量值，用 <span class="math inline">u</span> 表示）和控制器得到的控制数据(控制值，<span class="math inline">z</span> 表示)，构建出 <code>Occupancy Grid Map</code>。</p>
+<p>整个构建过程是在每一个时刻，向这个过程输入测量值 <span class="math inline">u</span> 和机器人 POSE <span class="math inline">[x,y,\theta]</span>。且认为机器人的 POSE 不含有误差，当作真值使用。</p>
+<p>注：为叙述方便，假设使用的单线扫描仪角度分辨率为 0.25 度，即每次扫描提供 1081 个距离。</p>
+<p>这个过程涉及到测量坐标（以 m 为单位）到像素坐标（以 pixel 为单位）的转换。过程步骤如下：</p>
+<p>第一步，通过 POSE <span class="math inline">[x,y,\theta]</span> 计算得到机器人在格网地图中的位置和姿态。 第二步，使用测量值 <span class="math inline">u</span> 的 1081 个距离计算得到所有被占用的格子（这些格子的数量小于等于 1081，因为存在多个点计算得到同一个格子）。随后用这些格子和机器人所在格子连线，求得激光线经过的格子。下图中红叉表示机器人所在格子，黄色点表示被占用格子，浅蓝色格子表示空闲格子。</p>
+<div class="figure">
+<img src="http://7xqfkw.com1.z0.glb.clouddn.com/2016-08-13-14707183233068.jpg" alt="">
+
+</div>
+<p>第三步，依据上面得到的被占用格子和空闲格子对 <code>Occupancy Grid Map</code> 进行更新。更新过程如下面截图所示。被占用的格子数值增加一个正数，空闲格子数值减少一个正数。当数值超出范围时，将数值拉回最小值或最大值。以这种方式更新下去，有障碍物的被占用的格子数值会达到最大值，而空闲的格子数值会达到最小值。图中的 <span class="math inline">log(odd\_occ), log(odd\_free)</span> 是使用贝叶斯理论计算出来的定值，在计算的过程中涉及到真实世界格子被占用或空闲时，机器人检测到格子被占用和空闲的概率。</p>
+<div class="figure">
+<img src="http://7xqfkw.com1.z0.glb.clouddn.com/2016-08-13-14707186549823.jpg" alt="">
+
+</div>
+<p>Mapping 过程至此结束。</p>
+<h4 id="tracking-过程">Tracking 过程</h4>
+<p>Tracking 是确定在每一个测量时刻机器人在已经建立的地图中的 POSE 的过程。</p>
+<p>Tracking 过程的输入是控制值 <span class="math inline">u=[v, \omega]^T</span> 和测量值 <span class="math inline">z</span>。</p>
+<p>t 时刻的Tracking过程如下：</p>
+<p>首先，进行 <code>Odometry</code>。即通过 <span class="math inline">u=[v, \omega]^T</span> 和时间间隔 <span class="math inline">\Delta t</span> ，在 t-1 时刻机器人的 POSE <span class="math inline">x_{t-1}</span> 的基础上计算得到 t 时刻机器人机器人的 POSE <span class="math inline">\hat{x_t}</span>。注：<span class="math inline">x_t</span> 上的 <span class="math inline">\hat{}</span> 表面得到的并不是可靠的 POSE，是一个初始值，后面需要使用测量值 <span class="math inline">z</span> 对这个 POSE 进行优化。</p>
+<p>然后，进行 <code>Map Registration</code>。即使用测量值 <span class="math inline">z</span> 和现有的 <code>Occupancy Grid Map</code> 确定 t 时刻机器人的POSE，当然这个过程使用前面 <code>Odometry</code> 过程得到的 <span class="math inline">\hat{x_t}</span> 作为初始值。这个过程使用 <code>Particle Filter</code> 方法。</p>
+<p><code>Map Registration</code> 第一步。将 <span class="math inline">\hat{x_t}</span> 进行 <code>Sample</code>，得到得到一系列的 POSE，每一个 POSE 都被称作为一个 Particle，Particle 数量越大效果越好，但数量影响计算量，在实验过程可以用大数量，在实际使用过程中最好使用100以下的 Particle。这个过程的根据是控制值存在误差，所以得到的 POSE 并准确，真实的 POSE 存在于 <span class="math inline">\hat{x_t}</span> 的附近。</p>
+<p><code>Map Registration</code> 第二步。使用 <code>Sample</code> 得到的这些 POSE，与测量值 <span class="math inline">z</span> 计算每一个 POSE 对应的被占用格子。这些 POSE 计算得到的被占用格子与当前<code>Occupancy Grid Map</code> 进行相关系数计算。被占用格子匹配得愈好相关系数越大，相关系数最大的那个 POSE 作为 t 时刻的 POSE <span class="math inline">x_t</span>。 注：实际上 <span class="math inline">x_t</span> 只是与真实的 POSE 很接近，不可能完全等于真实的 POSE。在实际计算过程中，因为计算资源有限，所以对于每一个 POSE 并不计算1081个测量距离对应的被占用格子，而是每隔几十个测量距离，计算一次被占用格子。</p>
+<div class="figure">
+<img src="http://7xqfkw.com1.z0.glb.clouddn.com/2016-08-13-14707206336787.jpg" alt="">
+
+</div>
+<p><code>Map Registration</code> 第三步。<code>Particle Filter</code> 过程，使用上一步得到的相关系数对所有的 Particle 赋予权值，这些权值可以理解为真实 POSE 在为这些 Particle 的概率。毕竟这些权值的和为1。这些 Particle 的数量会在每次 Sample 过程中增加，当达到一定条件需要进行 Resample 操作，去除那些低权值的 Particle。</p>
+<h3 id="路径规划">路径规划</h3>
+<p>SLAM 过程得到了网格地图，指示了网格中哪些格子是被占用，不可通过的。这些网格地图输入路径规划过程的频率小于等于 SLAM 的 Mapping 过程，所以这些输入的地图大部分都不是完整的地图，整个空间并没有被完全探测。但是因为 SLAM 过程得到的 <code>Occupancy Grid Map</code> 不仅指明了被占用的格子，也指明了激光可以通过的空闲格子。</p>
+<p>在路径规划中机器人所能到达的位置是由空闲格子确定的。</p>
+<p>路径规划过程可大致分为为建立 <code>Configuration Space</code> 与 <code>Path Planning</code>。</p>
+<p>路径规划不仅是对机器人位置的规划，也包括对机器人姿态的规划。如果将机器人的位置和姿态组成一个空间，路径规划可以看做是规划在这个空间中一个点的运动路径，这样就将机器人的位置、姿态规划转化成了更高维空间的路径规划（质点移动规划）。</p>
+<p>在扫地机器人的实际情况下，如果机器人是对地面进行一次清洁。路径规划选择的终点应该是在靠近障碍物格子不能闭合的位置，且终点应该落在已经被激光确定为空闲的格子。在路径规划之上应考虑机器人的历史轨迹、历史覆盖区域。</p>
+<h4 id="构建-configuration-space">构建 Configuration Space</h4>
+<p>因为扫地机器人的 POSE 为三维变量 <span class="math inline">[x,y,\theta]</span>，所以在这个问题下 Configuration Space 是一个三维空间。</p>
+<p>在实际问题中机器人一般不能看做是一个质点，至少在扫地机器人这个问题上机器人是有一定占地面积和形状的。</p>
+<p>为叙述问题方便，三维空间降维为二维空间，即认为扫地机器人的姿态固定。下图中左侧的图表，黑色表示二维空间中的障碍物，红色表示运动的机器人，将机器人的面积与形状纳入考虑范围，可以得到右侧的 Configuration Space。右侧的 Configuration Space 白色区域表示的是机器人顶部的那一个点所能达到的位置。</p>
+<div class="figure">
+<img src="http://7xqfkw.com1.z0.glb.clouddn.com/2016-08-13-14707227431185.jpg" alt="">
+
+</div>
+<p>我认为将扫地机器人形状固定为圆柱体，有助于减少构建 Configuration Space 时计算资源。</p>
+<h4 id="path-planning">Path Planning</h4>
+<h5 id="最短路径求解">最短路径求解</h5>
+<p>最短路径求解问题使用的算法常用的有 Grassfire、Dijkstra、A*。</p>
+<p>Grassfire 计算量大，但是它能够在找到最短路径的同时找到所有可能的路径。整个计算过程如同燎原之火，从起点向四周扩散去找到终点。</p>
+<div class="figure">
+<img src="http://7xqfkw.com1.z0.glb.clouddn.com/2016-08-13-14707236890510.jpg" alt="">
+
+</div>
+<p>Dijkstra 保证能够找到最短路径，但是由于保证找到的是最短路径，所以计算量依旧比较大。</p>
+<p>A* 能够找到一条较短的路径，但是不能够保证是最短路径，计算量比较小。可以看做是有方向性的 Grassfire。</p>
+<h5 id="两种简单的路径求解方法">两种简单的路径求解方法</h5>
+<p>两种简单的路径求解方法。如下面两个图所示。</p>
+<div class="figure">
+<img src="http://7xqfkw.com1.z0.glb.clouddn.com/2016-08-13-14707240821412.jpg" alt="">
+
+</div>
+<div class="figure">
+<img src="http://7xqfkw.com1.z0.glb.clouddn.com/2016-08-13-14707241303904.jpg" alt="">
+
+</div>
+<p>第一张图是将这些障碍物的边缘角点连线，在连线的过程中需要注意不能使连线穿越障碍物。将边缘角点看做是 node，连线看做是 edge，使用 Dijkstra 可以计算出最短路径。</p>
+<p>第二张图中绿色的点是这些梯形的重心，通过不断寻找相邻梯形，可以找到一条通过目的地的路径。但是这种方式需要满足障碍物是凸多边形，并不容易使用。但是这种方式得到的结果尽可能远离障碍物，碰撞可能性最低。</p>
+<h5 id="probabilistic-road-maps">Probabilistic Road Maps</h5>
+<div class="figure">
+<img src="http://7xqfkw.com1.z0.glb.clouddn.com/2016-08-13-14707257717164.jpg" alt="">
+
+</div>
+<p>这个方法里面使用到了随机。方法的大致流程是在 Configuration Space 中不断随机选取空闲区域的点，每一个点生成的时候都会去寻找与它最近的 k 个点（待选点包括前面选取的随机点，也包括起点和终点），并进行连线，当然这其中涉及到连线是否穿越障碍物的检测。最终能够将起点和终点连接起来。具体的方法见下图。</p>
+<div class="figure">
+<img src="http://7xqfkw.com1.z0.glb.clouddn.com/2016-08-13-14707259863399.jpg" alt="">
+
+</div>
+<p>对于路径不存在的情况，这个方法经过 n 次循环没有找到结果就结束了，认为路径不存在。算法认为的路径不存在并不能保证路径不存在。</p>
+<p>对于下图的情况，因为中间一条狭小的通道在所有空闲空间中所在面积狭小，所以随机选取的点落在通道中的概率有限，所以对于这种情况很有可能在经过 n 次循环后算法直接给出路径不存在的结论。这个算法可以进行改进，增加随机点落在障碍物附近的概率。</p>
+<div class="figure">
+<img src="http://7xqfkw.com1.z0.glb.clouddn.com/2016-08-13-14707261865471.jpg" alt="">
+
+</div>
+<h5 id="rapidly-exploring-random-trees">Rapidly Exploring Random Trees</h5>
+<div class="figure">
+<img src="http://7xqfkw.com1.z0.glb.clouddn.com/2016-08-13-14707270006027.jpg" alt="">
+
+</div>
+<p>这个方法的优点是生成的树能够重复利用，能够解决多次路径寻找问题。大致的步骤是，在空闲区域随机产生点，找到已经在树上离它最近的点（保证两点连线不经过障碍物）。如果两个点的距离小于阈值，直接将新生成的点作为离它最近点的子节点加入到树中；如果与距离大于阈值，在连线上找一点替代新生成的点，与树的那一点连线（保证新的连线距离小于阈值），加入到树中。</p>
+<p>树不断生长能够覆盖整个空闲区域，方便多次路径规划。</p>
+<div class="figure">
+<img src="http://7xqfkw.com1.z0.glb.clouddn.com/2016-08-13-14707269438673.jpg" alt="">
+
+</div>
+<h5 id="gradient-based-planner">Gradient Based Planner</h5>
+<p>上面的方法适用的情况都是障碍物的轮廓清晰，能够用矢量的方式描述。而在扫地机器人的问题上，SLAM 过程输入给路径规划过程的地图是栅格地图。</p>
+<p>现在介绍的方法为栅格的 Configuration Space 设计。</p>
+<p>整体思想是在 Configuration Space 建立势场，通过势能的逐步降低找到路径。</p>
+<p>建立第一个势场，离终点越近势能越低，具体使用距离或距离平方作为势能都可以。建立的势场如下图所示，终点的位置就是颜色最深处。</p>
+<div class="figure">
+<img src="http://7xqfkw.com1.z0.glb.clouddn.com/2016-08-13-14707281910722.jpg" alt="">
+
+</div>
+<p>建立第二个势场，离障碍物越近势能越高。下面两张图第一张是实际的 Configuration Space，第二张是依照这种方法建立的势场。</p>
+<div class="figure">
+<img src="http://7xqfkw.com1.z0.glb.clouddn.com/2016-08-13-14707283842557.jpg" alt="">
+
+</div>
+<div class="figure">
+<img src="http://7xqfkw.com1.z0.glb.clouddn.com/2016-08-13-14707285442296.jpg" alt="">
+
+</div>
+<p>现在将这两个势场合并成为一个势场，使用加权平均的方法，如果认为避撞比效率更重要可以提高第二个势场的权重。合并的势场如图所示。</p>
+<div class="figure">
+<img src="http://7xqfkw.com1.z0.glb.clouddn.com/2016-08-13-14707289438142.jpg" alt="">
+
+</div>
+<p>依据合并的势场和起点，通过梯度下降的方式求得路径。</p>
+<p>但是这种方式合并生成的势场存在 local minima，需要注意对 local minima 的处理。</p>
+<h2 id="参考">参考</h2>
+<p>[1] Coursera 专项课程 <a href="https://www.coursera.org/specializations/robotics" target="_blank" rel="external">Robotics</a>。 [2] Thrun S, Burgard W, Fox D. Probabilistic robotics[M]. MIT press, 2005.</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;扫地机器人是可自主运动的机器人，功能是通过传感器（sensors）感知外界环境，通过控制器（actuators）运动于整个外界环境，达到清理所有可感知外界地面的功能。&lt;/p&gt;
+&lt;p&gt;其传感器是单线激光扫描仪，安装尽可能保证激光扫描仪的扫描平面与机器人地盘平行。&lt;/p&gt;
+&lt;p&gt;整个扫地机器人工作时的计算任务包括 &lt;code&gt;SLAM&lt;/code&gt; 和 &lt;code&gt;路径规划&lt;/code&gt; 两个部分。其中&lt;code&gt;SLAM&lt;/code&gt;部分包括 &lt;code&gt;Tracking&lt;/code&gt; 和 &lt;code&gt;Mapping&lt;/code&gt; 两个小部分。&lt;/p&gt;
+    
+    </summary>
+    
+    
+      <category term="robotics" scheme="http://jingetu.github.io/tags/robotics/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Kalman Filter (Probabilistic Robotics)</title>
+    <link href="http://jingetu.github.io/2016/07/12/Kalman-Filter-Probabilistic-Robotics/"/>
+    <id>http://jingetu.github.io/2016/07/12/Kalman-Filter-Probabilistic-Robotics/</id>
+    <published>2016-07-12T13:57:13.000Z</published>
+    <updated>2016-12-03T11:14:58.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>本文是阅读 《Probabilistic Robotics》 Chapter3 Gaussian Filters 的笔记。</p>
+<p>卡尔曼滤波可以看作是贝叶斯滤波在高斯分布下的特例。因为是高斯分布，所以卡尔曼滤波对应的状态值是连续的，而不是离散的。</p>
+<a id="more"></a>
+<h2 id="linear-gaussian-systems">Linear Gaussian Systems</h2>
+<h3 id="multivariate-normal-distribution">Multivariate Normal Distribution</h3>
+<p>多元正态分布，多元正态分布可以使用以下公式表示：</p>
+<p><span class="math display">\displaystyle  \begin{equation} p(x) = det(2\pi\Sigma)^{- {1 \over 2}} exp\{-{1 \over 2}(x-\mu)^T\Sigma^{-1}(x-\mu)\} \label{eq: multivariate_normal_distribution}\end{equation} </span></p>
+<p>此分布由两个参数决定，均值 <span class="math inline">\mu</span> 和协方差矩阵 <span class="math inline">\Sigma</span> 。均值 <span class="math inline">\mu</span> 是一个与状态值 <span class="math inline">x</span> 具有相同维度的列向量。协方差矩阵 <span class="math inline">\Sigma</span> 是一个二次型矩阵(Quadratic Matrix)，具有对称和半正定(positive-semidefinite)的特点，维度也与状态值 <span class="math inline">x</span> 的维度相同。</p>
+<h3 id="linear-gaussian-systems-1">Linear Gaussian Systems</h3>
+<p>卡尔曼滤波使用 <span class="math inline">t</span> 时刻的均值 <span class="math inline">\mu_t</span> 和协方差矩阵 <span class="math inline">\Sigma_t</span> 表示 <span class="math inline">t</span> 时刻的 <code>belief</code>。</p>
+<p>为了保证后验概率和已知的控制值 <span class="math inline">z</span> 、测量值 <span class="math inline">u</span> 具有一致的概率分布，即高斯分布。在贝叶斯滤波的马尔科夫假设之外，还需要满足三个条件：</p>
+<ol style="list-style-type: decimal">
+<li>状态值是这些参数的线性函数与高斯噪声的和。用等式表示为： <span class="math display">\displaystyle  \begin{equation} x_t = A_tx_{t-1} + B_tu_t + \varepsilon_t \label{eq: state_transition}\end{equation}
+</span> 其中 <span class="math inline">x_t</span>, <span class="math inline">x_{t-1}</span> 是状态值向量，维度为 n，<span class="math inline">u_t</span> 是控制值向量，维度为 m，即</li>
+</ol>
+<p><span class="math display">\displaystyle x_t = \left[\begin{matrix} x_{1,t} \\ x_{2,t} \\ \vdots \\ x_{n,t}\end{matrix}\right]</span></p>
+<p><span class="math display">\displaystyle u_t = \left[\begin{matrix} u_{1,t} \\ u_{2,t} \\ \vdots \\ u_{m,t}\end{matrix}\right]</span></p>
+<p><span class="math inline">A_t</span> 和 <span class="math inline">B_t</span> 是矩阵，<span class="math inline">A_t</span> 是一个大小为 n x n 的方阵，<span class="math inline">B_t</span> 是一个大小为 n x m 的矩阵。</p>
+<p><span class="math inline">\varepsilon_t</span> 是表示状态值 <span class="math inline">x_t</span> 随机性的随机变量，是一个具有和状态值一样维度 n 的向量。其均值为 0，协方差矩阵用 <span class="math inline">R_t</span> 表示，<span class="math inline">R_t</span> 的大小为 n x n。</p>
+<p>将公式  代入公式 ，可以得到状态值转变后概率分布 <span class="math inline">p(x_t|u_t,x_{t-1})</span> 的定义 ，这个后验概率分布依旧是高斯概率分布，可以使用均值 <span class="math inline">A_tx_{t-1} + B_tu_t</span> 和协方差矩阵 <span class="math inline">R_t</span> 表示。</p>
+<p><span class="math display">\displaystyle  \begin{equation} p(x_t|u_t,x_{t-1}) = det(2\pi R_t)^{-{1 \over 2}}exp\{ -{1\over2}(x_t - A_tx_{t-1} - B_tu_t)^T R^{-1}_t (x_t - A_tx_{t-1} - B_tu_t) \} \label{eq: state_probability} \end{equation} </span> 2. 测量值也是这些参数的线性函数与高斯噪声的和。用公式表示为： <span class="math display">\displaystyle  z_t = C_tx_t + \delta_t </span></p>
+<p>$ z_t $ 是测量值向量，维度为 k 。<span class="math inline">C_t</span> 的大小为 k x n。$ _t $ 描述测量值噪声，服从高斯分布，均值为 0，协方差矩阵用 <span class="math inline">Q_t</span> 表示。</p>
+<p>测量值 $ z_t $ 在已知状态值 <span class="math inline">x_t</span> 的条件下的概率分布 $ p(z_t|x_t) $ 为：</p>
+<p><span class="math display">\displaystyle  p(z_t|x_t) = det(2\pi Q_t)^{-{1 \over 2}}exp\{ -{1 \over 2}(z_t-C_tx_t)^TQ_t^{-1}(z_t-C_tx_t) \} </span> 3. <code>belief</code> 的初始值 <span class="math inline">bel(x_0)</span> 也需要正态分布。这个正态分布使用 <span class="math inline">\mu_0</span> 和 <span class="math inline">\Sigma_0</span> 表示：</p>
+<p><span class="math display">\displaystyle  bel(x_0) = p(x_0) = det(2\pi\Sigma_0)^{-{1 \over 2}}exp\{ -{1 \over 2}(x_0-\mu_0)^T\Sigma^{-1}_0(x_0-\mu_0) \} </span></p>
+<h2 id="卡尔曼滤波流程">卡尔曼滤波流程</h2>
+<blockquote>
+<p>Algorithm Kalman_filter(<span class="math inline">\mu_{t-1}</span>, <span class="math inline">\Sigma_{t-1}</span>, <span class="math inline">u_t</span>, <span class="math inline">z_t</span>): <span class="math inline">\overline{\mu}_t = A_t\mu_{t-1} +B_tu_t</span> <span class="math inline">\overline{\Sigma}_t = A_t\Sigma_{t-1}A_t^T + R_t</span> <span class="math inline">K_t = \overline{\Sigma}_tC_t^T(C_t\overline{\Sigma}_tC_t^T+Q_t)^{-1}</span> <span class="math inline">\mu_t = \overline{\mu}_t + K_t(z_t-C_t\overline{\mu}_t)</span> <span class="math inline">\Sigma_t = (I-K_tC_t)\overline{\Sigma}_t</span> ​ return <span class="math inline">\mu_t</span>, <span class="math inline">\Sigma_t</span></p>
+</blockquote>
+<p>流程的第二行和第三行对 <span class="math inline">\overline{\mu}_t</span>, <span class="math inline">\overline{\Sigma}_t</span> 是简单的均值传递与协方差传递公式。</p>
+<p>整个流程的关键点在卡尔曼增益 <span class="math inline">K_t</span> 的求取和后面对均值和方差的更新。</p>
+<p>将贝叶斯滤波流程写下，做一个对照。<span class="math inline">\overline{\mu}_t</span>, <span class="math inline">\overline{\Sigma}_t</span> 对应贝叶斯流程中 <span class="math inline">\overline{bel}(x_t)</span>，<span class="math inline">\mu_t</span>, <span class="math inline">\Sigma_t</span> 对应贝叶斯滤波流程中的 <span class="math inline">bel(x_t)</span>。</p>
+<blockquote>
+<p>Algorithm Bayes_filter(<span class="math inline">bel(x_{t-1})</span>, <span class="math inline">u_t</span>, <span class="math inline">z_t</span>):</p>
+<p>​ for all <span class="math inline">x_t</span> do</p>
+<p>​ <span class="math inline">\overline{bel}(x_t) = \int p(x_t|u_t, x_{t-1})bel(x_{t-1})\text{d}x_{t-1}</span></p>
+<p>​ <span class="math inline">bel(x_t) = \eta p(z_t|x_t)\overline{bel}(x_t)</span></p>
+<p>​ endfor</p>
+<p>​ return <span class="math inline">bel(x_t)</span></p>
+</blockquote>
+<h2 id="卡尔曼滤波数学推导">卡尔曼滤波数学推导</h2>
+<p>卡尔曼滤波数据推导的基础是贝叶斯滤波，整个流程是将贝叶斯滤波当中对 <span class="math inline">\overline{bel}(x_t)</span> 和 <span class="math inline">bel(x_t)</span> 的计算应用到高斯分布的特例中。</p>
+<h3 id="prediction">Prediction</h3>
+<p>Prediction 步骤在贝叶斯滤波中用公式表示是：</p>
+<p><span class="math display">\displaystyle \begin{equation} \overline{bel}(x_t) = \int p(x_t|u_t, x_{t-1})bel(x_{t-1})\text{d}x_{t-1} \label{eq: bayes_prediction}\end{equation}</span></p>
+<p>公式中的 <span class="math inline">p(x_t|u_t, x_{t-1})</span> 和 <span class="math inline">bel(x_{t-1})</span> 服从正态分布：</p>
+<p><span class="math display">\displaystyle p(x_t|u_t, x_{t-1}) \sim \mathcal{N}(x_t;A_tx_{t-1}+B_tu_t, R_t)</span> <span class="math display">\displaystyle bel(x_{t-1}) \sim \mathcal{N}(x_{t-1};\mu_{t-1}, \Sigma_{t-1})</span></p>
+<p>所以公式  可以进一步写成：</p>
+<p><span class="math display">\displaystyle  \overline{bel}(x_t) = \eta\int exp\{ -{1 \over 2}(x_t-A_tx_{t-1}-B_tu_t)^TR_t^{-1}(x_t-A_tx_{t-1}-B_tu_t) \} \\ exp\{ -{1 \over 2}(x_{t-1}-\mu_{t-1})^T\Sigma_{t-1}^{-1}(x_{t-1}-\mu_{t-1}) \} \text{d}x_{t-1} \\ = \eta \int exp(-L_t) \text{d}x_{t-1} </span></p>
+<p>其中 <span class="math display">\displaystyle  \eta = det(2\pi R_t)^{-{1 \over 2}}det(2_\pi \Sigma_{t-1})^{-{1 \over 2}} </span> <span class="math display">\displaystyle  L_t = {1 \over 2}(x_t - A_tx_{t-1} - B_tu_t)^TR_t^{-1}(x_t - A_tx_{t-1} - B_tu_t) + {1 \over 2}(x_{t-1}-\mu_{t-1})^T\Sigma_{t-1}^{-1}(x_{t-1}-\mu_{t-1}) </span></p>
+<p>因为 <span class="math inline">\overline{bel}(x_t)</span> 表示的是一个概率分布，具有和为 1 的条件，在计算的最后需要进行单位化处理，现在 <span class="math inline">\eta</span> 的值并不重要。后面的积分项，是对 <span class="math inline">x_{t-1}</span> 求积分，所以可以将 <span class="math inline">L_t</span> 分解成含有 <span class="math inline">x_{t-1}</span> 的项和不含有 <span class="math inline">x_{t-1}</span> 的项，因为 <span class="math inline">x_{t-1}</span> 所在的位置是 e 指数，所以可以将 <span class="math inline">L_t</span> 分解成这个两项的和即 <span class="math inline">L_t = L_t(x_{t-1}, x_t) + L_t(x_t)</span> ，将不含有 <span class="math inline">x_{t-1}</span> 的项作为因子分解出去，用公式表示如下： <span class="math display">\displaystyle  \overline{bel}(x_t) = \eta\int exp(-L_t) \text{d}x_{t-1} \\ = \eta\int exp\{ -L_t(x_{t-1}, x_t) - L_t(x_t) \} \text{d}x_{t-1} \\ = \eta exp\{ -L_t(x_t) \}\int exp\{ -L_t(x_{t-1}, x_t) \}\text{d}x_{t-1} \\ = \eta exp\{ -L_t(x_t) \} </span></p>
+<p>在上式中最后一个 <span class="math inline">\eta</span> 和前面的 <span class="math inline">\eta</span> 并不相同。如果我们可以将 <span class="math inline">\overline{bel}(x_t)</span> 写成这种形式，那么 Prediction 阶段 <span class="math inline">x_t</span> 的概率分布可以由 <span class="math inline">exp\{ -L_t(x_t) \}</span> 决定。当然其中还需要由一个要求，即 <span class="math inline">\int exp\{ -L_t(x_{t-1}, x_t) \}\text{d}x_{t-1}</span> 与 <span class="math inline">x_t</span> 无关，在积分之后是有可能与 <span class="math inline">x_t</span> 无关。</p>
+<p>现在的目标就是寻找一个 <span class="math inline">L_t(x_{t-1}, x_t)</span> 使得积分项中不含有 <span class="math inline">x_t</span>。如果将 <span class="math inline">L_t</span> 看作是关于 <span class="math inline">x_{t-1}</span> 的一元函数，那么 <span class="math inline">L_t</span> 就是 <span class="math inline">x_{t-1}</span> 的二次型。</p>
+<p>我们来看看一元二次多项式的分解： <span class="math display">\displaystyle  y = ax^2+bx+c = a(x+{b \over 2a})^2 + (c-{b^2 \over 4a}) </span></p>
+<p><span class="math inline">L_t(x_{t-1}, x_t)</span> 可以看作是 <span class="math inline">a(x+{b \over 2a})^2</span> 项，<span class="math inline">L_t(x_t)</span> 可以看作是 <span class="math inline">(c-{b^2 \over 4a})</span> 项。</p>
+<p>对 <span class="math inline">L_t</span> 求一阶导函数和二阶导函数，可以得到： <span class="math display">\displaystyle  { \partial L_t \over \partial x_{t-1} } = -{1 \over 2}A^TR_t^{-1}(x_t-A_tx_{t-1}-B_tu_t)+{1 \over 2}\Sigma^{-1}_{t-1}(x_{t-1}-\mu_{t-1}) </span> <span class="math display">\displaystyle  { \partial^2 L_t \over \partial x_{t-1}^2} = {1 \over 2}A^T_tR^{-1}_tA_t + {1 \over 2}\Sigma^{-1}_{t-1} =: \Psi^{-1}_t </span></p>
+<p>其中 <span class="math inline">\Psi_t</span> 表示 <span class="math inline">L_t(x_{t-1}, x_t)</span> 的曲率（curvature）。现在令 <span class="math inline">{ \partial L_t \over \partial x_{t-1} }</span> 等于0：</p>
+<p><span class="math display">\displaystyle  A_t^TR^{-1}_t(x_t-A_tx_{t-1}-B_tu_t)=\Sigma_{t-1}^{-1}(x_{t-1}-\mu_{t-1}) \\ 
+A_t^TR^{-1}_tA_tx_{t-1}+\Sigma^{-1}_{t-1}x_{t-1}=A_t^TR^{-1}_t(x_t-B_tu_t)+\Sigma_{t-1}^{-1}\mu_{t-1} \\ 
+(A_t^TR^{-1}_tA_t+\Sigma^{-1}_{t-1})x_{t-1}=A_t^TR^{-1}_t(x_t-B_tu_t)+\Sigma_{t-1}^{-1}\mu_{t-1} \\ 
+\Psi^{-1}_tx_{t-1}=A_t^TR^{-1}_t(x_t-B_tu_t)+\Sigma_{t-1}^{-1}\mu_{t-1} \\ 
+x_{t-1}=\Psi_tA_t^TR^{-1}_t(x_t-B_tu_t)+\Sigma_{t-1}^{-1}\mu_{t-1}</span></p>
+<p>我们就可以定义（与 <span class="math inline">ax^2+bx+c</span> 的分解类比，就可以理解）： <span class="math display">\displaystyle L_t(x_{t-1},x_t)={1 \over 2}(x_{t-1}-\Psi_t[A_t^TR^{-1}_t(x_t-B_tu_t)+\Sigma_{t-1}^{-1}\mu_{t-1}])^T\Psi^{-1}_t\\ (x_{t-1}-\Psi_t[A_t^TR^{-1}_t(x_t-B_tu_t)+\Sigma_{t-1}^{-1}\mu_{t-1}])</span></p>
+<p><span class="math inline">det(2\pi\Psi_t)^{-{1\over2}}exp\{-L_t(x_{t-1},x_t)\}</span> 是一个正态分布的形式，所以： <span class="math display">\displaystyle  \int det(2\pi\Psi_t)^{-{1\over2}}exp\{-L_t(x_{t-1},x_t)\} \text{d}x_{t-1} = 1 </span> <span class="math display">\displaystyle  \int exp\{-L_t(x_{t-1},x_t)\} \text{d}x_{t-1} = det(2\pi\Psi_t)^{1\over2} </span></p>
+<p>至此，到了一个满足要求的 <span class="math inline">L_t(x_{t-1}, x_t)</span> ，可以将 <span class="math inline">\overline{bel}(x_t)</span> 写作： <span class="math display">\displaystyle  \overline{bel}(x_t)= \eta exp\{ -L_t(x_t) \} </span></p>
+<p>那么现在要做的是求出 <span class="math inline">L_t(x_t)</span>，<span class="math inline">L_t(x_t)</span> 是关于 <span class="math inline">x_t</span> 的二次型，所以可将 <span class="math inline">L_t(x_t)</span> 进行分解，得到 <span class="math inline">L_t(x_t)</span> 的对称轴，这条对称轴也是 <span class="math inline">\overline{bel}(x_t)</span> 的均值。</p>
+<p><span class="math display">\displaystyle  L_t(x_t) = L_t - L_t(x_{t-1},x_t) \\ 
+= {1\over2}(x_t-A_tx_{t-1}-B_tu_t)^TR_t^{-1}(x_t-A_tx_{t-1}-B_tu_t) \\ 
++ {1\over2}(x_{t-1}-\mu_{t-1})^T\Sigma^{-1}_{t-1}(x_{t-1}-\mu_{t-1}) \\ 
+- {1\over2}(x_{t-1}-\Psi_t[A_t^TR_t^{-1}(x_t-B_tu_t)+\Sigma^{-1}_{t-1}\mu_{t-1}])^T\Psi^{-1}_t \\ (x_{t-1}-\Psi_t[A_t^TR_t^{-1}(x_t-B_tu_t)+\Sigma^{-1}_{t-1}\mu_{t-1}])</span></p>
+<p>经过一系列繁琐的化简： <span class="math display">\displaystyle  L_t(x_t) = {1\over2}(x_t-B_tu_t)^TR_t^{-1}(x_t-B_tu_t)+{1\over2}\mu_{t-1}^T\Sigma_{t-1}^{-1}\mu_{t-1} \\
+-{1\over2}[A^T_tR_t^{-1}(x_t-B_tu_t)+\Sigma^{-1}_{t-1}\mu_{t-1}]^T(A_t^TR_t^{-1}A_t+\Sigma^{-1}_{t-1})^{-1} \\ 
+[A^T_tR_t^{-1}(x_t-B_tu_t)+\Sigma^{-1}_{t-1}\mu_{t-1}] </span></p>
+<p>求一阶导函数：</p>
+<p><span class="math display">\displaystyle  {\partial L_t(x_t) \over \partial x_t} = R^{-1}_t(x_t-B_tu_t)-R^{-1}_tA_t(A^T_tR_t^{-1}A_t+\Sigma_{t-1}^{-1})^{-1} \\ 
+[A^T_tR_t^{-1}(x_t-B_tu_t)+\Sigma_{t-1}^{-1}\mu_{t-1}] \\ 
+= [R^{-1}_t-R^{-1}_tA_t(A^T_tR_t^{-1}A_t+\Sigma_{t-1}^{-1})^{-1}A_t^TR_t^{-1}](x_t-B_tu_t) \\ 
+-R^{-1}_tA_t(A^T_tR_t^{-1}A_t+\Sigma_{t-1}^{-1})^{-1}\Sigma_{t-1}^{-1}\mu_{t-1}</span></p>
+<p>由 <code>inversion lemma</code> 可以有化简： <span class="math display">\displaystyle  R^{-1}_t-R^{-1}_tA_t(A^T_tR_t^{-1}A_t+\Sigma_{t-1}^{-1})^{-1}A_t^TR_t^{-1} = (R_t+A_t\Sigma_{t-1}A_t^T)^{-1} </span></p>
+<p>令一阶导函数为 0： <span class="math display">\displaystyle  (R_t+A_t\Sigma_{t-1}A_t^T)^{-1}(x_t-B_tu_t) = R_t^{-1}A_t(A^T_tR^{-1}_tA_t+\Sigma^{-1}_{t-1})^{-1}\Sigma^{-1}_{t-1}\mu_{t-1} </span></p>
+<p><span class="math display">\displaystyle  x_t = B_tu_t+(R_t+A_t\Sigma_{t-1}A_t^T)R_t^{-1}A_t(A_t^TR^{-1}_tA_t+\Sigma^{-1}_{t-1})^{-1}\Sigma^{-1}_{t-1}\mu_{t-1} \\ 
+= B_tu_t+A_t(I+\Sigma_{t-1}A_t^TR^{-1}_tA_t)(\Sigma_{t-1}A_t^TR^{-1}_tA_t+I)^{-1}\mu_{t-1} \\
+= B_tu_t+A_t\mu_{t-1} </span></p>
+<p>所以 <span class="math inline">\overline{bel}(x_t)</span> 的均值为 <span class="math inline">B_tu_t+A_t\mu_{t-1}</span> 。</p>
+<p>对 <span class="math inline">L_t(x_t)</span> 求二阶导数，可以得到协方差矩阵。</p>
+<p><span class="math display">\displaystyle  {\partial^2L_t(x_t) \over \partial x^2_t} = (R_t+A_t\Sigma_{t-1}A_t^T)^{-1} =: \overline{\Sigma}_t^{-1} </span></p>
+<h3 id="update">Update</h3>
+<p>Update 步骤在贝叶斯滤波中用公式表示是： <span class="math display">\displaystyle  bel(x_t) = \eta p(z_t|x_t)\overline{bel}(x_t) </span></p>
+<p>其中 <span class="math display">\displaystyle  p(z_t|x_t) \sim \mathcal{N}(z_t;C_tx_t,Q_t) </span> <span class="math display">\displaystyle  \overline{bel}(x_t) \sim \mathcal{N}(x_t;\overline{\mu}_t,\overline{\Sigma}_t) </span></p>
+<p>经过整理可以写成：</p>
+<p><span class="math display">\displaystyle  bel(x_t) = \eta exp\{-J_t\} </span></p>
+<p>其中 <span class="math display">\displaystyle  J_t = {1\over2}(z_t-C_tx_t)^TQ^{-1}_t(z_t-C_tx_t) \\ 
++ {1\over2}(x_t-\overline{\mu})^T\overline{\Sigma}^{-1}_t(x_t-\overline{\mu}_t) </span></p>
+<p>对 <span class="math inline">J_t</span> 求一阶导函数和二阶导函数： <span class="math display">\displaystyle  {\partial J \over \partial x_t} = -C^T_tQ^{-1}_t(z_t-C_tx_t)+\overline{\Sigma}^{-1}_t(x_t-\overline{\mu}_t) </span> <span class="math display">\displaystyle  {\partial^2 J \over \partial x^2_t} = C^T_tQ^{-1}_tC_t+\overline{\Sigma}^{-1}_t </span></p>
+<p>所以得到了 <span class="math inline">bel(x_t)</span> 的协方差矩阵： <span class="math display">\displaystyle  \begin{equation} \Sigma_t = (C^T_tQ^{-1}_tC_t+\overline{\Sigma}^{-1}_t)^{-1} \label{eq: bel_sigma} \end{equation}</span></p>
+<p>令一阶导数等于 0，能够得到 <span class="math inline">bel(x_t)</span> 的均值 <span class="math inline">\mu_t</span>。现将 <span class="math inline">\mu_t</span> 直接带入，并令一阶导数等于 0。 <span class="math display">\displaystyle  \begin{equation} C_t^TQ^{-1}_t(z_t-C_t\mu_t) = \overline{\Sigma}^{-1}_t(\mu_t-\overline{\mu}_t) \label{eq: partial_J_one_eq_zero} \end{equation}</span></p>
+<p>等式  的左边可以展开： <span class="math display">\displaystyle  \begin{equation} C_t^TQ_t^{-1}(z_t-C_t\mu_t) \\ 
+= C^T_tQ^{-1}_t(z_t-C_t\mu_t+C_t\overline{\mu}_t-C_t\overline{\mu}_t) \\ 
+= C^T_tQ^{-1}_t(z_t-C_t\overline{\mu}_t)-C^T_tQ^{-1}_tC_t(\mu_t-\overline{\mu}_t) \label{eq: partial_J_one_eq_zero_ex} \end{equation}</span></p>
+<p>将  代回  得到： <span class="math display">\displaystyle  C_t^TQ^{-1}_t(z_t-C_t\overline{\mu}_t) = (C^T_tQ^{-1}_tC_t+\overline{\Sigma}^{-1}_t)(\mu_t-\overline{\mu}_t) </span></p>
+<p>而由公式  可以化简： <span class="math display">\displaystyle  \mu_t = \overline{\mu}_t + \Sigma_tC_t^TQ^{-1}_t(z_t-C_t\overline{\mu}_t) </span></p>
+<p>现在定义 <span class="math inline">t</span> 时刻的卡尔曼增益为： <span class="math display">\displaystyle  K_t=\Sigma_tC^T_tQ^{-1}_t </span></p>
+<p>将 <span class="math inline">K_t</span> 代入 <span class="math inline">\mu_t</span>：</p>
+<p><span class="math display">\displaystyle  \mu_t = \overline{\mu}_t + K_t(z_t-C_t\overline{\mu}_t) </span></p>
+<p>卡尔曼增益 <span class="math inline">K_t</span> 可以经过一些列的运算，将其中的 <span class="math inline">\Sigma_t</span> 去除。 <span class="math display">\displaystyle  K_t = \Sigma_tC^T_tQ^{-1}_t \\ 
+= \Sigma_tC^T_tQ^{-1}_t(C_t\overline{\Sigma}_tC^T_t+Q_t)(C_t\overline{\Sigma}_tC^T_t+Q_t)^{-1} \\ 
+= \Sigma_t(C^T_tQ^{-1}_tC_t\overline{\Sigma}_tC^T_t+C^T_tQ^{-1}_tQ_t)(C_t\overline{\Sigma}_tC^T_t+Q_t)^{-1} \\
+= \Sigma_t(C^T_tQ^{-1}_tC_t\overline{\Sigma}_tC^T_t+C^T_t)(C_t\overline{\Sigma}_tC^T_t+Q_t)^{-1} \\ 
+= \Sigma_t(C^T_tQ^{-1}_tC_t\overline{\Sigma}_tC^T_t+\overline{\Sigma}_t^{-1}\overline{\Sigma}_tC^T_t)(C_t\overline{\Sigma}_tC^T_t+Q_t)^{-1} \\ 
+= \Sigma_t(C_t^TQ_t^{-1}C_t+\overline{\Sigma}_t^{-1})\overline{\Sigma}_tC^T_t(C_t\overline{\Sigma}_tC^T_t+Q_t)^{-1} \\ 
+= \Sigma_t\Sigma_t^{-1}\overline{\Sigma}_tC^T_t(C_t\overline{\Sigma}_tC^T_t+Q_t)^{-1} \\ 
+= \overline{\Sigma}_tC^T_t(C_t\overline{\Sigma}_tC^T_t+Q_t)^{-1} </span></p>
+<p>随后使用 <code>inversion lemma</code>，可以将  化简： <span class="math display">\displaystyle  \Sigma_t = (C_t^TQ^{-1}_tC_t+\overline{\Sigma}^{-1}_t)^{-1} \\ 
+= \overline{\Sigma}_t-\overline{\Sigma}_tC^T_t(Q_t+C_t\overline{\Sigma}_tC^T_t)^{-1}C_t\overline{\Sigma}_t \\ 
+= [I - \overline{\Sigma}_tC^T_t(Q_t+C_t\overline{\Sigma}_tC^T_t)^{-1}C_t]\overline{\Sigma}_t \\ 
+= (I-K_tC_t)\overline{\Sigma}_t </span></p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;本文是阅读 《Probabilistic Robotics》 Chapter3 Gaussian Filters 的笔记。&lt;/p&gt;
+&lt;p&gt;卡尔曼滤波可以看作是贝叶斯滤波在高斯分布下的特例。因为是高斯分布，所以卡尔曼滤波对应的状态值是连续的，而不是离散的。&lt;/p&gt;
+    
+    </summary>
+    
+    
+      <category term="robotics" scheme="http://jingetu.github.io/tags/robotics/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Bayes Filter (Probabilistic Robotics)</title>
+    <link href="http://jingetu.github.io/2016/07/12/Bayes-Filter-Probabilistic-Robotics/"/>
+    <id>http://jingetu.github.io/2016/07/12/Bayes-Filter-Probabilistic-Robotics/</id>
+    <published>2016-07-12T13:55:25.000Z</published>
+    <updated>2016-12-03T11:15:04.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>本文是阅读 《Probabilistic Robotics》 Chapter2 Recursive State Estimation 的笔记。</p>
+<a id="more"></a>
+<h2 id="背景知识">背景知识：</h2>
+<h3 id="state-control-measurement">State, Control, Measurement</h3>
+<p>对于一个机器人，机器人具有与周围环境交互的能力，机器人通过它的执行部件（actuators）改变周围的环境，或者通过它的传感器（sensors）感知周围的环境。将机器人通过它的轮子改变自身在环境中所处的位置，也可以看做是改变周围环境，因为从机器人设备坐标系观察周围环境变了。</p>
+<p>可以使用一组状态值来描述机器人在环境中的位置、姿态，环境中的任何一个物体也可以使用一组状态值来描述物体在环境中的位置、姿态。状态值不仅可以用于描述物体的位置和姿态，还可以用于描述一系列其他的内部状态，如机器人内存使用量、物体的颜色等。</p>
+<p>机器人可以通过它的执行部件自身在环境中的位置和姿态，比如机器人发送指令给底盘，使底盘以 2m/s 的速度运动 2s，这个指令就可以看做是一组控制值。控制值造成了机器人的位置、姿态改变，所以改变了机器人的状态值。</p>
+<p>机器人可以通过它的传感器感知周围的环境，一般来说传感器有光学相机、激光扫描仪、深度相机、声呐等。这些传感器获得的数据被称作测量值。这些测量值可以用于计算估计机器人的位置、姿态，即测量值可以计算得到状态值。</p>
+<p>在下文中，我们使用字母 <span class="math inline">x</span> 表示机器人的状态值，一般的状态值有6个，即三维空间的3个坐标值与3个姿态值。使用字母 <span class="math inline">u</span> 表示机器人的控制值，使用字母 <span class="math inline">z</span> 表示机器人的测量值值。</p>
+<h3 id="belief-distribution">Belief Distribution</h3>
+<p>Belief Distribution 是一个后验概率的概率分布。是在已经获得所有数据的条件下，状态值 <span class="math inline">x</span> 的概率分布。所有数据指的是机器人的控制值 <span class="math inline">u</span> 与测量值 <span class="math inline">z</span> 。</p>
+<p>对于 <span class="math inline">t</span> 时刻机器人的状态值 <span class="math inline">x_t</span> ，与开始时 1 时刻到 <span class="math inline">t</span> 时刻的所有控制值、测量值都有关系。从 0 时刻机器人初始位置开始，机器人通过所有的控制值 <span class="math inline">u_{1:t}</span> 可以计算出机器人在 <span class="math inline">t</span> 时刻的状态值，同时所有的测量值 <span class="math inline">z_{1:t}</span> 可以验证机器人的状态值，因为机器人的控制值存在误差，如机器人运动轮打滑。</p>
+<p>对于这个后验概率的概率分布 <code>belief</code> 可以写成一个条件概率：</p>
+<p><span class="math display">\displaystyle  bel(x_t) = p(x_t|z_{1:t}, u_{1:t}) </span></p>
+<p>如果在 <span class="math inline">t</span> 时刻不考虑测量值 <span class="math inline">z_t</span> ，只考虑控制值 <span class="math inline">u_t</span> ，在使用控制值 <span class="math inline">u_t</span> 计算出 <span class="math inline">t</span> 时刻的状态值 <span class="math inline">x_t</span> 之后再使用测量值 <span class="math inline">z_t</span> 验证得到的状态值 <span class="math inline">x_t</span> 。那么只考虑控制值 <span class="math inline">u_t</span> 得到的状态值 <span class="math inline">x_t</span> 的概率分布可以看做是一个预测 <code>prediction</code> ，这种方式得到的后验概率，可以写作：</p>
+<p><span class="math display">\displaystyle \overline{bel}(x_t) = p(x_t|z_{1:t-1}, u_{1:t})</span></p>
+<h3 id="markov-assumption">Markov Assumption</h3>
+<p>Markov Assumption 也可以称作是 complete state assumption。这个假设是说在知道当前的状态值的条件下，以前获得的所有数据和以后获得的所有数据之间是相互独立的。即预测未来状态值这件事情上，在当前除了当前的状态值 <span class="math inline">x_t</span> 以外，没有什么其他的数据值能够比 <span class="math inline">x_t</span> 预测得更好。也就是说 <span class="math inline">x_t</span> 中蕴含了 <span class="math inline">z_{1:t}</span> 和 <span class="math inline">u_{1:t}</span> 的信息，当然也蕴含了 <span class="math inline">x_{t-1}</span> 的信息，因为 <span class="math inline">x_{t-1}</span> 是由 <span class="math inline">z_{1:t-1}, u_{1:t-1}</span> 计算得到的。</p>
+<h2 id="贝叶斯滤波器流程">贝叶斯滤波器流程</h2>
+<blockquote>
+<p>Algorithm Bayes_filter(<span class="math inline">bel(x_{t-1})</span>, <span class="math inline">u_t</span>, <span class="math inline">z_t</span>):</p>
+<p>​ for all <span class="math inline">x_t</span> do</p>
+<p>​ <span class="math inline">\overline{bel}(x_t) = \int p(x_t|u_t, x_{t-1})bel(x_{t-1})\text{d}x_{t-1}</span></p>
+<p>​ <span class="math inline">bel(x_t) = \eta p(z_t|x_t)\overline{bel}(x_t)</span></p>
+<p>​ endfor</p>
+<p>​ return <span class="math inline">bel(x_t)</span></p>
+</blockquote>
+<h2 id="贝叶斯滤波器数学推导">贝叶斯滤波器数学推导</h2>
+<p>贝叶斯滤波器的目的是估计系统在各个时刻的状态值的概率分布。即已知系统在初始时刻的状态值和初始时刻到 <span class="math inline">t</span> 时刻之间各个时刻的控制命令 <span class="math inline">u_{1:t}</span> 和测量值 <span class="math inline">z_{1:t}</span> 的情况下，求取 <span class="math inline">t</span> 时刻系统的状态值 <span class="math inline">x_t</span> 概率分布。</p>
+<p>这个概率分布可以用 <span class="math inline">p(x_t|z_{1:t},u_{1:t})</span> 表示。</p>
+<p>而对于三个随机变量<span class="math inline">x, y, z</span>，贝叶斯理论有下面的公式：</p>
+<p><span class="math display">\displaystyle p(x|y,z) = \frac{p(y|x,z)p(x|z)}{p(y|z)}</span></p>
+<p>将 <span class="math inline">p(x_t|z_{1:t},u_{1:t})</span> 中的 <span class="math inline">x_t</span> 对应 <span class="math inline">x</span> ，<span class="math inline">z_t</span> 对应 <span class="math inline">y</span> ，<span class="math inline">(z_{1:t-1}, u_{1:t})</span> 对应 <span class="math inline">z</span> ，就能写出下面的式子：</p>
+<p><span class="math display">\displaystyle p(x_t|z_{1:t},u_{1:t})=\frac{p(z_t|x_t,z_{1:t-1},u_{1:t})p(x_t|z_{1:t-1},u_{1:t})}{p(z_t|x_t,z_{1:t-1},u_{1:t})} \\ = \eta p(z_t|x_t,z_{1:t-1},u_{1:t})p(x_t|z_{1:t-1},u_{1:t})</span><span class="math inline">p(z_t|x_t,z_{1:t-1},u_{1:t})</span> 表示的是在已知 <span class="math inline">x_t,z_{1:t-1},u_{1:t}</span> 的条件下，<span class="math inline">z_t</span> 的条件概率。由马尔科夫假设， <span class="math inline">x_t</span> 中蕴含了 <span class="math inline">z_{1:t-1},u_{1:t}</span> 的信息，所以</p>
+<p><span class="math display">\displaystyle p(z_t|x_t,z_{1:t-1},u_{1:t}) = p(z_t|x_t)</span></p>
+<p>注意，此处的 <span class="math inline">x_t</span> 指只经过 <span class="math inline">x_{t-1}</span> 与 <span class="math inline">u_t</span> 计算的 <span class="math inline">x_t</span> 并没有使用 <span class="math inline">z_t</span> 。</p>
+<p>将</p>
+<p><span class="math inline">bel(x_t) = p(x_t|z_{1:t}, u_{1:t})</span></p>
+<p><span class="math inline">\overline{bel}(x_t) = p(x_t|z_{1:t-1}, u_{1:t})</span></p>
+<p>代入</p>
+<p><span class="math inline">p(x_t|z_{1:t},u_{1:t}) = \eta p(z_t|x_t,z_{1:t-1},u_{1:t})p(x_t|z_{1:t-1},u_{1:t})</span></p>
+<p>可以得到：</p>
+<p><span class="math inline">bel(x_t) = \eta p(z_t|x_t)\overline{bel}(x_t)</span></p>
+<p>上面这个式子指的是，在整合了 <span class="math inline">z_t, u_t</span> 之后状态值 <span class="math inline">x_t</span> 的概率分布。</p>
+<p>对于 <span class="math inline">\overline{bel}(x_t)</span> 的计算可以用用公式</p>
+<p><span class="math display">\displaystyle p(x) = \int p(x|y)p(y) \text{d}y</span></p>
+<p>推导得到。</p>
+<p><span class="math display">\displaystyle \overline{bel}(x_t) = p(x_t|z_{1:t-1}, u_{1:t}) \\ = \int p(x_t|x_{t-1}, z_{1:t-1}, u_{1:t})p(x_{t-1}|z_{1:t-1}, u_{1:t})\text{d}x_{t-1} \\ = \int p(x_t|x_{t-1}, z_{1:t-1}, u_{1:t-1})p(x_{t-1}|z_{1:t-1}, u_{1:t-1})\text{d}x_{t-1}</span></p>
+<p>由马尔科夫假设</p>
+<p><span class="math display">\displaystyle p(x_t|x_{t-1}, z_{1:t-1}, u_{1:t}) = p(x_t|x_{t-1},u_t)</span></p>
+<p>所以就有</p>
+<p><span class="math display">\displaystyle \overline{bel}(x_t) = \int p(x_t|x_{t-1},u_t)p(x_{t-1}|z_{1:t-1}, u_{1:t-1})\text{d}x_{t-1} = \int p(x_t|x_{t-1},u_t)bel(x_{t-1})\text{d}x_{t-1}</span></p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;本文是阅读 《Probabilistic Robotics》 Chapter2 Recursive State Estimation 的笔记。&lt;/p&gt;
+    
+    </summary>
+    
+    
+      <category term="robotics" scheme="http://jingetu.github.io/tags/robotics/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>IMU 误差与其产生原因</title>
+    <link href="http://jingetu.github.io/2016/03/21/IMU-%E8%AF%AF%E5%B7%AE%E4%B8%8E%E5%85%B6%E4%BA%A7%E7%94%9F%E5%8E%9F%E5%9B%A0/"/>
+    <id>http://jingetu.github.io/2016/03/21/IMU-误差与其产生原因/</id>
+    <published>2016-03-21T11:43:48.000Z</published>
+    <updated>2016-12-03T14:10:35.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>做了很久的 IMU 了，很混沌，不理解。</p>
+<p>今天找到一个介绍 IMU 误差的 PDF 文档，现在对这个文档里面有价值的信息做一个记录。</p>
+<p>文档链接如下：</p>
+<p>http://www.novatel.com/assets/Documents/Bulletins/APN064.pdf</p>
+<a id="more"></a>
+<h2 id="地球重力与自转的影响">地球重力与自转的影响</h2>
+<p>地球重力对 IMU 的影响体现在加速度计上，如果保持 IMU 静止，重力加速度计在各个轴上的测量值得到的矢量和就是重力加速度。</p>
+<p>地球自转对 IMU 的影响体现在陀螺仪上，如果将 IMU 完全水平地放置在赤道上，并且其一个轴对着极点，就可以测量到地球自转的角速度。因为地球自转的角速度只有 15 degrees/h ，这个量对 IMU 测量影响很小。</p>
+<h2 id="误差类型">误差类型</h2>
+<h3 id="测量范围">测量范围</h3>
+<p>在选择 IMU 时需要注意到使用环境下的最大加速度或者角速度有多少，要避免响应饱和使得测量值不准确。</p>
+<h3 id="偏移值bias">偏移值（Bias）</h3>
+<p>真实值与测量值之间的关系可以使用公式 <span class="math display">\displaystyle  x = Sf(x) + b </span> 表示。</p>
+<p>其中的 $ b $ 就是偏移值。</p>
+<p>单位 $ deg/hr, m/s^2 $</p>
+<h3 id="偏移值可重复性bias-repeatability">偏移值可重复性（Bias Repeatability）</h3>
+<p>IMU 每次开机（powerup）的初始偏移值是不一样的，很多因素可以造成这个现象。如，IMU 所处的物理环境（XSENS MTi 除了具备加速度计、陀螺仪、磁力计的功能，还可以测量大气压）和处理器的初始条件。</p>
+<p>单位 $ deg/hr, m/s^2 $</p>
+<h3 id="偏移值稳定性bias-stability">偏移值稳定性（Bias Stability）</h3>
+<p>IMU 在同一次开机之后偏移值也会随着时间改变。温度、时间、机械强度对这个都有影响。</p>
+<blockquote>
+<p>An INS filter constantly estimates the bias by making use of external sources of information (GNSS, DMI, barometer). The estimated bias value is removed from the IMU measurements before using them in the mechanization.</p>
+</blockquote>
+<p>使用 IMU 的时候需要将其它信息一起接收，然后估计偏移值。</p>
+<p>单位 $ deg/hr/hr, m/s^2/hr $</p>
+<h3 id="比例因子scale-factor">比例因子（Scale Factor）</h3>
+<p>比例因子即公式 <span class="math display">\displaystyle  x = Sf(x) + b </span> 中的 $ S $。比例因子描述的是其中的线性部分。</p>
+<p>单位 $ ppm $</p>
+<p>如果有 2％ 的误差，那么就说有 20000ppm 的误差。这个单位的意思不太懂。</p>
+<h3 id="比例因子线性度scale-factor-linearity">比例因子线性度（Scale Factor Linearity）</h3>
+<p>即比例因子的非线性部分。</p>
+<p>单位 $ ppm $</p>
+<p>其实这个我也不知道是什么意思。</p>
+<h3 id="随机误差">随机误差</h3>
+<p>服从正态分布的误差，可以利用统计规律去除。</p>
+<p>单位 $ deg/, m/s/ $</p>
+<h3 id="非正交">非正交</h3>
+<p>使得测量值之间具有相关性。</p>
+<p>单位 $ mrad $</p>
+<h2 id="总结">总结</h2>
+<p>按我看来最重要的是补偿好偏移值和比例因子的误差。</p>
+<blockquote>
+<p>A bias error, if not removed from the measurement, is integrated twice as part of the mechanization process. In this case, a constant bias (error) in acceleration becomes a linear error in velocity and a quadratic error in position. A constant bias in attitude rate (gyro) becomes a quadratic error in velocity and a cubic error in position.</p>
+</blockquote>
+<p>事实确实如此，我在重新测量陀螺仪的偏移值，并补偿之后，得到的结果好很多。</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;做了很久的 IMU 了，很混沌，不理解。&lt;/p&gt;
+&lt;p&gt;今天找到一个介绍 IMU 误差的 PDF 文档，现在对这个文档里面有价值的信息做一个记录。&lt;/p&gt;
+&lt;p&gt;文档链接如下：&lt;/p&gt;
+&lt;p&gt;http://www.novatel.com/assets/Documents/Bulletins/APN064.pdf&lt;/p&gt;
+    
+    </summary>
+    
+    
+      <category term="IMU" scheme="http://jingetu.github.io/tags/IMU/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>LeetCode #146 LRU Cache (Difficulty: Hard)</title>
+    <link href="http://jingetu.github.io/2016/03/15/LeetCode-146-LRU-Cache-Difficulty-Hard/"/>
+    <id>http://jingetu.github.io/2016/03/15/LeetCode-146-LRU-Cache-Difficulty-Hard/</id>
+    <published>2016-03-15T01:38:29.000Z</published>
+    <updated>2016-12-03T09:12:00.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>问题 : &gt;Design and implement a data structure for Least Recently Used (LRU) cache. It should support the following operations: <code>get</code> and <code>set</code>. <code>get(key)</code> - Get the value (will always be positive) of the key if the key exists in the cache, otherwise return -1. <code>set(key, value)</code> - Set or insert the value if the key is not already present. When the cache reached its capacity, it should invalidate the least recently used item before inserting a new item.</p>
+<a id="more"></a>
+<p><a href="https://leetcode.com/problems/lru-cache/" target="_blank" rel="external">原题链接</a></p>
+<p>这个问题是要维护一个缓存，缓存中数据移除数据的依据是这个数据 Least Recently Used ， 也就是使用时间距现在最远（最早使用）。一开始理解错误，以为是最少使用，代码就写错了。经过一点小修改符合题意。代码如下。</p>
+<p>C++ :</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div></pre></td><td class="code"><pre><div class="line">class LRUCache &#123;</div><div class="line">    struct Pair &#123;</div><div class="line">        int key;</div><div class="line">        int val;</div><div class="line">    &#125;;</div><div class="line">public:</div><div class="line">    int cap;</div><div class="line">    int* count;</div><div class="line">    Pair* pairs;</div><div class="line">    LRUCache(int capacity) &#123;</div><div class="line">        cap = capacity;</div><div class="line">        pairs = new Pair[cap];</div><div class="line">        count = new int[cap];</div><div class="line">        for (int i = 0; i &lt; cap; i++) &#123;</div><div class="line">            count[i] = -1;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    int get(int key) &#123;</div><div class="line">        for (int i = 0; i &lt; cap; i++) &#123;</div><div class="line">            if (count[i] != -1 &amp;&amp; pairs[i].key == key) &#123;</div><div class="line">                updateCount(i);</div><div class="line">                return pairs[i].val;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        return -1;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    void set(int key, int value) &#123;</div><div class="line">        int maxIdx = 0;</div><div class="line">        int maxCount = count[0];</div><div class="line">        if(maxCount == -1) &#123;</div><div class="line">                pairs[0].key = key;</div><div class="line">                pairs[0].val = value;</div><div class="line">            updateCount(0);</div><div class="line">            return;</div><div class="line">        &#125;</div><div class="line">        if (pairs[0].key == key) &#123;</div><div class="line">            pairs[0].val = value;</div><div class="line">            updateCount(0);</div><div class="line">            return;</div><div class="line">        &#125;</div><div class="line">        for (int i = 1; i &lt; cap; i++) &#123;</div><div class="line">            if(maxCount == -1) &#123;</div><div class="line">                pairs[i].key = key;</div><div class="line">                pairs[i].val = value;</div><div class="line">                updateCount(i);</div><div class="line">                return;</div><div class="line">            &#125;</div><div class="line">            if (pairs[i].key == key) &#123;</div><div class="line">                pairs[i].val = value;</div><div class="line">                updateCount(i);</div><div class="line">                return;</div><div class="line">            &#125;</div><div class="line">            if (maxCount &lt; count[i]) &#123;</div><div class="line">                maxCount = count[i];</div><div class="line">                maxIdx = i;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        pairs[maxIdx].key = key;</div><div class="line">        pairs[maxIdx].val = value;</div><div class="line">        updateCount(maxIdx);</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    void updateCount(int idx) &#123;</div><div class="line">        for (int i = 0; i &lt; cap; i++) &#123;</div><div class="line">                if (count[i] != -1) count[i] ++;</div><div class="line">        &#125;</div><div class="line">        count[idx] = 0;</div><div class="line">    &#125;</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+<p>这部分的代码的意思是，使用 pairs 数组表示存储在缓存中的键值对，使用 count 数组表示 pairs 数组中这些对应位置的键值对的使用情况。如果 pairs 中 idx 位置上的键值对使用了，那么久把 count 中 idx 位置上的值赋为0，其他位置上的值自增1。当要插入的时候就插入到 count 最大值的位置上。这个代码很烂。</p>
+<p>下面是在<a href="https://leetcode.com/discuss/91752/lovely-30-line-c-80ms-solution" target="_blank" rel="external">讨论区</a>找到的代码。使用了两个数据结构，一个 list 用于存储键值对，一个 map 用于保存键在 list 中对应的位置。从代码中可以看到， list 中各键值对的顺序是最近访问的键值对在 list 头部，而 map 没有固定的顺序。</p>
+<p>C++ :</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line">class LRUCache&#123;</div><div class="line">    const int cap;</div><div class="line">    std::unordered_map&lt;int, std::list&lt;std::pair&lt;int, int&gt; &gt;::iterator&gt; map;</div><div class="line">    std::list&lt;std::pair&lt;int, int&gt;&gt; lst;</div><div class="line">public:</div><div class="line">    LRUCache(int capacity):cap(capacity) &#123;&#125;</div><div class="line">    </div><div class="line">    int get(int key) &#123;</div><div class="line">        auto it = map.find(key);</div><div class="line">        if(it == map.end()) return -1;</div><div class="line">        </div><div class="line">        lst.push_front(*it-&gt;second);</div><div class="line">        lst.erase(it-&gt;second);</div><div class="line">        it-&gt;second = lst.begin();</div><div class="line">        return it-&gt;second-&gt;second;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    void set(int key, int value) &#123;</div><div class="line">        auto it = map.find(key);</div><div class="line">        if(it == map.end())&#123;</div><div class="line">            while (map.size() &gt;= cap) &#123;</div><div class="line">                map.erase(lst.crbegin()-&gt;first);</div><div class="line">                lst.pop_back();</div><div class="line">            &#125;</div><div class="line">        &#125;else&#123;</div><div class="line">            lst.erase(it-&gt;second);</div><div class="line">        &#125;</div><div class="line">        </div><div class="line">        lst.push_front(&#123;key, value&#125;);</div><div class="line">        map[key] = lst.begin();</div><div class="line">    &#125;</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;问题 : &amp;gt;Design and implement a data structure for Least Recently Used (LRU) cache. It should support the following operations: &lt;code&gt;get&lt;/code&gt; and &lt;code&gt;set&lt;/code&gt;. &lt;code&gt;get(key)&lt;/code&gt; - Get the value (will always be positive) of the key if the key exists in the cache, otherwise return -1. &lt;code&gt;set(key, value)&lt;/code&gt; - Set or insert the value if the key is not already present. When the cache reached its capacity, it should invalidate the least recently used item before inserting a new item.&lt;/p&gt;
+    
+    </summary>
+    
+    
+      <category term="leetcode" scheme="http://jingetu.github.io/tags/leetcode/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>LeetCode #237 Delete Node in a Linked List (Difficulty: Easy)</title>
+    <link href="http://jingetu.github.io/2016/03/11/LeetCode-237-Delete-Node-in-a-Linked-List-Difficulty-Easy/"/>
+    <id>http://jingetu.github.io/2016/03/11/LeetCode-237-Delete-Node-in-a-Linked-List-Difficulty-Easy/</id>
+    <published>2016-03-11T13:19:35.000Z</published>
+    <updated>2016-12-03T10:28:34.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>问题 : &gt;Write a function to delete a node (except the tail) in a singly linked list, given only access to that node. &gt; Supposed the linked list is <code>1 -&gt; 2 -&gt; 3 -&gt; 4</code> and you are given the third node with value <code>3</code>, the linked list should become <code>1 -&gt; 2 -&gt; 4</code> after calling your function.</p>
+<a id="more"></a>
+<p><a href="https://leetcode.com/problems/delete-node-in-a-linked-list/" target="_blank" rel="external">原题链接</a></p>
+<p>删除链表上的一个节点，本质上是去除链表上的一个数据。如问题描述举的例子中去除的是<code>3</code>这个数据，而不一定要释放<code>3</code>这个内存地址。如果要释放内存内存地址，就需要这个链表的头指针，一直遍历到当前节点进行操作。</p>
+<p>C :</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * Definition for singly-linked list.</div><div class="line"> * struct ListNode &#123;</div><div class="line"> *     int val;</div><div class="line"> *     struct ListNode *next;</div><div class="line"> * &#125;;</div><div class="line"> */</div><div class="line">void deleteNode(struct ListNode* node) &#123;</div><div class="line">    node-&gt;val = node-&gt;next-&gt;val;</div><div class="line">    node-&gt;next = node-&gt;next-&gt;next;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>将待删除数据的位置上放上后一个数据，随后当前节点的后节点指针指向后一个节点的后一个节点。即将后一个节点的数据前移，释放后一个节点的内存地址。</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;问题 : &amp;gt;Write a function to delete a node (except the tail) in a singly linked list, given only access to that node. &amp;gt; Supposed the linked list is &lt;code&gt;1 -&amp;gt; 2 -&amp;gt; 3 -&amp;gt; 4&lt;/code&gt; and you are given the third node with value &lt;code&gt;3&lt;/code&gt;, the linked list should become &lt;code&gt;1 -&amp;gt; 2 -&amp;gt; 4&lt;/code&gt; after calling your function.&lt;/p&gt;
+    
+    </summary>
+    
+    
+      <category term="leetcode" scheme="http://jingetu.github.io/tags/leetcode/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>LeetCode #238 Product of Array Except Self (Difficulty: Medium)</title>
+    <link href="http://jingetu.github.io/2016/03/11/LeetCode-238-Product-of-Array-Except-Self-Difficulty-Medium/"/>
+    <id>http://jingetu.github.io/2016/03/11/LeetCode-238-Product-of-Array-Except-Self-Difficulty-Medium/</id>
+    <published>2016-03-11T07:31:41.000Z</published>
+    <updated>2016-12-03T10:28:27.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>问题 : &gt;Given an array of n integers where n &gt; 1, nums, return an array output such that output[i] is equal to the product of all the elements of nums except nums[i]. &gt; Solve it without division and in O(n). &gt; For example, given [1,2,3,4], return [24,12,8,6]. &gt; Follow up: Could you solve it with constant space complexity? (Note: The output array does not count as extra space for the purpose of space complexity analysis.)</p>
+<a id="more"></a>
+<p><a href="https://leetcode.com/problems/product-of-array-except-self/" target="_blank" rel="external">原题链接</a></p>
+<p>这道题目有两个限制。第一，不能使用除法，杜绝了把所有数字相乘，随后逐个使用除法得到答案；第二，复杂度限制在 O(n) 限制了不能够使用嵌套的循环求解。</p>
+<p>对于嵌套的循环直接求解，很多乘法都是可以复用的。即可以创建两个数组，用于存储对输入数组，分别从左和从右求积，记录下各步的结果（左边1个元素、2个元素、3个元素…的积，右边1个元素、2个元素、3个元素…的积）。使用这两个数组中的元素两两求积可以得到最后的结果。</p>
+<p>C++ :</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line">class Solution &#123;</div><div class="line">public:</div><div class="line">    vector&lt;int&gt; productExceptSelf(vector&lt;int&gt;&amp; nums) &#123;</div><div class="line">        vector&lt;int&gt; leftProduct;</div><div class="line">        leftProduct.push_back(1);</div><div class="line">        vector&lt;int&gt; rightProduct;</div><div class="line">        rightProduct.push_back(1);</div><div class="line">        vector&lt;int&gt; outputProduct;</div><div class="line">        for(int i = 0; i &lt; nums.size() - 1; i++) &#123;</div><div class="line">            int product = nums[i]*leftProduct[leftProduct.size()-1];</div><div class="line">            leftProduct.push_back(product);</div><div class="line">        &#125;</div><div class="line">        for(int i = nums.size() - 1; i &gt; 0; i--) &#123;</div><div class="line">            int product = nums[i]*rightProduct[rightProduct.size()-1];</div><div class="line">            rightProduct.push_back(product);</div><div class="line">        &#125;</div><div class="line">        for(int i = 0; i &lt; nums.size(); i++) &#123;</div><div class="line">            outputProduct.push_back(leftProduct[i]*rightProduct[nums.size() - 1 - i]);</div><div class="line">        &#125;</div><div class="line">        return outputProduct;</div><div class="line">    &#125;</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;问题 : &amp;gt;Given an array of n integers where n &amp;gt; 1, nums, return an array output such that output[i] is equal to the product of all the elements of nums except nums[i]. &amp;gt; Solve it without division and in O(n). &amp;gt; For example, given [1,2,3,4], return [24,12,8,6]. &amp;gt; Follow up: Could you solve it with constant space complexity? (Note: The output array does not count as extra space for the purpose of space complexity analysis.)&lt;/p&gt;
+    
+    </summary>
+    
+    
+      <category term="leetcode" scheme="http://jingetu.github.io/tags/leetcode/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>LeetCode #242 Valid Anagram (Difficulty: Easy)</title>
+    <link href="http://jingetu.github.io/2016/03/11/LeetCode-242-Valid-Anagram-Difficulty-Easy/"/>
+    <id>http://jingetu.github.io/2016/03/11/LeetCode-242-Valid-Anagram-Difficulty-Easy/</id>
+    <published>2016-03-11T07:03:26.000Z</published>
+    <updated>2016-12-03T10:28:13.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>问题 : &gt;Given two strings s and t, write a function to determine if t is an anagram of s. &gt; For example, s = “anagram”, t = “nagaram”, return true. s = “rat”, t = “car”, return false. &gt; Note: You may assume the string contains only lowercase alphabets.</p>
+<a id="more"></a>
+<p><a href="https://leetcode.com/problems/move-zeroes/" target="_blank" rel="external">原题链接</a></p>
+<p>此题就是判断两个 string 它们所含的字母及各字母的数量是否相同。</p>
+<p>C++ :</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">class Solution &#123;</div><div class="line">public:</div><div class="line">    bool isAnagram(string s, string t) &#123;</div><div class="line">        if(s.size() == 0 || t.size() == 0) return true;</div><div class="line">        if(s.size() != t.size()) return false;</div><div class="line">        int charactersNum[26] = &#123;0&#125;;</div><div class="line">        for(int i = 0; i &lt; s.size(); i++) &#123;</div><div class="line">            charactersNum[s[i] - &apos;a&apos;] ++;</div><div class="line">            charactersNum[t[i] - &apos;a&apos;] --;</div><div class="line">        &#125;</div><div class="line">        for(int i = 0;i &lt; 26; i++) &#123;</div><div class="line">            if(charactersNum[i] != 0) &#123;</div><div class="line">                return false;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        return true;</div><div class="line">    &#125;</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+<p>思路简单，创建一个26个元素的数组用来记录每个字母出现的次数。遍历两个 string ，其中一个 string 出现字母将对应位置加1，另一个 string 则相应减1。如果它们互为 anagram ，则最后这个26个元素的数组，各个元素应为0。</p>
+<p>这里注意的是，两个 string 可以同时遍历。对于每个字母的索引，可以将此字符减去字符a得到，同样如果对于字符数字，要恢复成数字，可以减去字符0得到。</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;问题 : &amp;gt;Given two strings s and t, write a function to determine if t is an anagram of s. &amp;gt; For example, s = “anagram”, t = “nagaram”, return true. s = “rat”, t = “car”, return false. &amp;gt; Note: You may assume the string contains only lowercase alphabets.&lt;/p&gt;
+    
+    </summary>
+    
+    
+      <category term="leetcode" scheme="http://jingetu.github.io/tags/leetcode/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>LeetCode #256 Add Digits (Difficulty: Easy)</title>
+    <link href="http://jingetu.github.io/2016/03/09/LeetCode-256-Add-Digits-Difficulty-Easy/"/>
+    <id>http://jingetu.github.io/2016/03/09/LeetCode-256-Add-Digits-Difficulty-Easy/</id>
+    <published>2016-03-09T11:57:27.000Z</published>
+    <updated>2016-12-03T10:28:01.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>问题 : &gt;Given a non-negative integer num, repeatedly add all its digits until the result has only one digit. &gt; For example: &gt; Given num = 38, the process is like: 3 + 8 = 11, 1 + 1 = 2. Since 2 has only one digit, return it. &gt; Follow up: Could you do it without any loop/recursion in O(1) runtime?</p>
+<a id="more"></a>
+<p><a href="https://leetcode.com/problems/add-digits/" target="_blank" rel="external">原题链接</a></p>
+<p>这个问题，需要用到这一篇<a href="https://en.wikipedia.org/wiki/Digital_root" target="_blank" rel="external">维基百科文章</a>。</p>
+<p>C++ :</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">class Solution &#123;</div><div class="line">public:</div><div class="line">    int addDigits(int num) &#123;</div><div class="line">        if(num == 0) return 0;</div><div class="line">        if(num%9 == 0) return 9;</div><div class="line">        return num%9;</div><div class="line">    &#125;</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+<p>这道题的就是求 Digit Root （这里简称 DR ）。求 DR 有公式可以求，其利用的技巧是10的幂数对9求余结果总是1。以上的求 DR 过程就可以看成是分部对9求余的过程。这一性质可以用以下的公式描述。</p>
+<p><span class="math display">\displaystyle 
+\text{dr}(abc) = a\cdot10^2+b\cdot10+c\cdot1=a+b+c
+</span></p>
+<p>求DR的公式：</p>
+<p><span class="math display">\displaystyle 
+\text{dr}(n) =
+\begin{cases}
+0,&amp;\text{if$n=0$,} \\
+9,&amp;\text{if$n\neq0,n\%9=0$,} \\
+n\%9,&amp;\text{if$n\%9\neq0$.}
+\end{cases}
+</span></p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;问题 : &amp;gt;Given a non-negative integer num, repeatedly add all its digits until the result has only one digit. &amp;gt; For example: &amp;gt; Given num = 38, the process is like: 3 + 8 = 11, 1 + 1 = 2. Since 2 has only one digit, return it. &amp;gt; Follow up: Could you do it without any loop/recursion in O(1) runtime?&lt;/p&gt;
+    
+    </summary>
+    
+    
+      <category term="leetcode" scheme="http://jingetu.github.io/tags/leetcode/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>LeetCode #283 Move Zeroes (Difficulty: Easy)</title>
+    <link href="http://jingetu.github.io/2016/03/09/LeetCode-283-Move-Zeroes-Difficulty-Easy/"/>
+    <id>http://jingetu.github.io/2016/03/09/LeetCode-283-Move-Zeroes-Difficulty-Easy/</id>
+    <published>2016-03-09T10:58:19.000Z</published>
+    <updated>2016-12-03T10:27:57.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>问题 : &gt;Given an array nums, write a function to move all 0’s to the end of it while maintaining the relative order of the non-zero elements. &gt; For example, given nums = [0, 1, 0, 3, 12], after calling your function, nums should be [1, 3, 12, 0, 0]. &gt; Note: 1. You must do this in-place without making a copy of the array. 2. Minimize the total number of operations.</p>
+<a id="more"></a>
+<p><a href="https://leetcode.com/problems/move-zeroes/" target="_blank" rel="external">原题链接</a></p>
+<p>对于这道题目，最先想到的方法，是找到数组里面有多少个0，把它们删了，然后在最后加上这些0。</p>
+<p>C++ :</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line">class Solution &#123;</div><div class="line">public:</div><div class="line">    void moveZeroes(vector&lt;int&gt;&amp; nums) &#123;</div><div class="line">        vector&lt;int&gt;::iterator it = nums.begin();</div><div class="line">        int zeroCount = 0;</div><div class="line">        while(it != nums.end()) &#123;</div><div class="line">            if(*it == 0) &#123;</div><div class="line">                zeroCount ++;</div><div class="line">                nums.erase(it);</div><div class="line">                continue;</div><div class="line">            &#125;</div><div class="line">            it++;</div><div class="line">        &#125;</div><div class="line">        </div><div class="line">        while(zeroCount &gt; 0) &#123;</div><div class="line">            nums.push_back(0);</div><div class="line">            zeroCount--;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+<p>对于 C++ 的 std::vector 这种方法或许可以，但是这种方法建立在可以随意删除数组中任何元素的基础上，对 vector 进行这样的处理更像是对链表的处理。如果中途删去的很多的0， vector 的 capacity 发生改变，就会发生拷贝数组的操作。所以以上的这个代码是错误的。</p>
+<p>下面这个是在<a href="https://leetcode.com/discuss/86152/one-loop-java-0ms-solution" target="_blank" rel="external">讨论区</a>里面找到的代码（我把它改成了C++的）：</p>
+<p>C++ :</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">class Solution &#123;</div><div class="line">public:</div><div class="line">    void moveZeroes(vector&lt;int&gt;&amp; nums) &#123;</div><div class="line">        int movings = 0;</div><div class="line"></div><div class="line">        for(int i = 0; i &lt; nums.size(); i++) &#123;</div><div class="line">            if (nums[i] == 0) &#123;</div><div class="line">                movings ++;</div><div class="line">                continue;</div><div class="line">            &#125; </div><div class="line"></div><div class="line">            if (movings &gt; 0) &#123;</div><div class="line">                nums[i - movings] = nums[i];</div><div class="line">                nums[i] = 0;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+<p>这个代码思路是，在数组里面找到0，然后通过移动后面的数字，来把0一步一步挪到最后。将0区域之后的一个数字和0区域的第一个数字对换位置，不断地进行这个操作，把0区域移动到最后。如果这个过程中遇到了0，那么循环的这一步不进行任何操作，只是将0区域的大小（代码中是 movings ）扩大1。</p>
+<p>也有人直接使用<a href="https://leetcode.com/discuss/91110/one-line-solution-using-stable_partition-stl-algorithm" target="_blank" rel="external">stl 的函数</a>解决这个问题：</p>
+<p>C++ :</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">class Solution &#123;</div><div class="line">public:</div><div class="line">    void moveZeroes(vector&lt;int&gt;&amp; nums) &#123;</div><div class="line">        stable_partition(nums.begin(), nums.end(), [](int x) &#123;return x != 0;&#125;);</div><div class="line">    &#125;</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+<p>std::stable_partition 的API可以查看<a href="http://www.cplusplus.com/reference/algorithm/stable_partition/" target="_blank" rel="external">cplusplus.com</a>。</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;问题 : &amp;gt;Given an array nums, write a function to move all 0’s to the end of it while maintaining the relative order of the non-zero elements. &amp;gt; For example, given nums = [0, 1, 0, 3, 12], after calling your function, nums should be [1, 3, 12, 0, 0]. &amp;gt; Note: 1. You must do this in-place without making a copy of the array. 2. Minimize the total number of operations.&lt;/p&gt;
+    
+    </summary>
+    
+    
+      <category term="leetcode" scheme="http://jingetu.github.io/tags/leetcode/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>LeetCode #292 NimGame (Difficulty: Easy)</title>
+    <link href="http://jingetu.github.io/2016/03/09/LeetCode-292-NimGame-Difficulty-Easy/"/>
+    <id>http://jingetu.github.io/2016/03/09/LeetCode-292-NimGame-Difficulty-Easy/</id>
+    <published>2016-03-09T01:42:58.000Z</published>
+    <updated>2016-12-03T10:27:48.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>问题 : &gt;You are playing the following Nim Game with your friend: There is a heap of stones on the table, each time one of you take turns to remove 1 to 3 stones. The one who removes the last stone will be the winner. <strong>You will take the first turn to remove the stones.</strong> &gt; Both of you are very clever and have optimal strategies for the game. Write a function to determine whether you can win the game given the number of stones in the heap. &gt; For example, if there are 4 stones in the heap, then you will never win the game: no matter 1, 2, or 3 stones you remove, the last stone will always be removed by your friend.</p>
+<a id="more"></a>
+<p><a href="https://leetcode.com/problems/nim-game/" target="_blank" rel="external">原题链接</a></p>
+<p>关键在右4个石头在场的时候，你（先手）不可能赢。因为你只能拿1、2、3个石头，对方对应这三种情况，可以分别拿3、2、1个石头打败你。</p>
+<p>对于理智的人来说，想要赢得比赛，需要将最后的局面控制在4个石头，而对方先手。</p>
+<p>同样可以推广到，不论多少个石头，只要一方使得对方在每次只剩4n个石头的时候先手，这一方就能够获胜。因为做到这一点，可以不断地逼迫对手，直到最后只剩4个石头的时候，对方先手。</p>
+<p>所以，最终的答案是如果初始石头的数量能够被4整除， you （先手）不能够获得胜利。</p>
+<p>C++ :</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">class Solution &#123;</div><div class="line">public:</div><div class="line">    bool canWinNim(int n) &#123;</div><div class="line">        if(n%4 == 0) return false;</div><div class="line">        else return true;</div><div class="line">    &#125;</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;问题 : &amp;gt;You are playing the following Nim Game with your friend: There is a heap of stones on the table, each time one of you take turns to remove 1 to 3 stones. The one who removes the last stone will be the winner. &lt;strong&gt;You will take the first turn to remove the stones.&lt;/strong&gt; &amp;gt; Both of you are very clever and have optimal strategies for the game. Write a function to determine whether you can win the game given the number of stones in the heap. &amp;gt; For example, if there are 4 stones in the heap, then you will never win the game: no matter 1, 2, or 3 stones you remove, the last stone will always be removed by your friend.&lt;/p&gt;
+    
+    </summary>
+    
+    
+      <category term="leetcode" scheme="http://jingetu.github.io/tags/leetcode/"/>
+    
+  </entry>
+  
+</feed>
