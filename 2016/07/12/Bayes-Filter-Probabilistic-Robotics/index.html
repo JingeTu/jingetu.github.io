@@ -11,9 +11,9 @@
 <p>Belief Distribution 是一个后验概率的概率分布。是在已经获得所有数据的条件下，状态值 <span class="math inline">x</span> 的概率分布。所有数据指的是机器人的控制值 <span class="math inline">u</span> 与测量值 <span class="math inline">z</span> 。</p>
 <p>对于 <span class="math inline">t</span> 时刻机器人的状态值 <span class="math inline">x_t</span> ，与开始时 1 时刻到 <span class="math inline">t</span> 时刻的所有控制值、测量值都有关系。从 0 时刻机器人初始位置开始，机器人通过所有的控制值 <span class="math inline">u_{1:t}</span> 可以计算出机器人在 <span class="math inline">t</span> 时刻的状态值，同时所有的测量值 <span class="math inline">z_{1:t}</span> 可以验证机器人的状态值，因为机器人的控制值存在误差，如机器人运动轮打滑。</p>
 <p>对于这个后验概率的概率分布 <code>belief</code> 可以写成一个条件概率：</p>
-<p><span class="math display">\displaystyle  bel(x_t) = p(x_t|z_{1:t}, u_{1:t}) </span></p>
+<p><span class="math display">  bel(x_t) = p(x_t|z_{1:t}, u_{1:t}) </span></p>
 <p>如果在 <span class="math inline">t</span> 时刻不考虑测量值 <span class="math inline">z_t</span> ，只考虑控制值 <span class="math inline">u_t</span> ，在使用控制值 <span class="math inline">u_t</span> 计算出 <span class="math inline">t</span> 时刻的状态值 <span class="math inline">x_t</span> 之后再使用测量值 <span class="math inline">z_t</span> 验证得到的状态值 <span class="math inline">x_t</span> 。那么只考虑控制值 <span class="math inline">u_t</span> 得到的状态值 <span class="math inline">x_t</span> 的概率分布可以看做是一个预测 <code>prediction</code> ，这种方式得到的后验概率，可以写作：</p>
-<p><span class="math display">\displaystyle \overline{bel}(x_t) = p(x_t|z_{1:t-1}, u_{1:t})</span></p>
+<p><span class="math display"> \overline{bel}(x_t) = p(x_t|z_{1:t-1}, u_{1:t})</span></p>
 <h3 id="markov-assumption">Markov Assumption</h3>
 <p>Markov Assumption 也可以称作是 complete state assumption。这个假设是说在知道当前的状态值的条件下，以前获得的所有数据和以后获得的所有数据之间是相互独立的。即预测未来状态值这件事情上，在当前除了当前的状态值 <span class="math inline">x_t</span> 以外，没有什么其他的数据值能够比 <span class="math inline">x_t</span> 预测得更好。也就是说 <span class="math inline">x_t</span> 中蕴含了 <span class="math inline">z_{1:t}</span> 和 <span class="math inline">u_{1:t}</span> 的信息，当然也蕴含了 <span class="math inline">x_{t-1}</span> 的信息，因为 <span class="math inline">x_{t-1}</span> 是由 <span class="math inline">z_{1:t-1}, u_{1:t-1}</span> 计算得到的。</p>
 <h2 id="贝叶斯滤波器流程">贝叶斯滤波器流程</h2>
@@ -29,10 +29,10 @@
 <p>贝叶斯滤波器的目的是估计系统在各个时刻的状态值的概率分布。即已知系统在初始时刻的状态值和初始时刻到 <span class="math inline">t</span> 时刻之间各个时刻的控制命令 <span class="math inline">u_{1:t}</span> 和测量值 <span class="math inline">z_{1:t}</span> 的情况下，求取 <span class="math inline">t</span> 时刻系统的状态值 <span class="math inline">x_t</span> 概率分布。</p>
 <p>这个概率分布可以用 <span class="math inline">p(x_t|z_{1:t},u_{1:t})</span> 表示。</p>
 <p>而对于三个随机变量<span class="math inline">x, y, z</span>，贝叶斯理论有下面的公式：</p>
-<p><span class="math display">\displaystyle p(x|y,z) = \frac{p(y|x,z)p(x|z)}{p(y|z)}</span></p>
+<p><span class="math display"> p(x|y,z) = \frac{p(y|x,z)p(x|z)}{p(y|z)}</span></p>
 <p>将 <span class="math inline">p(x_t|z_{1:t},u_{1:t})</span> 中的 <span class="math inline">x_t</span> 对应 <span class="math inline">x</span> ，<span class="math inline">z_t</span> 对应 <span class="math inline">y</span> ，<span class="math inline">(z_{1:t-1}, u_{1:t})</span> 对应 <span class="math inline">z</span> ，就能写出下面的式子：</p>
-<p><span class="math display">\displaystyle p(x_t|z_{1:t},u_{1:t})=\frac{p(z_t|x_t,z_{1:t-1},u_{1:t})p(x_t|z_{1:t-1},u_{1:t})}{p(z_t|x_t,z_{1:t-1},u_{1:t})} \\ = \eta p(z_t|x_t,z_{1:t-1},u_{1:t})p(x_t|z_{1:t-1},u_{1:t})</span><span class="math inline">p(z_t|x_t,z_{1:t-1},u_{1:t})</span> 表示的是在已知 <span class="math inline">x_t,z_{1:t-1},u_{1:t}</span> 的条件下，<span class="math inline">z_t</span> 的条件概率。由马尔科夫假设， <span class="math inline">x_t</span> 中蕴含了 <span class="math inline">z_{1:t-1},u_{1:t}</span> 的信息，所以</p>
-<p><span class="math display">\displaystyle p(z_t|x_t,z_{1:t-1},u_{1:t}) = p(z_t|x_t)</span></p>
+<p><span class="math display"> p(x_t|z_{1:t},u_{1:t})=\frac{p(z_t|x_t,z_{1:t-1},u_{1:t})p(x_t|z_{1:t-1},u_{1:t})}{p(z_t|x_t,z_{1:t-1},u_{1:t})} \\ = \eta p(z_t|x_t,z_{1:t-1},u_{1:t})p(x_t|z_{1:t-1},u_{1:t})</span><span class="math inline">p(z_t|x_t,z_{1:t-1},u_{1:t})</span> 表示的是在已知 <span class="math inline">x_t,z_{1:t-1},u_{1:t}</span> 的条件下，<span class="math inline">z_t</span> 的条件概率。由马尔科夫假设， <span class="math inline">x_t</span> 中蕴含了 <span class="math inline">z_{1:t-1},u_{1:t}</span> 的信息，所以</p>
+<p><span class="math display"> p(z_t|x_t,z_{1:t-1},u_{1:t}) = p(z_t|x_t)</span></p>
 <p>注意，此处的 <span class="math inline">x_t</span> 指只经过 <span class="math inline">x_{t-1}</span> 与 <span class="math inline">u_t</span> 计算的 <span class="math inline">x_t</span> 并没有使用 <span class="math inline">z_t</span> 。</p>
 <p>将</p>
 <p><span class="math inline">bel(x_t) = p(x_t|z_{1:t}, u_{1:t})</span></p>
@@ -43,13 +43,13 @@
 <p><span class="math inline">bel(x_t) = \eta p(z_t|x_t)\overline{bel}(x_t)</span></p>
 <p>上面这个式子指的是，在整合了 <span class="math inline">z_t, u_t</span> 之后状态值 <span class="math inline">x_t</span> 的概率分布。</p>
 <p>对于 <span class="math inline">\overline{bel}(x_t)</span> 的计算可以用用公式</p>
-<p><span class="math display">\displaystyle p(x) = \int p(x|y)p(y) \text{d}y</span></p>
+<p><span class="math display"> p(x) = \int p(x|y)p(y) \text{d}y</span></p>
 <p>推导得到。</p>
-<p><span class="math display">\displaystyle \overline{bel}(x_t) = p(x_t|z_{1:t-1}, u_{1:t}) \\ = \int p(x_t|x_{t-1}, z_{1:t-1}, u_{1:t})p(x_{t-1}|z_{1:t-1}, u_{1:t})\text{d}x_{t-1} \\ = \int p(x_t|x_{t-1}, z_{1:t-1}, u_{1:t-1})p(x_{t-1}|z_{1:t-1}, u_{1:t-1})\text{d}x_{t-1}</span></p>
+<p><span class="math display"> \overline{bel}(x_t) = p(x_t|z_{1:t-1}, u_{1:t}) \\ = \int p(x_t|x_{t-1}, z_{1:t-1}, u_{1:t})p(x_{t-1}|z_{1:t-1}, u_{1:t})\text{d}x_{t-1} \\ = \int p(x_t|x_{t-1}, z_{1:t-1}, u_{1:t-1})p(x_{t-1}|z_{1:t-1}, u_{1:t-1})\text{d}x_{t-1}</span></p>
 <p>由马尔科夫假设</p>
-<p><span class="math display">\displaystyle p(x_t|x_{t-1}, z_{1:t-1}, u_{1:t}) = p(x_t|x_{t-1},u_t)</span></p>
+<p><span class="math display"> p(x_t|x_{t-1}, z_{1:t-1}, u_{1:t}) = p(x_t|x_{t-1},u_t)</span></p>
 <p>所以就有</p>
-<p><span class="math display">\displaystyle \overline{bel}(x_t) = \int p(x_t|x_{t-1},u_t)p(x_{t-1}|z_{1:t-1}, u_{1:t-1})\text{d}x_{t-1} = \int p(x_t|x_{t-1},u_t)bel(x_{t-1})\text{d}x_{t-1}</span></p>
+<p><span class="math display"> \overline{bel}(x_t) = \int p(x_t|x_{t-1},u_t)p(x_{t-1}|z_{1:t-1}, u_{1:t-1})\text{d}x_{t-1} = \int p(x_t|x_{t-1},u_t)bel(x_{t-1})\text{d}x_{t-1}</span></p>
 </div></div><div class="post-main post-comment"></div></article><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.css"><script src="//cdn.bootcss.com/jquery/2.0.3/jquery.min.js"></script><script src="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.pack.js"></script><script>$(document).ready(function() {
     $(".fancybox").fancybox();
 });

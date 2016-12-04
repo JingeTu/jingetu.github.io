@@ -10,7 +10,7 @@
 <h3 id="测量范围">测量范围</h3>
 <p>在选择 IMU 时需要注意到使用环境下的最大加速度或者角速度有多少，要避免响应饱和使得测量值不准确。</p>
 <h3 id="偏移值bias">偏移值（Bias）</h3>
-<p>真实值与测量值之间的关系可以使用公式 <span class="math display">\displaystyle  x = Sf(x) + b </span> 表示。</p>
+<p>真实值与测量值之间的关系可以使用公式 <span class="math display">  x = Sf(x) + b </span> 表示。</p>
 <p>其中的 $ b $ 就是偏移值。</p>
 <p>单位 $ deg/hr, m/s^2 $</p>
 <h3 id="偏移值可重复性bias-repeatability">偏移值可重复性（Bias Repeatability）</h3>
@@ -24,7 +24,7 @@
 <p>使用 IMU 的时候需要将其它信息一起接收，然后估计偏移值。</p>
 <p>单位 $ deg/hr/hr, m/s^2/hr $</p>
 <h3 id="比例因子scale-factor">比例因子（Scale Factor）</h3>
-<p>比例因子即公式 <span class="math display">\displaystyle  x = Sf(x) + b </span> 中的 $ S $。比例因子描述的是其中的线性部分。</p>
+<p>比例因子即公式 <span class="math display">  x = Sf(x) + b </span> 中的 $ S $。比例因子描述的是其中的线性部分。</p>
 <p>单位 $ ppm $</p>
 <p>如果有 2％ 的误差，那么就说有 20000ppm 的误差。这个单位的意思不太懂。</p>
 <h3 id="比例因子线性度scale-factor-linearity">比例因子线性度（Scale Factor Linearity）</h3>
