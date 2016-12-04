@@ -320,7 +320,7 @@
     <link href="http://jingetu.github.io/2016/07/12/Kalman-Filter-Probabilistic-Robotics/"/>
     <id>http://jingetu.github.io/2016/07/12/Kalman-Filter-Probabilistic-Robotics/</id>
     <published>2016-07-12T13:57:13.000Z</published>
-    <updated>2016-12-03T11:14:58.000Z</updated>
+    <updated>2016-12-04T03:44:32.000Z</updated>
     
     <content type="html"><![CDATA[<p>本文是阅读 《Probabilistic Robotics》 Chapter3 Gaussian Filters 的笔记。</p>
 <p>卡尔曼滤波可以看作是贝叶斯滤波在高斯分布下的特例。因为是高斯分布，所以卡尔曼滤波对应的状态值是连续的，而不是离散的。</p>
@@ -334,11 +334,14 @@
 <p>卡尔曼滤波使用 <span class="math inline">t</span> 时刻的均值 <span class="math inline">\mu_t</span> 和协方差矩阵 <span class="math inline">\Sigma_t</span> 表示 <span class="math inline">t</span> 时刻的 <code>belief</code>。</p>
 <p>为了保证后验概率和已知的控制值 <span class="math inline">z</span> 、测量值 <span class="math inline">u</span> 具有一致的概率分布，即高斯分布。在贝叶斯滤波的马尔科夫假设之外，还需要满足三个条件：</p>
 <ol style="list-style-type: decimal">
-<li>状态值是这些参数的线性函数与高斯噪声的和。用等式表示为： <span class="math display">\displaystyle  \begin{equation} x_t = A_tx_{t-1} + B_tu_t + \varepsilon_t \label{eq: state_transition}\end{equation}
-</span> 其中 <span class="math inline">x_t</span>, <span class="math inline">x_{t-1}</span> 是状态值向量，维度为 n，<span class="math inline">u_t</span> 是控制值向量，维度为 m，即</li>
+<li>状态值是这些参数的线性函数与高斯噪声的和。用等式表示为： <span class="math display">\displaystyle  \begin{equation} x_t = A_tx_{t-1} + B_tu_t + \varepsilon_t \label{eq: state_transition}\end{equation} </span> 其中 <span class="math inline">x_t</span>, <span class="math inline">x_{t-1}</span> 是状态值向量，维度为 n，<span class="math inline">u_t</span> 是控制值向量，维度为 m，即</li>
 </ol>
-<p><span class="math display">\displaystyle x_t = \left[\begin{matrix} x_{1,t} \\ x_{2,t} \\ \vdots \\ x_{n,t}\end{matrix}\right]</span></p>
-<p><span class="math display">\displaystyle u_t = \left[\begin{matrix} u_{1,t} \\ u_{2,t} \\ \vdots \\ u_{m,t}\end{matrix}\right]</span></p>
+<p><span class="math display">\displaystyle 
+x_t = \left[\begin{matrix} x_{1,t} \\ x_{2,t} \\ \vdots \\ x_{n,t}\end{matrix}\right] 
+</span></p>
+<p><span class="math display">\displaystyle 
+u_t = \left[\begin{matrix} u_{1,t} \\ u_{2,t} \\ \vdots \\ u_{m,t}\end{matrix}\right]
+</span></p>
 <p><span class="math inline">A_t</span> 和 <span class="math inline">B_t</span> 是矩阵，<span class="math inline">A_t</span> 是一个大小为 n x n 的方阵，<span class="math inline">B_t</span> 是一个大小为 n x m 的矩阵。</p>
 <p><span class="math inline">\varepsilon_t</span> 是表示状态值 <span class="math inline">x_t</span> 随机性的随机变量，是一个具有和状态值一样维度 n 的向量。其均值为 0，协方差矩阵用 <span class="math inline">R_t</span> 表示，<span class="math inline">R_t</span> 的大小为 n x n。</p>
 <p>将公式  代入公式 ，可以得到状态值转变后概率分布 <span class="math inline">p(x_t|u_t,x_{t-1})</span> 的定义 ，这个后验概率分布依旧是高斯概率分布，可以使用均值 <span class="math inline">A_tx_{t-1} + B_tu_t</span> 和协方差矩阵 <span class="math inline">R_t</span> 表示。</p>
@@ -375,39 +378,67 @@
 <p>因为 <span class="math inline">\overline{bel}(x_t)</span> 表示的是一个概率分布，具有和为 1 的条件，在计算的最后需要进行单位化处理，现在 <span class="math inline">\eta</span> 的值并不重要。后面的积分项，是对 <span class="math inline">x_{t-1}</span> 求积分，所以可以将 <span class="math inline">L_t</span> 分解成含有 <span class="math inline">x_{t-1}</span> 的项和不含有 <span class="math inline">x_{t-1}</span> 的项，因为 <span class="math inline">x_{t-1}</span> 所在的位置是 e 指数，所以可以将 <span class="math inline">L_t</span> 分解成这个两项的和即 <span class="math inline">L_t = L_t(x_{t-1}, x_t) + L_t(x_t)</span> ，将不含有 <span class="math inline">x_{t-1}</span> 的项作为因子分解出去，用公式表示如下： <span class="math display">\displaystyle  \overline{bel}(x_t) = \eta\int exp(-L_t) \text{d}x_{t-1} \\ = \eta\int exp\{ -L_t(x_{t-1}, x_t) - L_t(x_t) \} \text{d}x_{t-1} \\ = \eta exp\{ -L_t(x_t) \}\int exp\{ -L_t(x_{t-1}, x_t) \}\text{d}x_{t-1} \\ = \eta exp\{ -L_t(x_t) \} </span></p>
 <p>在上式中最后一个 <span class="math inline">\eta</span> 和前面的 <span class="math inline">\eta</span> 并不相同。如果我们可以将 <span class="math inline">\overline{bel}(x_t)</span> 写成这种形式，那么 Prediction 阶段 <span class="math inline">x_t</span> 的概率分布可以由 <span class="math inline">exp\{ -L_t(x_t) \}</span> 决定。当然其中还需要由一个要求，即 <span class="math inline">\int exp\{ -L_t(x_{t-1}, x_t) \}\text{d}x_{t-1}</span> 与 <span class="math inline">x_t</span> 无关，在积分之后是有可能与 <span class="math inline">x_t</span> 无关。</p>
 <p>现在的目标就是寻找一个 <span class="math inline">L_t(x_{t-1}, x_t)</span> 使得积分项中不含有 <span class="math inline">x_t</span>。如果将 <span class="math inline">L_t</span> 看作是关于 <span class="math inline">x_{t-1}</span> 的一元函数，那么 <span class="math inline">L_t</span> 就是 <span class="math inline">x_{t-1}</span> 的二次型。</p>
-<p>我们来看看一元二次多项式的分解： <span class="math display">\displaystyle  y = ax^2+bx+c = a(x+{b \over 2a})^2 + (c-{b^2 \over 4a}) </span></p>
+<p>我们来看看一元二次多项式的分解： <span class="math display">\displaystyle  
+y = ax^2+bx+c = a(x+{b \over 2a})^2 + (c-{b^2 \over 4a}) 
+</span></p>
 <p><span class="math inline">L_t(x_{t-1}, x_t)</span> 可以看作是 <span class="math inline">a(x+{b \over 2a})^2</span> 项，<span class="math inline">L_t(x_t)</span> 可以看作是 <span class="math inline">(c-{b^2 \over 4a})</span> 项。</p>
-<p>对 <span class="math inline">L_t</span> 求一阶导函数和二阶导函数，可以得到： <span class="math display">\displaystyle  { \partial L_t \over \partial x_{t-1} } = -{1 \over 2}A^TR_t^{-1}(x_t-A_tx_{t-1}-B_tu_t)+{1 \over 2}\Sigma^{-1}_{t-1}(x_{t-1}-\mu_{t-1}) </span> <span class="math display">\displaystyle  { \partial^2 L_t \over \partial x_{t-1}^2} = {1 \over 2}A^T_tR^{-1}_tA_t + {1 \over 2}\Sigma^{-1}_{t-1} =: \Psi^{-1}_t </span></p>
+<p>对 <span class="math inline">L_t</span> 求一阶导函数和二阶导函数，可以得到： <span class="math display">\displaystyle 
+{ \partial L_t \over \partial x_{t-1} } = -{1 \over 2}A^TR_t^{-1}(x_t-A_tx_{t-1}-B_tu_t)+{1 \over 2}\Sigma^{-1}_{t-1}(x_{t-1}-\mu_{t-1}) </span> <span class="math display">\displaystyle  { \partial^2 L_t \over \partial x_{t-1}^2} = {1 \over 2}A^T_tR^{-1}_tA_t + {1 \over 2}\Sigma^{-1}_{t-1} =: \Psi^{-1}_t
+</span></p>
 <p>其中 <span class="math inline">\Psi_t</span> 表示 <span class="math inline">L_t(x_{t-1}, x_t)</span> 的曲率（curvature）。现在令 <span class="math inline">{ \partial L_t \over \partial x_{t-1} }</span> 等于0：</p>
-<p><span class="math display">\displaystyle  A_t^TR^{-1}_t(x_t-A_tx_{t-1}-B_tu_t)=\Sigma_{t-1}^{-1}(x_{t-1}-\mu_{t-1}) \\ 
+<p><span class="math display">\displaystyle 
+A_t^TR^{-1}_t(x_t-A_tx_{t-1}-B_tu_t)=\Sigma_{t-1}^{-1}(x_{t-1}-\mu_{t-1}) \\ 
 A_t^TR^{-1}_tA_tx_{t-1}+\Sigma^{-1}_{t-1}x_{t-1}=A_t^TR^{-1}_t(x_t-B_tu_t)+\Sigma_{t-1}^{-1}\mu_{t-1} \\ 
 (A_t^TR^{-1}_tA_t+\Sigma^{-1}_{t-1})x_{t-1}=A_t^TR^{-1}_t(x_t-B_tu_t)+\Sigma_{t-1}^{-1}\mu_{t-1} \\ 
 \Psi^{-1}_tx_{t-1}=A_t^TR^{-1}_t(x_t-B_tu_t)+\Sigma_{t-1}^{-1}\mu_{t-1} \\ 
-x_{t-1}=\Psi_tA_t^TR^{-1}_t(x_t-B_tu_t)+\Sigma_{t-1}^{-1}\mu_{t-1}</span></p>
-<p>我们就可以定义（与 <span class="math inline">ax^2+bx+c</span> 的分解类比，就可以理解）： <span class="math display">\displaystyle L_t(x_{t-1},x_t)={1 \over 2}(x_{t-1}-\Psi_t[A_t^TR^{-1}_t(x_t-B_tu_t)+\Sigma_{t-1}^{-1}\mu_{t-1}])^T\Psi^{-1}_t\\ (x_{t-1}-\Psi_t[A_t^TR^{-1}_t(x_t-B_tu_t)+\Sigma_{t-1}^{-1}\mu_{t-1}])</span></p>
-<p><span class="math inline">det(2\pi\Psi_t)^{-{1\over2}}exp\{-L_t(x_{t-1},x_t)\}</span> 是一个正态分布的形式，所以： <span class="math display">\displaystyle  \int det(2\pi\Psi_t)^{-{1\over2}}exp\{-L_t(x_{t-1},x_t)\} \text{d}x_{t-1} = 1 </span> <span class="math display">\displaystyle  \int exp\{-L_t(x_{t-1},x_t)\} \text{d}x_{t-1} = det(2\pi\Psi_t)^{1\over2} </span></p>
-<p>至此，到了一个满足要求的 <span class="math inline">L_t(x_{t-1}, x_t)</span> ，可以将 <span class="math inline">\overline{bel}(x_t)</span> 写作： <span class="math display">\displaystyle  \overline{bel}(x_t)= \eta exp\{ -L_t(x_t) \} </span></p>
+x_{t-1}=\Psi_tA_t^TR^{-1}_t(x_t-B_tu_t)+\Sigma_{t-1}^{-1}\mu_{t-1}
+</span></p>
+<p>我们就可以定义（与 <span class="math inline">ax^2+bx+c</span> 的分解类比，就可以理解）： <span class="math display">\displaystyle 
+L_t(x_{t-1},x_t)={1 \over 2}(x_{t-1}-\Psi_t[A_t^TR^{-1}_t(x_t-B_tu_t)+\Sigma_{t-1}^{-1}\mu_{t-1}])^T\Psi^{-1}_t\\ (x_{t-1}-\Psi_t[A_t^TR^{-1}_t(x_t-B_tu_t)+\Sigma_{t-1}^{-1}\mu_{t-1}])
+</span></p>
+<p><span class="math inline">det(2\pi\Psi_t)^{-{1\over2}}exp\{-L_t(x_{t-1},x_t)\}</span> 是一个正态分布的形式，所以： <span class="math display">\displaystyle 
+\int det(2\pi\Psi_t)^{-{1\over2}}exp\{-L_t(x_{t-1},x_t)\} \text{d}x_{t-1} = 1
+</span> <span class="math display">\displaystyle 
+\int exp\{-L_t(x_{t-1},x_t)\} \text{d}x_{t-1} = det(2\pi\Psi_t)^{1\over2}
+</span></p>
+<p>至此，到了一个满足要求的 <span class="math inline">L_t(x_{t-1}, x_t)</span> ，可以将 <span class="math inline">\overline{bel}(x_t)</span> 写作： <span class="math display">\displaystyle 
+\overline{bel}(x_t)= \eta exp\{ -L_t(x_t) \}
+</span></p>
 <p>那么现在要做的是求出 <span class="math inline">L_t(x_t)</span>，<span class="math inline">L_t(x_t)</span> 是关于 <span class="math inline">x_t</span> 的二次型，所以可将 <span class="math inline">L_t(x_t)</span> 进行分解，得到 <span class="math inline">L_t(x_t)</span> 的对称轴，这条对称轴也是 <span class="math inline">\overline{bel}(x_t)</span> 的均值。</p>
-<p><span class="math display">\displaystyle  L_t(x_t) = L_t - L_t(x_{t-1},x_t) \\ 
+<p><span class="math display">\displaystyle 
+L_t(x_t) = L_t - L_t(x_{t-1},x_t) \\ 
 = {1\over2}(x_t-A_tx_{t-1}-B_tu_t)^TR_t^{-1}(x_t-A_tx_{t-1}-B_tu_t) \\ 
 + {1\over2}(x_{t-1}-\mu_{t-1})^T\Sigma^{-1}_{t-1}(x_{t-1}-\mu_{t-1}) \\ 
-- {1\over2}(x_{t-1}-\Psi_t[A_t^TR_t^{-1}(x_t-B_tu_t)+\Sigma^{-1}_{t-1}\mu_{t-1}])^T\Psi^{-1}_t \\ (x_{t-1}-\Psi_t[A_t^TR_t^{-1}(x_t-B_tu_t)+\Sigma^{-1}_{t-1}\mu_{t-1}])</span></p>
-<p>经过一系列繁琐的化简： <span class="math display">\displaystyle  L_t(x_t) = {1\over2}(x_t-B_tu_t)^TR_t^{-1}(x_t-B_tu_t)+{1\over2}\mu_{t-1}^T\Sigma_{t-1}^{-1}\mu_{t-1} \\
+- {1\over2}(x_{t-1}-\Psi_t[A_t^TR_t^{-1}(x_t-B_tu_t)+\Sigma^{-1}_{t-1}\mu_{t-1}])^T\Psi^{-1}_t \\ (x_{t-1}-\Psi_t[A_t^TR_t^{-1}(x_t-B_tu_t)+\Sigma^{-1}_{t-1}\mu_{t-1}])
+- </span></p>
+<p>经过一系列繁琐的化简： <span class="math display">\displaystyle 
+L_t(x_t) = {1\over2}(x_t-B_tu_t)^TR_t^{-1}(x_t-B_tu_t)+{1\over2}\mu_{t-1}^T\Sigma_{t-1}^{-1}\mu_{t-1} \\
 -{1\over2}[A^T_tR_t^{-1}(x_t-B_tu_t)+\Sigma^{-1}_{t-1}\mu_{t-1}]^T(A_t^TR_t^{-1}A_t+\Sigma^{-1}_{t-1})^{-1} \\ 
-[A^T_tR_t^{-1}(x_t-B_tu_t)+\Sigma^{-1}_{t-1}\mu_{t-1}] </span></p>
+[A^T_tR_t^{-1}(x_t-B_tu_t)+\Sigma^{-1}_{t-1}\mu_{t-1}]
+</span></p>
 <p>求一阶导函数：</p>
-<p><span class="math display">\displaystyle  {\partial L_t(x_t) \over \partial x_t} = R^{-1}_t(x_t-B_tu_t)-R^{-1}_tA_t(A^T_tR_t^{-1}A_t+\Sigma_{t-1}^{-1})^{-1} \\ 
+<p><span class="math display">\displaystyle 
+{\partial L_t(x_t) \over \partial x_t} = R^{-1}_t(x_t-B_tu_t)-R^{-1}_tA_t(A^T_tR_t^{-1}A_t+\Sigma_{t-1}^{-1})^{-1} \\ 
 [A^T_tR_t^{-1}(x_t-B_tu_t)+\Sigma_{t-1}^{-1}\mu_{t-1}] \\ 
 = [R^{-1}_t-R^{-1}_tA_t(A^T_tR_t^{-1}A_t+\Sigma_{t-1}^{-1})^{-1}A_t^TR_t^{-1}](x_t-B_tu_t) \\ 
--R^{-1}_tA_t(A^T_tR_t^{-1}A_t+\Sigma_{t-1}^{-1})^{-1}\Sigma_{t-1}^{-1}\mu_{t-1}</span></p>
-<p>由 <code>inversion lemma</code> 可以有化简： <span class="math display">\displaystyle  R^{-1}_t-R^{-1}_tA_t(A^T_tR_t^{-1}A_t+\Sigma_{t-1}^{-1})^{-1}A_t^TR_t^{-1} = (R_t+A_t\Sigma_{t-1}A_t^T)^{-1} </span></p>
-<p>令一阶导函数为 0： <span class="math display">\displaystyle  (R_t+A_t\Sigma_{t-1}A_t^T)^{-1}(x_t-B_tu_t) = R_t^{-1}A_t(A^T_tR^{-1}_tA_t+\Sigma^{-1}_{t-1})^{-1}\Sigma^{-1}_{t-1}\mu_{t-1} </span></p>
-<p><span class="math display">\displaystyle  x_t = B_tu_t+(R_t+A_t\Sigma_{t-1}A_t^T)R_t^{-1}A_t(A_t^TR^{-1}_tA_t+\Sigma^{-1}_{t-1})^{-1}\Sigma^{-1}_{t-1}\mu_{t-1} \\ 
+-R^{-1}_tA_t(A^T_tR_t^{-1}A_t+\Sigma_{t-1}^{-1})^{-1}\Sigma_{t-1}^{-1}\mu_{t-1}
+</span></p>
+<p>由 <code>inversion lemma</code> 可以有化简： <span class="math display">\displaystyle 
+R^{-1}_t-R^{-1}_tA_t(A^T_tR_t^{-1}A_t+\Sigma_{t-1}^{-1})^{-1}A_t^TR_t^{-1} = (R_t+A_t\Sigma_{t-1}A_t^T)^{-1}
+</span></p>
+<p>令一阶导函数为 0： <span class="math display">\displaystyle 
+(R_t+A_t\Sigma_{t-1}A_t^T)^{-1}(x_t-B_tu_t) = R_t^{-1}A_t(A^T_tR^{-1}_tA_t+\Sigma^{-1}_{t-1})^{-1}\Sigma^{-1}_{t-1}\mu_{t-1}
+</span></p>
+<p><span class="math display">\displaystyle 
+x_t = B_tu_t+(R_t+A_t\Sigma_{t-1}A_t^T)R_t^{-1}A_t(A_t^TR^{-1}_tA_t+\Sigma^{-1}_{t-1})^{-1}\Sigma^{-1}_{t-1}\mu_{t-1} \\ 
 = B_tu_t+A_t(I+\Sigma_{t-1}A_t^TR^{-1}_tA_t)(\Sigma_{t-1}A_t^TR^{-1}_tA_t+I)^{-1}\mu_{t-1} \\
-= B_tu_t+A_t\mu_{t-1} </span></p>
+= B_tu_t+A_t\mu_{t-1}
+</span></p>
 <p>所以 <span class="math inline">\overline{bel}(x_t)</span> 的均值为 <span class="math inline">B_tu_t+A_t\mu_{t-1}</span> 。</p>
 <p>对 <span class="math inline">L_t(x_t)</span> 求二阶导数，可以得到协方差矩阵。</p>
-<p><span class="math display">\displaystyle  {\partial^2L_t(x_t) \over \partial x^2_t} = (R_t+A_t\Sigma_{t-1}A_t^T)^{-1} =: \overline{\Sigma}_t^{-1} </span></p>
+<p><span class="math display">\displaystyle 
+{\partial^2L_t(x_t) \over \partial x^2_t} = (R_t+A_t\Sigma_{t-1}A_t^T)^{-1} =: \overline{\Sigma}_t^{-1}
+</span></p>
 <h3 id="update">Update</h3>
 <p>Update 步骤在贝叶斯滤波中用公式表示是： <span class="math display">\displaystyle  bel(x_t) = \eta p(z_t|x_t)\overline{bel}(x_t) </span></p>
 <p>其中 <span class="math display">\displaystyle  p(z_t|x_t) \sim \mathcal{N}(z_t;C_tx_t,Q_t) </span> <span class="math display">\displaystyle  \overline{bel}(x_t) \sim \mathcal{N}(x_t;\overline{\mu}_t,\overline{\Sigma}_t) </span></p>
@@ -457,7 +488,7 @@ x_{t-1}=\Psi_tA_t^TR^{-1}_t(x_t-B_tu_t)+\Sigma_{t-1}^{-1}\mu_{t-1}</span></p>
     <link href="http://jingetu.github.io/2016/07/12/Bayes-Filter-Probabilistic-Robotics/"/>
     <id>http://jingetu.github.io/2016/07/12/Bayes-Filter-Probabilistic-Robotics/</id>
     <published>2016-07-12T13:55:25.000Z</published>
-    <updated>2016-12-03T11:15:04.000Z</updated>
+    <updated>2016-12-04T02:12:37.000Z</updated>
     
     <content type="html"><![CDATA[<p>本文是阅读 《Probabilistic Robotics》 Chapter2 Recursive State Estimation 的笔记。</p>
 <a id="more"></a>

@@ -1,109 +1,4 @@
-
- <!DOCTYPE HTML>
-<html lang="zh-CN">
-<head>
-  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
-  
-    <title>Kalman Filter (Probabilistic Robotics) | Jinge&#39;s Blog</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
-    
-    <meta name="author" content="Jinge Tu">
-    
-
-    
-    <meta name="description" content="本文是阅读 《Probabilistic Robotics》 Chapter3 Gaussian Filters 的笔记。
-卡尔曼滤波可以看作是贝叶斯滤波在高斯分布下的特例。因为是高斯分布，所以卡尔曼滤波对应的状态值是连续的，而不是离散的。">
-<meta property="og:type" content="article">
-<meta property="og:title" content="Kalman Filter (Probabilistic Robotics)">
-<meta property="og:url" content="http://jingetu.github.io/2016/07/12/Kalman-Filter-Probabilistic-Robotics/index.html">
-<meta property="og:site_name" content="Jinge's Blog">
-<meta property="og:description" content="本文是阅读 《Probabilistic Robotics》 Chapter3 Gaussian Filters 的笔记。
-卡尔曼滤波可以看作是贝叶斯滤波在高斯分布下的特例。因为是高斯分布，所以卡尔曼滤波对应的状态值是连续的，而不是离散的。">
-<meta property="og:updated_time" content="2016-12-03T11:14:58.000Z">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Kalman Filter (Probabilistic Robotics)">
-<meta name="twitter:description" content="本文是阅读 《Probabilistic Robotics》 Chapter3 Gaussian Filters 的笔记。
-卡尔曼滤波可以看作是贝叶斯滤波在高斯分布下的特例。因为是高斯分布，所以卡尔曼滤波对应的状态值是连续的，而不是离散的。">
-
-    
-    <link rel="alternative" href="/atom.xml" title="Jinge&#39;s Blog" type="application/atom+xml">
-    
-    
-    <link rel="icon" href="/img/favicon.ico">
-    
-    
-    <link rel="apple-touch-icon" href="/img/jacman.jpg">
-    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
-    
-    <link rel="stylesheet" href="/css/style.css"><!-- hexo-inject:begin --><!-- hexo-inject:end -->
-</head>
-
-  <body>
-    <!-- hexo-inject:begin --><!-- hexo-inject:end --><header>
-      
-<div>
-		
-			<div id="imglogo">
-				<a href="/"><img src="/img/logo.png" alt="Jinge&#39;s Blog" title="Jinge&#39;s Blog"/></a>
-			</div>
-			
-			<div id="textlogo">
-				<h1 class="site-name"><a href="/" title="Jinge&#39;s Blog">Jinge&#39;s Blog</a></h1>
-				<h2 class="blog-motto">Jinge&#39;s Blog on Github</h2>
-			</div>
-			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
-			</a></div>
-			<nav class="animated">
-				<ul>
-					<ul>
-					 
-						<li><a href="/">Home</a></li>
-					
-						<li><a href="/archives">Archives</a></li>
-					
-						<li><a href="/about">About</a></li>
-					
-					<li>
- 					
-					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
-						<label>Search</label>
-						<input type="search" id="search" name="q" autocomplete="off" maxlength="20" placeholder="搜索" />
-						<input type="hidden" name="q" value="site:jingetu.github.io">
-					</form>
-					
-					</li>
-				</ul>
-			</nav>			
-</div>
-    </header>
-    <div id="container">
-      <div id="main" class="post" itemscope itemprop="blogPost">
-  
-	<article itemprop="articleBody"> 
-		<header class="article-info clearfix">
-  <h1 itemprop="name">
-    
-      <a href="/2016/07/12/Kalman-Filter-Probabilistic-Robotics/" title="Kalman Filter (Probabilistic Robotics)" itemprop="url">Kalman Filter (Probabilistic Robotics)</a>
-  </h1>
-  <p class="article-author">By
-       
-		<a href="/about" title="Jinge Tu" target="_blank" itemprop="author">Jinge Tu</a>
-		
-  <p class="article-time">
-    <time datetime="2016-07-12T13:57:13.000Z" itemprop="datePublished"> 发表于 2016-07-12</time>
-    
-  </p>
-</header>
-	<div class="article-content">
-		
-		<div id="toc" class="toc-article">
-			<strong class="toc-title">文章目录</strong>
-		
-			<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#linear-gaussian-systems"><span class="toc-number">1.</span> <span class="toc-text">Linear Gaussian Systems</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#multivariate-normal-distribution"><span class="toc-number">1.1.</span> <span class="toc-text">Multivariate Normal Distribution</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#linear-gaussian-systems-1"><span class="toc-number">1.2.</span> <span class="toc-text">Linear Gaussian Systems</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#卡尔曼滤波流程"><span class="toc-number">2.</span> <span class="toc-text">卡尔曼滤波流程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#卡尔曼滤波数学推导"><span class="toc-number">3.</span> <span class="toc-text">卡尔曼滤波数学推导</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#prediction"><span class="toc-number">3.1.</span> <span class="toc-text">Prediction</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#update"><span class="toc-number">3.2.</span> <span class="toc-text">Update</span></a></li></ol></li></ol>
-		
-		</div>
-		
-		<p>本文是阅读 《Probabilistic Robotics》 Chapter3 Gaussian Filters 的笔记。</p>
+<!DOCTYPE html><html><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description" content="Jinge's Blog on Github"><title>Kalman Filter (Probabilistic Robotics) | Jinge's Blog</title><link rel="stylesheet" type="text/css" href="/css/normalize.css"><link rel="stylesheet" type="text/css" href="/css/highlight.css"><link rel="stylesheet" type="text/css" href="/css/noise.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/font-awesome/4.5.0/css/font-awesome.min.css"><link rel="Shortcut Icon" type="image/x-icon" href="/favicon.ico"><link rel="alternate" type="application/atom+xml" href="/atom.xml"></head><body><!-- gallery that comes before the header--><article class="wrapper"><div class="post-main"><div class="nav"><nav class="container"><a href="/" class="sidebar-nav-item active">Home</a><a href="/archives" class="sidebar-nav-item">Archives</a></nav><div class="container post-meta"><div class="post-tags"><a class="post-tag-link" href="/tags/robotics/">robotics</a></div><div class="post-time">2016-07-12</div></div></div><div class="container post-header"><h1>Kalman Filter (Probabilistic Robotics)</h1></div><div class="container post-content"><p>本文是阅读 《Probabilistic Robotics》 Chapter3 Gaussian Filters 的笔记。</p>
 <p>卡尔曼滤波可以看作是贝叶斯滤波在高斯分布下的特例。因为是高斯分布，所以卡尔曼滤波对应的状态值是连续的，而不是离散的。</p>
 <a id="more"></a>
 <h2 id="linear-gaussian-systems">Linear Gaussian Systems</h2>
@@ -115,11 +10,14 @@
 <p>卡尔曼滤波使用 <span class="math inline">t</span> 时刻的均值 <span class="math inline">\mu_t</span> 和协方差矩阵 <span class="math inline">\Sigma_t</span> 表示 <span class="math inline">t</span> 时刻的 <code>belief</code>。</p>
 <p>为了保证后验概率和已知的控制值 <span class="math inline">z</span> 、测量值 <span class="math inline">u</span> 具有一致的概率分布，即高斯分布。在贝叶斯滤波的马尔科夫假设之外，还需要满足三个条件：</p>
 <ol style="list-style-type: decimal">
-<li>状态值是这些参数的线性函数与高斯噪声的和。用等式表示为： <span class="math display">\displaystyle  \begin{equation} x_t = A_tx_{t-1} + B_tu_t + \varepsilon_t \label{eq: state_transition}\end{equation}
-</span> 其中 <span class="math inline">x_t</span>, <span class="math inline">x_{t-1}</span> 是状态值向量，维度为 n，<span class="math inline">u_t</span> 是控制值向量，维度为 m，即</li>
+<li>状态值是这些参数的线性函数与高斯噪声的和。用等式表示为： <span class="math display">\displaystyle  \begin{equation} x_t = A_tx_{t-1} + B_tu_t + \varepsilon_t \label{eq: state_transition}\end{equation} </span> 其中 <span class="math inline">x_t</span>, <span class="math inline">x_{t-1}</span> 是状态值向量，维度为 n，<span class="math inline">u_t</span> 是控制值向量，维度为 m，即</li>
 </ol>
-<p><span class="math display">\displaystyle x_t = \left[\begin{matrix} x_{1,t} \\ x_{2,t} \\ \vdots \\ x_{n,t}\end{matrix}\right]</span></p>
-<p><span class="math display">\displaystyle u_t = \left[\begin{matrix} u_{1,t} \\ u_{2,t} \\ \vdots \\ u_{m,t}\end{matrix}\right]</span></p>
+<p><span class="math display">\displaystyle 
+x_t = \left[\begin{matrix} x_{1,t} \\ x_{2,t} \\ \vdots \\ x_{n,t}\end{matrix}\right] 
+</span></p>
+<p><span class="math display">\displaystyle 
+u_t = \left[\begin{matrix} u_{1,t} \\ u_{2,t} \\ \vdots \\ u_{m,t}\end{matrix}\right]
+</span></p>
 <p><span class="math inline">A_t</span> 和 <span class="math inline">B_t</span> 是矩阵，<span class="math inline">A_t</span> 是一个大小为 n x n 的方阵，<span class="math inline">B_t</span> 是一个大小为 n x m 的矩阵。</p>
 <p><span class="math inline">\varepsilon_t</span> 是表示状态值 <span class="math inline">x_t</span> 随机性的随机变量，是一个具有和状态值一样维度 n 的向量。其均值为 0，协方差矩阵用 <span class="math inline">R_t</span> 表示，<span class="math inline">R_t</span> 的大小为 n x n。</p>
 <p>将公式  代入公式 ，可以得到状态值转变后概率分布 <span class="math inline">p(x_t|u_t,x_{t-1})</span> 的定义 ，这个后验概率分布依旧是高斯概率分布，可以使用均值 <span class="math inline">A_tx_{t-1} + B_tu_t</span> 和协方差矩阵 <span class="math inline">R_t</span> 表示。</p>
@@ -156,39 +54,67 @@
 <p>因为 <span class="math inline">\overline{bel}(x_t)</span> 表示的是一个概率分布，具有和为 1 的条件，在计算的最后需要进行单位化处理，现在 <span class="math inline">\eta</span> 的值并不重要。后面的积分项，是对 <span class="math inline">x_{t-1}</span> 求积分，所以可以将 <span class="math inline">L_t</span> 分解成含有 <span class="math inline">x_{t-1}</span> 的项和不含有 <span class="math inline">x_{t-1}</span> 的项，因为 <span class="math inline">x_{t-1}</span> 所在的位置是 e 指数，所以可以将 <span class="math inline">L_t</span> 分解成这个两项的和即 <span class="math inline">L_t = L_t(x_{t-1}, x_t) + L_t(x_t)</span> ，将不含有 <span class="math inline">x_{t-1}</span> 的项作为因子分解出去，用公式表示如下： <span class="math display">\displaystyle  \overline{bel}(x_t) = \eta\int exp(-L_t) \text{d}x_{t-1} \\ = \eta\int exp\{ -L_t(x_{t-1}, x_t) - L_t(x_t) \} \text{d}x_{t-1} \\ = \eta exp\{ -L_t(x_t) \}\int exp\{ -L_t(x_{t-1}, x_t) \}\text{d}x_{t-1} \\ = \eta exp\{ -L_t(x_t) \} </span></p>
 <p>在上式中最后一个 <span class="math inline">\eta</span> 和前面的 <span class="math inline">\eta</span> 并不相同。如果我们可以将 <span class="math inline">\overline{bel}(x_t)</span> 写成这种形式，那么 Prediction 阶段 <span class="math inline">x_t</span> 的概率分布可以由 <span class="math inline">exp\{ -L_t(x_t) \}</span> 决定。当然其中还需要由一个要求，即 <span class="math inline">\int exp\{ -L_t(x_{t-1}, x_t) \}\text{d}x_{t-1}</span> 与 <span class="math inline">x_t</span> 无关，在积分之后是有可能与 <span class="math inline">x_t</span> 无关。</p>
 <p>现在的目标就是寻找一个 <span class="math inline">L_t(x_{t-1}, x_t)</span> 使得积分项中不含有 <span class="math inline">x_t</span>。如果将 <span class="math inline">L_t</span> 看作是关于 <span class="math inline">x_{t-1}</span> 的一元函数，那么 <span class="math inline">L_t</span> 就是 <span class="math inline">x_{t-1}</span> 的二次型。</p>
-<p>我们来看看一元二次多项式的分解： <span class="math display">\displaystyle  y = ax^2+bx+c = a(x+{b \over 2a})^2 + (c-{b^2 \over 4a}) </span></p>
+<p>我们来看看一元二次多项式的分解： <span class="math display">\displaystyle  
+y = ax^2+bx+c = a(x+{b \over 2a})^2 + (c-{b^2 \over 4a}) 
+</span></p>
 <p><span class="math inline">L_t(x_{t-1}, x_t)</span> 可以看作是 <span class="math inline">a(x+{b \over 2a})^2</span> 项，<span class="math inline">L_t(x_t)</span> 可以看作是 <span class="math inline">(c-{b^2 \over 4a})</span> 项。</p>
-<p>对 <span class="math inline">L_t</span> 求一阶导函数和二阶导函数，可以得到： <span class="math display">\displaystyle  { \partial L_t \over \partial x_{t-1} } = -{1 \over 2}A^TR_t^{-1}(x_t-A_tx_{t-1}-B_tu_t)+{1 \over 2}\Sigma^{-1}_{t-1}(x_{t-1}-\mu_{t-1}) </span> <span class="math display">\displaystyle  { \partial^2 L_t \over \partial x_{t-1}^2} = {1 \over 2}A^T_tR^{-1}_tA_t + {1 \over 2}\Sigma^{-1}_{t-1} =: \Psi^{-1}_t </span></p>
+<p>对 <span class="math inline">L_t</span> 求一阶导函数和二阶导函数，可以得到： <span class="math display">\displaystyle 
+{ \partial L_t \over \partial x_{t-1} } = -{1 \over 2}A^TR_t^{-1}(x_t-A_tx_{t-1}-B_tu_t)+{1 \over 2}\Sigma^{-1}_{t-1}(x_{t-1}-\mu_{t-1}) </span> <span class="math display">\displaystyle  { \partial^2 L_t \over \partial x_{t-1}^2} = {1 \over 2}A^T_tR^{-1}_tA_t + {1 \over 2}\Sigma^{-1}_{t-1} =: \Psi^{-1}_t
+</span></p>
 <p>其中 <span class="math inline">\Psi_t</span> 表示 <span class="math inline">L_t(x_{t-1}, x_t)</span> 的曲率（curvature）。现在令 <span class="math inline">{ \partial L_t \over \partial x_{t-1} }</span> 等于0：</p>
-<p><span class="math display">\displaystyle  A_t^TR^{-1}_t(x_t-A_tx_{t-1}-B_tu_t)=\Sigma_{t-1}^{-1}(x_{t-1}-\mu_{t-1}) \\ 
+<p><span class="math display">\displaystyle 
+A_t^TR^{-1}_t(x_t-A_tx_{t-1}-B_tu_t)=\Sigma_{t-1}^{-1}(x_{t-1}-\mu_{t-1}) \\ 
 A_t^TR^{-1}_tA_tx_{t-1}+\Sigma^{-1}_{t-1}x_{t-1}=A_t^TR^{-1}_t(x_t-B_tu_t)+\Sigma_{t-1}^{-1}\mu_{t-1} \\ 
 (A_t^TR^{-1}_tA_t+\Sigma^{-1}_{t-1})x_{t-1}=A_t^TR^{-1}_t(x_t-B_tu_t)+\Sigma_{t-1}^{-1}\mu_{t-1} \\ 
 \Psi^{-1}_tx_{t-1}=A_t^TR^{-1}_t(x_t-B_tu_t)+\Sigma_{t-1}^{-1}\mu_{t-1} \\ 
-x_{t-1}=\Psi_tA_t^TR^{-1}_t(x_t-B_tu_t)+\Sigma_{t-1}^{-1}\mu_{t-1}</span></p>
-<p>我们就可以定义（与 <span class="math inline">ax^2+bx+c</span> 的分解类比，就可以理解）： <span class="math display">\displaystyle L_t(x_{t-1},x_t)={1 \over 2}(x_{t-1}-\Psi_t[A_t^TR^{-1}_t(x_t-B_tu_t)+\Sigma_{t-1}^{-1}\mu_{t-1}])^T\Psi^{-1}_t\\ (x_{t-1}-\Psi_t[A_t^TR^{-1}_t(x_t-B_tu_t)+\Sigma_{t-1}^{-1}\mu_{t-1}])</span></p>
-<p><span class="math inline">det(2\pi\Psi_t)^{-{1\over2}}exp\{-L_t(x_{t-1},x_t)\}</span> 是一个正态分布的形式，所以： <span class="math display">\displaystyle  \int det(2\pi\Psi_t)^{-{1\over2}}exp\{-L_t(x_{t-1},x_t)\} \text{d}x_{t-1} = 1 </span> <span class="math display">\displaystyle  \int exp\{-L_t(x_{t-1},x_t)\} \text{d}x_{t-1} = det(2\pi\Psi_t)^{1\over2} </span></p>
-<p>至此，到了一个满足要求的 <span class="math inline">L_t(x_{t-1}, x_t)</span> ，可以将 <span class="math inline">\overline{bel}(x_t)</span> 写作： <span class="math display">\displaystyle  \overline{bel}(x_t)= \eta exp\{ -L_t(x_t) \} </span></p>
+x_{t-1}=\Psi_tA_t^TR^{-1}_t(x_t-B_tu_t)+\Sigma_{t-1}^{-1}\mu_{t-1}
+</span></p>
+<p>我们就可以定义（与 <span class="math inline">ax^2+bx+c</span> 的分解类比，就可以理解）： <span class="math display">\displaystyle 
+L_t(x_{t-1},x_t)={1 \over 2}(x_{t-1}-\Psi_t[A_t^TR^{-1}_t(x_t-B_tu_t)+\Sigma_{t-1}^{-1}\mu_{t-1}])^T\Psi^{-1}_t\\ (x_{t-1}-\Psi_t[A_t^TR^{-1}_t(x_t-B_tu_t)+\Sigma_{t-1}^{-1}\mu_{t-1}])
+</span></p>
+<p><span class="math inline">det(2\pi\Psi_t)^{-{1\over2}}exp\{-L_t(x_{t-1},x_t)\}</span> 是一个正态分布的形式，所以： <span class="math display">\displaystyle 
+\int det(2\pi\Psi_t)^{-{1\over2}}exp\{-L_t(x_{t-1},x_t)\} \text{d}x_{t-1} = 1
+</span> <span class="math display">\displaystyle 
+\int exp\{-L_t(x_{t-1},x_t)\} \text{d}x_{t-1} = det(2\pi\Psi_t)^{1\over2}
+</span></p>
+<p>至此，到了一个满足要求的 <span class="math inline">L_t(x_{t-1}, x_t)</span> ，可以将 <span class="math inline">\overline{bel}(x_t)</span> 写作： <span class="math display">\displaystyle 
+\overline{bel}(x_t)= \eta exp\{ -L_t(x_t) \}
+</span></p>
 <p>那么现在要做的是求出 <span class="math inline">L_t(x_t)</span>，<span class="math inline">L_t(x_t)</span> 是关于 <span class="math inline">x_t</span> 的二次型，所以可将 <span class="math inline">L_t(x_t)</span> 进行分解，得到 <span class="math inline">L_t(x_t)</span> 的对称轴，这条对称轴也是 <span class="math inline">\overline{bel}(x_t)</span> 的均值。</p>
-<p><span class="math display">\displaystyle  L_t(x_t) = L_t - L_t(x_{t-1},x_t) \\ 
+<p><span class="math display">\displaystyle 
+L_t(x_t) = L_t - L_t(x_{t-1},x_t) \\ 
 = {1\over2}(x_t-A_tx_{t-1}-B_tu_t)^TR_t^{-1}(x_t-A_tx_{t-1}-B_tu_t) \\ 
 + {1\over2}(x_{t-1}-\mu_{t-1})^T\Sigma^{-1}_{t-1}(x_{t-1}-\mu_{t-1}) \\ 
-- {1\over2}(x_{t-1}-\Psi_t[A_t^TR_t^{-1}(x_t-B_tu_t)+\Sigma^{-1}_{t-1}\mu_{t-1}])^T\Psi^{-1}_t \\ (x_{t-1}-\Psi_t[A_t^TR_t^{-1}(x_t-B_tu_t)+\Sigma^{-1}_{t-1}\mu_{t-1}])</span></p>
-<p>经过一系列繁琐的化简： <span class="math display">\displaystyle  L_t(x_t) = {1\over2}(x_t-B_tu_t)^TR_t^{-1}(x_t-B_tu_t)+{1\over2}\mu_{t-1}^T\Sigma_{t-1}^{-1}\mu_{t-1} \\
+- {1\over2}(x_{t-1}-\Psi_t[A_t^TR_t^{-1}(x_t-B_tu_t)+\Sigma^{-1}_{t-1}\mu_{t-1}])^T\Psi^{-1}_t \\ (x_{t-1}-\Psi_t[A_t^TR_t^{-1}(x_t-B_tu_t)+\Sigma^{-1}_{t-1}\mu_{t-1}])
+- </span></p>
+<p>经过一系列繁琐的化简： <span class="math display">\displaystyle 
+L_t(x_t) = {1\over2}(x_t-B_tu_t)^TR_t^{-1}(x_t-B_tu_t)+{1\over2}\mu_{t-1}^T\Sigma_{t-1}^{-1}\mu_{t-1} \\
 -{1\over2}[A^T_tR_t^{-1}(x_t-B_tu_t)+\Sigma^{-1}_{t-1}\mu_{t-1}]^T(A_t^TR_t^{-1}A_t+\Sigma^{-1}_{t-1})^{-1} \\ 
-[A^T_tR_t^{-1}(x_t-B_tu_t)+\Sigma^{-1}_{t-1}\mu_{t-1}] </span></p>
+[A^T_tR_t^{-1}(x_t-B_tu_t)+\Sigma^{-1}_{t-1}\mu_{t-1}]
+</span></p>
 <p>求一阶导函数：</p>
-<p><span class="math display">\displaystyle  {\partial L_t(x_t) \over \partial x_t} = R^{-1}_t(x_t-B_tu_t)-R^{-1}_tA_t(A^T_tR_t^{-1}A_t+\Sigma_{t-1}^{-1})^{-1} \\ 
+<p><span class="math display">\displaystyle 
+{\partial L_t(x_t) \over \partial x_t} = R^{-1}_t(x_t-B_tu_t)-R^{-1}_tA_t(A^T_tR_t^{-1}A_t+\Sigma_{t-1}^{-1})^{-1} \\ 
 [A^T_tR_t^{-1}(x_t-B_tu_t)+\Sigma_{t-1}^{-1}\mu_{t-1}] \\ 
 = [R^{-1}_t-R^{-1}_tA_t(A^T_tR_t^{-1}A_t+\Sigma_{t-1}^{-1})^{-1}A_t^TR_t^{-1}](x_t-B_tu_t) \\ 
--R^{-1}_tA_t(A^T_tR_t^{-1}A_t+\Sigma_{t-1}^{-1})^{-1}\Sigma_{t-1}^{-1}\mu_{t-1}</span></p>
-<p>由 <code>inversion lemma</code> 可以有化简： <span class="math display">\displaystyle  R^{-1}_t-R^{-1}_tA_t(A^T_tR_t^{-1}A_t+\Sigma_{t-1}^{-1})^{-1}A_t^TR_t^{-1} = (R_t+A_t\Sigma_{t-1}A_t^T)^{-1} </span></p>
-<p>令一阶导函数为 0： <span class="math display">\displaystyle  (R_t+A_t\Sigma_{t-1}A_t^T)^{-1}(x_t-B_tu_t) = R_t^{-1}A_t(A^T_tR^{-1}_tA_t+\Sigma^{-1}_{t-1})^{-1}\Sigma^{-1}_{t-1}\mu_{t-1} </span></p>
-<p><span class="math display">\displaystyle  x_t = B_tu_t+(R_t+A_t\Sigma_{t-1}A_t^T)R_t^{-1}A_t(A_t^TR^{-1}_tA_t+\Sigma^{-1}_{t-1})^{-1}\Sigma^{-1}_{t-1}\mu_{t-1} \\ 
+-R^{-1}_tA_t(A^T_tR_t^{-1}A_t+\Sigma_{t-1}^{-1})^{-1}\Sigma_{t-1}^{-1}\mu_{t-1}
+</span></p>
+<p>由 <code>inversion lemma</code> 可以有化简： <span class="math display">\displaystyle 
+R^{-1}_t-R^{-1}_tA_t(A^T_tR_t^{-1}A_t+\Sigma_{t-1}^{-1})^{-1}A_t^TR_t^{-1} = (R_t+A_t\Sigma_{t-1}A_t^T)^{-1}
+</span></p>
+<p>令一阶导函数为 0： <span class="math display">\displaystyle 
+(R_t+A_t\Sigma_{t-1}A_t^T)^{-1}(x_t-B_tu_t) = R_t^{-1}A_t(A^T_tR^{-1}_tA_t+\Sigma^{-1}_{t-1})^{-1}\Sigma^{-1}_{t-1}\mu_{t-1}
+</span></p>
+<p><span class="math display">\displaystyle 
+x_t = B_tu_t+(R_t+A_t\Sigma_{t-1}A_t^T)R_t^{-1}A_t(A_t^TR^{-1}_tA_t+\Sigma^{-1}_{t-1})^{-1}\Sigma^{-1}_{t-1}\mu_{t-1} \\ 
 = B_tu_t+A_t(I+\Sigma_{t-1}A_t^TR^{-1}_tA_t)(\Sigma_{t-1}A_t^TR^{-1}_tA_t+I)^{-1}\mu_{t-1} \\
-= B_tu_t+A_t\mu_{t-1} </span></p>
+= B_tu_t+A_t\mu_{t-1}
+</span></p>
 <p>所以 <span class="math inline">\overline{bel}(x_t)</span> 的均值为 <span class="math inline">B_tu_t+A_t\mu_{t-1}</span> 。</p>
 <p>对 <span class="math inline">L_t(x_t)</span> 求二阶导数，可以得到协方差矩阵。</p>
-<p><span class="math display">\displaystyle  {\partial^2L_t(x_t) \over \partial x^2_t} = (R_t+A_t\Sigma_{t-1}A_t^T)^{-1} =: \overline{\Sigma}_t^{-1} </span></p>
+<p><span class="math display">\displaystyle 
+{\partial^2L_t(x_t) \over \partial x^2_t} = (R_t+A_t\Sigma_{t-1}A_t^T)^{-1} =: \overline{\Sigma}_t^{-1}
+</span></p>
 <h3 id="update">Update</h3>
 <p>Update 步骤在贝叶斯滤波中用公式表示是： <span class="math display">\displaystyle  bel(x_t) = \eta p(z_t|x_t)\overline{bel}(x_t) </span></p>
 <p>其中 <span class="math display">\displaystyle  p(z_t|x_t) \sim \mathcal{N}(z_t;C_tx_t,Q_t) </span> <span class="math display">\displaystyle  \overline{bel}(x_t) \sim \mathcal{N}(x_t;\overline{\mu}_t,\overline{\Sigma}_t) </span></p>
@@ -219,407 +145,21 @@ x_{t-1}=\Psi_tA_t^TR^{-1}_t(x_t-B_tu_t)+\Sigma_{t-1}^{-1}\mu_{t-1}</span></p>
 = \overline{\Sigma}_t-\overline{\Sigma}_tC^T_t(Q_t+C_t\overline{\Sigma}_tC^T_t)^{-1}C_t\overline{\Sigma}_t \\ 
 = [I - \overline{\Sigma}_tC^T_t(Q_t+C_t\overline{\Sigma}_tC^T_t)^{-1}C_t]\overline{\Sigma}_t \\ 
 = (I-K_tC_t)\overline{\Sigma}_t </span></p>
-  
-	</div>
-		<footer class="article-footer clearfix">
-<div class="article-catetags">
-
-
-  <div class="article-tags">
-  
-  <span></span> <a href="/tags/robotics/">robotics</a>
-  </div>
-
-</div>
-
-
-
-	<div class="article-share" id="share">
-	
-	  <div data-url="http://jingetu.github.io/2016/07/12/Kalman-Filter-Probabilistic-Robotics/" data-title="Kalman Filter (Probabilistic Robotics) | Jinge&#39;s Blog" data-tsina="null" class="share clearfix">
-	  </div>
-	
-	</div>
-
-
-</footer>
-
-   	       
-	</article>
-	
-<nav class="article-nav clearfix">
- 
- <div class="prev" >
- <a href="/2016/08/09/Roomba-2D-SLAM-Path-Planning/" title="Roomba (2D SLAM &amp;&amp; Path Planning)">
-  <strong>上一篇：</strong><br/>
-  <span>
-  Roomba (2D SLAM &amp;&amp; Path Planning)</span>
-</a>
-</div>
-
-
-<div class="next">
-<a href="/2016/07/12/Bayes-Filter-Probabilistic-Robotics/"  title="Bayes Filter (Probabilistic Robotics)">
- <strong>下一篇：</strong><br/> 
- <span>Bayes Filter (Probabilistic Robotics)
-</span>
-</a>
-</div>
-
-</nav>
-
-	
-
-</div>  
-      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
-
-  <div id="toc" class="toc-aside">
-  <strong class="toc-title">文章目录</strong>
- 
- <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#linear-gaussian-systems"><span class="toc-number">1.</span> <span class="toc-text">Linear Gaussian Systems</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#multivariate-normal-distribution"><span class="toc-number">1.1.</span> <span class="toc-text">Multivariate Normal Distribution</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#linear-gaussian-systems-1"><span class="toc-number">1.2.</span> <span class="toc-text">Linear Gaussian Systems</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#卡尔曼滤波流程"><span class="toc-number">2.</span> <span class="toc-text">卡尔曼滤波流程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#卡尔曼滤波数学推导"><span class="toc-number">3.</span> <span class="toc-text">卡尔曼滤波数学推导</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#prediction"><span class="toc-number">3.1.</span> <span class="toc-text">Prediction</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#update"><span class="toc-number">3.2.</span> <span class="toc-text">Update</span></a></li></ol></li></ol>
- 
-  </div>
-
-<div id="asidepart">
-<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
-<aside class="clearfix">
-
-  
-
-
-  
-
-  
-<div class="tagslist">
-	<p class="asidetitle">标签</p>
-		<ul class="clearfix">
-		
-			
-				<li><a href="/tags/leetcode/" title="leetcode">leetcode<sup>7</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/robotics/" title="robotics">robotics<sup>5</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/IMU/" title="IMU">IMU<sup>1</sup></a></li>
-			
-		
-		</ul>
-</div>
-
-
-  <div class="linkslist">
-  <p class="asidetitle">友情链接</p>
-    <ul>
-        
-          <li>
-            
-            	<a href="https://coderq.com" target="_blank" title="一个面向程序员交流分享的新一代社区">码农圈</a>
-            
-          </li>
-        
-          <li>
-            
-            	<a href="http://wuchong.me" target="_blank" title="Jark&#39;s Blog">Jark&#39;s Blog</a>
-            
-          </li>
-        
-    </ul>
-</div>
-
-  
-
-
-  <div class="rsspart">
-	<a href="/atom.xml" target="_blank" title="rss">RSS 订阅</a>
-</div>
-
-  <div class="weiboshow">
-  <p class="asidetitle">新浪微博</p>
-    <iframe width="100%" height="119" class="share_self"  frameborder="0" scrolling="no" src="http://widget.weibo.com/weiboshow/index.php?language=&width=0&height=119&fansRow=2&ptype=1&speed=0&skin=9&isTitle=1&noborder=1&isWeibo=0&isFans=0&uid=null&verifier=b3593ceb&dpc=1"></iframe>
-</div>
-
-
-</aside>
-</div>
-    </div>
-    <footer><div id="footer" >
-	
-	<div class="line">
-		<span></span>
-		<div class="author"></div>
-	</div>
-	
-	
-	<section class="info">
-		<p> Hello ,I&#39;m Larry Page in Google. <br/>
-			This is my blog,believe it or not.</p>
-	</section>
-	 
-	<div class="social-font" class="clearfix">
-		
-		<a href="http://weibo.com/2176287895" target="_blank" class="icon-weibo" title="微博"></a>
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-	</div>
-			
-		
-
-		<p class="copyright">
-		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2016 
-		
-		<a href="/about" target="_blank" title="Jinge Tu">Jinge Tu</a>
-		
-		
-		</p>
-</div>
-</footer>
-    <script src="/js/jquery-2.0.3.min.js"></script>
-<script src="/js/jquery.imagesloaded.min.js"></script>
-<script src="/js/gallery.js"></script>
-<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
-
-<script type="text/javascript">
-$(document).ready(function(){ 
-  $('.navbar').click(function(){
-    $('header nav').toggleClass('shownav');
-  });
-  var myWidth = 0;
-  function getSize(){
-    if( typeof( window.innerWidth ) == 'number' ) {
-      myWidth = window.innerWidth;
-    } else if( document.documentElement && document.documentElement.clientWidth) {
-      myWidth = document.documentElement.clientWidth;
-    };
-  };
-  var m = $('#main'),
-      a = $('#asidepart'),
-      c = $('.closeaside'),
-      o = $('.openaside');
-  c.click(function(){
-    a.addClass('fadeOut').css('display', 'none');
-    o.css('display', 'block').addClass('fadeIn');
-    m.addClass('moveMain');
-  });
-  o.click(function(){
-    o.css('display', 'none').removeClass('beforeFadeIn');
-    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
-    m.removeClass('moveMain');
-  });
-  $(window).scroll(function(){
-    o.css("top",Math.max(80,260-$(this).scrollTop()));
-  });
-  
-  $(window).resize(function(){
-    getSize(); 
-    if (myWidth >= 1024) {
-      $('header nav').removeClass('shownav');
-    }else{
-      m.removeClass('moveMain');
-      a.css('display', 'block').removeClass('fadeOut');
-      o.css('display', 'none');
-      
-      $('#toc.toc-aside').css('display', 'none');
-        
-    }
-  });
+</div></div><div class="post-main post-comment"></div></article><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.css"><script src="//cdn.bootcss.com/jquery/2.0.3/jquery.min.js"></script><script src="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.pack.js"></script><script>$(document).ready(function() {
+    $(".fancybox").fancybox();
 });
-</script>
-
-<script type="text/javascript">
-$(document).ready(function(){ 
-  var ai = $('.article-content>iframe'),
-      ae = $('.article-content>embed'),
-      t  = $('#toc'),
-      ta = $('#toc.toc-aside'),
-      o  = $('.openaside'),
-      c  = $('.closeaside');
-  if(ai.length>0){
-    ai.wrap('<div class="video-container" />');
-  };
-  if(ae.length>0){
-   ae.wrap('<div class="video-container" />');
-  };
-  c.click(function(){
-    ta.css('display', 'block').addClass('fadeIn');
-  });
-  o.click(function(){
-    ta.css('display', 'none');
-  });
-  $(window).scroll(function(){
-    ta.css("top",Math.max(140,320-$(this).scrollTop()));
-  });
-});
-</script>
-
-
-<script type="text/javascript">
-$(document).ready(function(){ 
-  var $this = $('.share'),
-      url = $this.attr('data-url'),
-      encodedUrl = encodeURIComponent(url),
-      title = $this.attr('data-title'),
-      tsina = $this.attr('data-tsina'),
-      description = $this.attr('description');
-  var html = [
-  '<div class="hoverqrcode clearfix"></div>',
-  '<a class="overlay" id="qrcode"></a>',
-  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
-  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
-  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
-  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
-  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
-  '<span title="Share to"></span>'
-  ].join('');
-  $this.append(html);
-
-  $('.hoverqrcode').hide();
-
-  var myWidth = 0;
-  function updatehoverqrcode(){
-    if( typeof( window.innerWidth ) == 'number' ) {
-      myWidth = window.innerWidth;
-    } else if( document.documentElement && document.documentElement.clientWidth) {
-      myWidth = document.documentElement.clientWidth;
-    };
-    var qrsize = myWidth > 1024 ? 200:100;
-    var options = {render: 'image', size: qrsize, fill: '#2ca6cb', text: url, radius: 0.5, quiet: 1};
-    var p = $('.article-share-qrcode').position();
-    $('.hoverqrcode').empty().css('width', qrsize).css('height', qrsize)
-                          .css('left', p.left-qrsize/2+20).css('top', p.top-qrsize-10)
-                          .qrcode(options);
-  };
-  $(window).resize(function(){
-    $('.hoverqrcode').hide();
-  });
-  $('.article-share-qrcode').click(function(){
-    updatehoverqrcode();
-    $('.hoverqrcode').toggle();
-  });
-  $('.article-share-qrcode').hover(function(){}, function(){
-      $('.hoverqrcode').hide();
-  });
-});   
-</script>
-
-
-
-
-
-
-
-
-
-<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
-<script src="/fancybox/jquery.fancybox.pack.js"></script>
-<script type="text/javascript">
-$(document).ready(function(){ 
-  $('.article-content').each(function(i){
-    $(this).find('img').each(function(){
-      if ($(this).parent().hasClass('fancybox')) return;
-      var alt = this.alt;
-      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
-      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
-    });
-    $(this).find('.fancybox').each(function(){
-      $(this).attr('rel', 'article' + i);
-    });
-  });
-  if($.fancybox){
-    $('.fancybox').fancybox();
+</script></body><script type="text/x-mathjax-config">MathJax.Hub.Config({
+  tex2jax: {
+  inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+  processEscapes: true
   }
-}); 
-</script>
-
-
-
-<!-- Analytics Begin -->
-
-
-
-<script>
-var _hmt = _hmt || [];
-(function() {
-  var hm = document.createElement("script");
-  hm.src = "//hm.baidu.com/hm.js?e6d1f421bbc9962127a50488f9ed37d1";
-  var s = document.getElementsByTagName("script")[0]; 
-  s.parentNode.insertBefore(hm, s);
-})();
-</script>
-
-
-
-<!-- Analytics End -->
-
-<!-- Totop Begin -->
-
-	<div id="totop">
-	<a title="返回顶部"><img src="/img/scrollup.png"/></a>
-	</div>
-	<script src="/js/totop.js"></script>
-
-<!-- Totop End -->
-
-<!-- MathJax Begin -->
-<!-- mathjax config similar to math.stackexchange -->
-<script type="text/x-mathjax-config">
-  MathJax.Hub.Config({
-    tex2jax: {
-      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
-      processEscapes: true
-    }
-  });
-</script>
-
-<script type="text/x-mathjax-config">
-    MathJax.Hub.Config({
-      tex2jax: {
-        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
-      }
-    });
-</script>
-
-<script type="text/x-mathjax-config">
-    MathJax.Hub.Queue(function() {
-        var all = MathJax.Hub.getAllJax(), i;
-        for(i=0; i < all.length; i += 1) {
-            all[i].SourceElement().parentNode.className += ' has-jax';
-        }
-    });
-</script>
-
-<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
-</script>
-<!-- MathJax End -->
-
-<!-- Tiny_search Begin -->
-
-<!-- Tiny_search End -->
-
-  <script type="text/x-mathjax-config">
-    MathJax.Hub.Config({
-        tex2jax: {
-            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
-            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
-            processEscapes: true
-        }
-    });
-    MathJax.Hub.Queue(function() {
-        var all = MathJax.Hub.getAllJax();
-        for (var i = 0; i < all.length; ++i)
-            all[i].SourceElement().parentNode.className += ' has-jax';
-    });
-</script>
-<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
-</body>
-</html>
+});</script><script type="text/x-mathjax-config">MathJax.Hub.Config({
+  tex2jax: {
+  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+  }
+});</script><script type="text/x-mathjax-config">MathJax.Hub.Queue(function() {
+   var all = MathJax.Hub.getAllJax(), i;
+   for(i=0; i < all.length; i += 1) {
+       all[i].SourceElement().parentNode.className += ' has-jax';
+   }
+});</script><script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script></html>
