@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://jingetu.github.io/"/>
-  <updated>2016-12-03T10:23:57.000Z</updated>
+  <updated>2016-12-24T12:12:41.000Z</updated>
   <id>http://jingetu.github.io/</id>
   
   <author>
@@ -14,6 +14,163 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>&lt;&lt;JavaScript Ninja&gt;&gt; - Notes</title>
+    <link href="http://jingetu.github.io/2016/12/24/JavaScript-Ninja-Notes/"/>
+    <id>http://jingetu.github.io/2016/12/24/JavaScript-Ninja-Notes/</id>
+    <published>2016-12-24T01:00:23.000Z</published>
+    <updated>2016-12-24T12:12:41.000Z</updated>
+    
+    <content type="html"><![CDATA[<h2 id="第-3-章-函数是根基">第 3 章 函数是根基</h2>
+<h3 id="回调函数-compare">回调函数 <code>compare()</code></h3>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">var values = [213, 16, 2058, 54, 10];</div><div class="line">values.sort(function(val1, val2) &#123;</div><div class="line">    return val2 - val1; &#125;);</div><div class="line">console.log(values);</div><div class="line">// [ 2058, 213, 54, 16, 10 ]</div></pre></td></tr></table></figure>
+<p><code>compare()</code> 已知都没有完全弄懂，看了这本书完全懂了。</p>
+<p><code>sort()</code> 按顺序将两个相邻的数放入<code>compare()</code>中，如果计算得到的结果<code>&gt;0</code>，则需要互换位置。</p>
+<h3 id="作用域">作用域</h3>
+<p><code>变量的作用域开始于声明的地方，结束于所在函数的末尾，与代码嵌套无关。</code></p>
+<p><code>命名函数的作用域是指声明该函数的整个 函数范围 ，与代码嵌套无关。</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">function() &#123;</div><div class="line">  // `function innner()`&apos;s scope starts here</div><div class="line">  var a = 1;</div><div class="line">  function inner() &#123;/*...*/&#125;</div><div class="line">  var b = 2;</div><div class="line">  if (a == 1) &#123;</div><div class="line">    var c = 3; // `var c`&apos;s scope starts here</div><div class="line">  &#125; // this </div><div class="line">  // `var c`&apos;s scope ends here</div><div class="line">  // `function innner()`&apos;s scope ends here</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="从参数到函数形式参数">从参数到函数形式参数</h3>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">function juggle(a, b) &#123;</div><div class="line">    console.log(arguments);</div><div class="line">    console.log(typeof arguments);</div><div class="line">    console.log(this);</div><div class="line">&#125;</div><div class="line"></div><div class="line">juggle(1, 2, 3);</div><div class="line">// console.log(arguments); // &#123; &apos;0&apos;: 1, &apos;1&apos;: 2, &apos;2&apos;: 3 &#125;</div></pre></td></tr></table></figure>
+<p>函数调用隐含了两个参数<code>this</code>与<code>arguments</code>，<code>this</code> 是调用此函数的上下文，<code>arguments</code>是调用此函数的参数列表（Object），不是数组。虽然也可以使用arguments[i]来获取里面的值，但是请注意JavaScript语言的特性，i 可以是 number 也可以是字符串，可以这么访问里面的数据，并不表示它是一个数组。</p>
+<p>可以传多余多余函数形参个数的参数给函数，多余的参数不会赋值给任何形参，而是保存在<code>arguments</code>中。</p>
+<h3 id="函数调用的四种方法">函数调用的四种方法</h3>
+<p>重点在函数的上下文</p>
+<blockquote>
+<ol style="list-style-type: decimal">
+<li>作为一个函数（function）进行调用，是最简单的形式。</li>
+<li>作为一个方法（method）进行调用，在对象上进行调用，支持面向对象编程。</li>
+<li>作为构造器（constructor）进行调用，创建一个新对象。</li>
+<li>通过<code>apply()</code>或<code>call()</code>方法进行调用。</li>
+</ol>
+</blockquote>
+<h4 id="作为函数调用">1. 作为函数调用</h4>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">function ninja() &#123;</div><div class="line">  console.log(this);</div><div class="line">&#125;</div><div class="line">ninja();</div></pre></td></tr></table></figure>
+<p>上下文环境<code>this</code>指向 window 对象（浏览器中）或 process 对象（nodejs中）。</p>
+<h4 id="作为方法调用">2. 作为方法调用</h4>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">var o = &#123;name: &apos;o Object&apos;&#125;;</div><div class="line">o.whatever = function() &#123;</div><div class="line">  console.log(this);</div><div class="line">&#125;</div><div class="line">o.whatever(); // &#123; name: &apos;o Object&apos;, whatever: [Function] &#125;</div></pre></td></tr></table></figure>
+<p>上下文环境<code>this</code>指向调用方法的 Object。</p>
+<h4 id="作为构造器调用">3. 作为构造器调用</h4>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">function Ninja() &#123;</div><div class="line">  this.skulk = function() &#123;return this;&#125;</div><div class="line">&#125;</div><div class="line">var ninja1 = new Ninja();</div><div class="line">console.log(ninja1.skulk() === ninja1); // true</div></pre></td></tr></table></figure>
+<p><code>在使用 new 关键字进行调用时，将会创建一个空对象实例，并作为 this 参数传递给该函数。</code></p>
+<h4 id="使用apply和call方法进行调用">4. 使用<code>apply()</code>和<code>call()</code>方法进行调用</h4>
+<p>明确指明上下文环境<code>this</code>。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">function juggle() &#123;</div><div class="line">  console.log(arguments);</div><div class="line">  console.log(this);</div><div class="line">&#125;</div><div class="line"></div><div class="line">var ninja1 = &#123;name: &apos;ninja1&apos;&#125;;</div><div class="line">var ninja2 = &#123;name: &apos;ninja2&apos;&#125;;</div><div class="line"></div><div class="line">juggle.apply(ninja1, [1,2,3]); // ninja1是上下文环境，[1,2,3]是参数数组（可以不同类型，如[1,2,&apos;3&apos;]）</div><div class="line">// &#123; &apos;0&apos;: 1, &apos;1&apos;: 2, &apos;2&apos;: 3 &#125;</div><div class="line">// &#123; name: &apos;ninja1&apos; &#125;</div><div class="line">juggle.apply(ninja2, 1, 2, 3); // ninja2是上下文环境，后面是参数列表，不是以数组形式传递</div><div class="line">// &#123; &apos;0&apos;: 1, &apos;1&apos;: 2, &apos;2&apos;: 3 &#125;</div><div class="line">// &#123; name: &apos;ninja2&apos; &#125;</div></pre></td></tr></table></figure>
+<h2 id="第-4-章-挥舞函数">第 4 章 挥舞函数</h2>
+<h3 id="递归">递归</h3>
+<p>回文： 1. 字符串为空，或者只有一个字符，是回文； 2. 字符串首尾字符相等，并且去除首尾字符后的子串是回文，则该字符串是回文。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">function isPalindrome(text) &#123;</div><div class="line">    if (text.length &lt;= 1) return true;</div><div class="line">    else if (text.charAt(0) != text.charAt(text.length - 1)) return false;</div><div class="line">    return isPalindrome(text.substring(1, text.length - 1));</div><div class="line">    // return isPalindrome(text.substr(1, text.length - 2));</div><div class="line">&#125;</div><div class="line"></div><div class="line">var text = &quot;abccba&quot;;</div><div class="line">console.log(&quot;&apos;&quot; + text + &quot;&apos; is palindrome? &quot; + isPalindrome(text));</div><div class="line">// &apos;abccba&apos; is palindrome? true</div><div class="line">text = &quot;abbb&quot;;</div><div class="line">console.log(&quot;&apos;&quot; + text + &quot;&apos; is palindrome? &quot; + isPalindrome(text));</div><div class="line">// &apos;abbb&apos; is palindrome? false</div></pre></td></tr></table></figure>
+<p><code>String</code>有两个函数能够得到子串，<code>substring(from, to)</code>，<code>substr(start, length)</code>，注意第二个参数含义的不同。</p>
+<h3 id="自记忆函数">自记忆函数</h3>
+<p>函数也是一个 Object，可以将一些函数计算的结果存储在函数 Object 中，方便以后的使用。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line">function isPrime(value) &#123;</div><div class="line">  if (!isPrime.answers) isPrime.answers = &#123;&#125;;</div><div class="line">  if (isPrime.answers[value] != null) &#123;</div><div class="line">    return isPrime.answers[values];</div><div class="line">  &#125;</div><div class="line">  var prime = value != 1;</div><div class="line">  for (var i = 2; i &lt; value; ++i) &#123;</div><div class="line">    if (value % i == 0) &#123;</div><div class="line">      prime = false;</div><div class="line">      break;</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line">  return isPrime.answers[value] = prime;</div><div class="line">&#125;</div><div class="line"></div><div class="line">console.log(&apos;2 is Prime? &apos; + isPrime(2));</div><div class="line">// 2 is Prime? true</div><div class="line">console.log(&apos;3 is Prime? &apos; + isPrime(3));</div><div class="line">// 3 is Prime? true</div><div class="line">console.log(&apos;4 is Prime? &apos; + isPrime(4));</div><div class="line">// 4 is Prime? false</div><div class="line">console.log(isPrime);</div><div class="line">// &#123; [Function: isPrime] answers: &#123; &apos;2&apos;: true, &apos;3&apos;: true, &apos;4&apos;: false &#125; &#125;</div></pre></td></tr></table></figure>
+<h3 id="伪造数组方法">伪造数组方法</h3>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line">&lt;body&gt;</div><div class="line">    &lt;input id=&quot;first&quot;&gt;&lt;/input&gt;</div><div class="line">    &lt;input id=&quot;second&quot;&gt;&lt;/input&gt;</div><div class="line">    &lt;script type=&quot;text/javascript&quot;&gt;</div><div class="line">    function assert(value, desc) &#123;</div><div class="line">        var li = document.createElement(&quot;li&quot;);</div><div class="line">        li.className = value ? &quot;pass&quot; : &quot;fail&quot;;</div><div class="line">        li.appendChild(document.createTextNode(desc));</div><div class="line">        document.getElementById(&quot;results&quot;).appendChild(li);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    window.onload = function() &#123;</div><div class="line">      var elems = &#123;</div><div class="line">        length: 0,</div><div class="line">        add: function(elem) &#123; // 当前的应用不会在外部调用add函数，相当于私有函数。</div><div class="line">          Array.prototype.push.call(this, elem);</div><div class="line">          // 将 elems 自生作为上下文环境调用Array的push函数，Array的push函数能够给length自增1。</div><div class="line">        &#125;,</div><div class="line">        gather: function(id) &#123;</div><div class="line">          this.add(document.getElementById(id));</div><div class="line">        &#125;</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      elems.gather(&quot;first&quot;);</div><div class="line">      elems.gather(&quot;second&quot;);</div><div class="line">      console.log(elems);</div><div class="line">    &#125;</div><div class="line">    &lt;/script&gt;</div><div class="line">&lt;/body&gt;</div></pre></td></tr></table></figure>
+<h3 id="可变长度的参数列表">可变长度的参数列表</h3>
+<p>JavaScript 没有函数重载，可以回想一下 C++ 的函数重载方式。</p>
+<p>JavaScript 的函数 signature 不存在形参的类型、返回值类型，如果能够重载也只是重载形参的个数。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div></pre></td><td class="code"><pre><div class="line">// object 上添加名字为 name 的函数 fn。</div><div class="line">function addMethod(object, name, fn) &#123;</div><div class="line">// 考虑到 object 中有可能存在名字相同的函数，将其进行保存，定义规则保证在参数个数不同的情况下可以执行 fn 与已经存在的函数。</div><div class="line">  var old = object[name];</div><div class="line">  // 重新定义 object 名为 name 的属性，其为一个函数</div><div class="line">  object[name] = function() &#123;</div><div class="line">  // 传入参数的个数与 fn 的形参个数相同，则调用 fn</div><div class="line">    if (fn.length == arguments.length) &#123;</div><div class="line">      return fn.apply(this, arguments);</div><div class="line">  // 否则调用 old。</div><div class="line">    &#125; else if (typeof old == &apos;function&apos;)&#123;</div><div class="line">      return old.apply(this, arguments);</div><div class="line">    &#125;</div><div class="line">  &#125;;</div><div class="line">&#125;</div><div class="line"></div><div class="line">var ninjas = &#123; values: [&apos;Dean Edwards&apos;, &apos;Sam Stephenson&apos;, &apos;Alex Russell&apos;] &#125;;</div><div class="line"></div><div class="line">addMethod(ninjas, &apos;find&apos;, function() &#123;</div><div class="line">  return this.values;</div><div class="line">&#125;);</div><div class="line"></div><div class="line">addMethod(ninjas, &apos;find&apos;, function(name) &#123;</div><div class="line">  var ret = [];</div><div class="line">  for (var i = 0; i &lt; this.values.length; ++i)</div><div class="line">    if (this.values[i].indexOf(name) == 0)</div><div class="line">      ret.push(this.values[i]);</div><div class="line">  return ret;</div><div class="line">&#125;);</div><div class="line"></div><div class="line">addMethod(ninjas, &apos;find&apos;, function(first, last) &#123;</div><div class="line">  var ret = [];</div><div class="line">  for (var i = 0; i &lt; this.values.length; ++i)</div><div class="line">    if (this.values[i] == (first + &quot; &quot; + last))</div><div class="line">      ret.push(this.values[i]);</div><div class="line">  return ret;</div><div class="line">&#125;);</div><div class="line"></div><div class="line">console.log(ninjas.find(&apos;Dean&apos;, &apos;Edwards&apos;));</div><div class="line"></div><div class="line">console.log(ninjas.find(&apos;Dean&apos;));</div><div class="line"></div><div class="line">console.log(ninjas.find());</div></pre></td></tr></table></figure>
+<h2 id="第-5-章-闭包">第 5 章 闭包</h2>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">var outValue = &apos;ninja&apos;;</div><div class="line"></div><div class="line">var later;</div><div class="line"></div><div class="line">function outerFunction() &#123;</div><div class="line">  var innerValue = &apos;samurai&apos;;</div><div class="line"></div><div class="line">  function innerFunction() &#123;</div><div class="line">    console.log(&apos;outValue exists? &apos; + (typeof outValue !== undefined));</div><div class="line">    console.log(&apos;innerValue exists? &apos; + (typeof innerValue !== undefined));</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  later = innerFunction;</div><div class="line">&#125;</div><div class="line"></div><div class="line">outerFunction();</div><div class="line"></div><div class="line">later();</div></pre></td></tr></table></figure>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;第-3-章-函数是根基&quot;&gt;第 3 章 函数是根基&lt;/h2&gt;
+&lt;h3 id=&quot;回调函数-compare&quot;&gt;回调函数 &lt;code&gt;compare()&lt;/code&gt;&lt;/h3&gt;
+&lt;figure class=&quot;highlight plain&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td 
+    
+    </summary>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>Java Concurrency</title>
+    <link href="http://jingetu.github.io/2016/12/05/Java-Concurrency/"/>
+    <id>http://jingetu.github.io/2016/12/05/Java-Concurrency/</id>
+    <published>2016-12-05T08:50:31.000Z</published>
+    <updated>2016-12-08T04:42:41.000Z</updated>
+    
+    <content type="html"><![CDATA[<h2 id="concurrency-models">4. Concurrency Models</h2>
+<p>三种模式：</p>
+<ol style="list-style-type: decimal">
+<li><p>Parallel Workers</p>
+<p>任务分发的模式。</p>
+<div class="figure">
+<img src="http://tutorials.jenkov.com/images/java-concurrency/concurrency-models-1.png" alt="">
+
+</div>
+<p>优点：易于理解。<br>
+缺点：Workers 是无状态的，不同的任务之间协同工作需要有状态信息，不同的 Workers 之间通过读取共享内存进行状态信息的获取。</p></li>
+<li><p>Assembly Line</p>
+<div class="figure">
+<img src="http://tutorials.jenkov.com/images/java-concurrency/concurrency-models-4.png" alt="">
+
+</div>
+<div class="figure">
+<img src="http://tutorials.jenkov.com/images/java-concurrency/concurrency-models-6.png" alt="">
+
+</div>
+<p>事件驱动的模式，Worker 在需要进行 IO 操作时释放 CPU，在 IO 操作完成之后有 Worker 接手剩余的操作。</p>
+<p>具体可以分为两种类型 Actor 和 Channel。</p>
+<div class="figure">
+<img src="http://tutorials.jenkov.com/images/java-concurrency/concurrency-models-7.png" alt="">
+
+</div>
+<p>在 Acotr 模式下，Worker 被称作是 Actor，Actor 之间可以直接进行通信。</p>
+<div class="figure">
+<img src="http://tutorials.jenkov.com/images/java-concurrency/concurrency-models-8.png" alt="">
+
+</div>
+<p>Channel 模式类似于广播者与收听者模式，Worker 通过发布信息在 Channel 上，或者订阅 Channel 的信息，实现协同工作。</p>
+<p>优点：所有的 Worker 都认为自己是这项任务中唯一的 Worker，所以没有共享状态的问题。 缺点：很难弄清楚是哪一个 Worker 执行了这一部分的代码；一般通过回调函数（Callback Functions）实现任务的转发，很容易出现嵌套很深的回调函数，这一点被称作是 Callback Hell。</p></li>
+<li><p>Functional Parallelism</p>
+<p>通过函数调用的形式，函数调用使得不同部分的流程可以由不同的 CPU 处理。</p></li>
+</ol>
+<h2 id="same-threading">5. Same-Threading</h2>
+<p>一个 CPU 中一直都只有一个 Thread 在运行。</p>
+<div class="figure">
+<img src="http://tutorials.jenkov.com/images/java-concurrency/same-threading-3.png" alt="">
+
+</div>
+<p>Thread 之间通过 msg 通信。</p>
+<h2 id="concurrency-vs.parallelism">6. Concurrency vs. Parallelism</h2>
+<div class="figure">
+<img src="http://tutorials.jenkov.com/images/java-concurrency/concurrency-vs-parallelism-1.png" alt="">
+
+</div>
+<div class="figure">
+<img src="http://tutorials.jenkov.com/images/java-concurrency/concurrency-vs-parallelism-2.png" alt="">
+
+</div>
+<p>Concurrency 是多个任务同时执行，而 Parallelism 是一个任务分解成多个子任务执行。Parallelism 要在多个 CPU 将多个子任务都执行完了才算是完成。</p>
+<h2 id="creating-and-starting-java-threads">7. Creating and Starting Java Threads</h2>
+<p>两种方式开启新的线程： 1. 生成 Thread 的子类。 2. 使用 Runnable。</p>
+<h2 id="race-conditions-and-critical-sections">8. Race Conditions and Critical Sections</h2>
+<p>Critical Section: 是指一块代码段，代码段被多个线程执行，线程执行的顺序不同，最终的结果也不同。</p>
+<p>Race Condition: 当多个线程，同时执行一个 Critical Section 时， Race Condition 就形成了。</p>
+<p>应防止 Critical Section 过大，当 Critical Section 比较大时应切分成小块，以缩减线程的空闲时间。</p>
+<h2 id="readwrite-locks-in-java">22. Read/Write Locks in Java</h2>
+<p>读写权限授予的原则： 1. 读权限：没有其他线程正在拥有写权限，也没有其他线程已经申请了写权限并且正在等待； 2. 写权限：没有其他线程正在拥有写权限或读权限。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div></pre></td><td class="code"><pre><div class="line">public class ReadWriteLock&#123;</div><div class="line"></div><div class="line">  private int readers       = 0; // 现在具有读权限的线程数量</div><div class="line">  private int writers       = 0; // 现在具有写权限的线程数量</div><div class="line">  private int writeRequests = 0; // 现在等待被授予写权限的线程数量</div><div class="line"></div><div class="line">  public synchronized void lockRead() throws InterruptedException&#123;</div><div class="line">    while(writers &gt; 0 || writeRequests &gt; 0)&#123;</div><div class="line">    // 若是现在有线程正在拥有写权限，或现在有线程正在等待被授予写权限，等待</div><div class="line">      wait();</div><div class="line">    &#125;</div><div class="line">    readers++; // 获得读权限，具有读权限的线程数量加1</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  public synchronized void unlockRead()&#123;</div><div class="line">    readers--; // 释放读权限，具有读权限的线程数量减1</div><div class="line">    notifyAll();</div><div class="line">    // 通知所有正在等待的线程，让它们检查自己是否可以获得所需权限</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  public synchronized void lockWrite() throws InterruptedException&#123;</div><div class="line">    writeRequests++;</div><div class="line">    // 因为不一定能直接获得写权限，而写权限的等待需要让其他所有的线程都知道，</div><div class="line">    // 以保证尽快获得写权限，所以需要使用 writeRequests。</div><div class="line"></div><div class="line">    while(readers &gt; 0 || writers &gt; 0)&#123;</div><div class="line">    // 写权限需要在其他任何线程不具有任何权限的情况下获得</div><div class="line">      wait();</div><div class="line">    &#125;</div><div class="line">    writeRequests--;</div><div class="line">    writers++;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  public synchronized void unlockWrite() throws InterruptedException&#123;</div><div class="line">    writers--;</div><div class="line">    notifyAll();</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;concurrency-models&quot;&gt;4. Concurrency Models&lt;/h2&gt;
+&lt;p&gt;三种模式：&lt;/p&gt;
+&lt;ol style=&quot;list-style-type: decimal&quot;&gt;
+&lt;li&gt;&lt;p&gt;Parallel Workers&lt;/p&gt;
+&lt;p&gt;任务分
+    
+    </summary>
+    
+    
+      <category term="Coding" scheme="http://jingetu.github.io/tags/Coding/"/>
+    
+  </entry>
   
   <entry>
     <title>cartographer_ros into IDE Debug</title>
@@ -320,7 +477,7 @@
     <link href="http://jingetu.github.io/2016/07/12/Kalman-Filter-Probabilistic-Robotics/"/>
     <id>http://jingetu.github.io/2016/07/12/Kalman-Filter-Probabilistic-Robotics/</id>
     <published>2016-07-12T13:57:13.000Z</published>
-    <updated>2016-12-04T03:44:32.000Z</updated>
+    <updated>2016-12-04T06:56:07.000Z</updated>
     
     <content type="html"><![CDATA[<p>本文是阅读 《Probabilistic Robotics》 Chapter3 Gaussian Filters 的笔记。</p>
 <p>卡尔曼滤波可以看作是贝叶斯滤波在高斯分布下的特例。因为是高斯分布，所以卡尔曼滤波对应的状态值是连续的，而不是离散的。</p>
@@ -328,28 +485,37 @@
 <h2 id="linear-gaussian-systems">Linear Gaussian Systems</h2>
 <h3 id="multivariate-normal-distribution">Multivariate Normal Distribution</h3>
 <p>多元正态分布，多元正态分布可以使用以下公式表示：</p>
-<p><span class="math display">  \begin{equation} p(x) = det(2\pi\Sigma)^{- {1 \over 2}} exp\{-{1 \over 2}(x-\mu)^T\Sigma^{-1}(x-\mu)\} \label{eq: multivariate_normal_distribution}\end{equation} </span></p>
+<p><span class="math display">\displaystyle  \begin{equation} p(x) = det(2\pi\Sigma)^{- {1 \over 2}} exp\{-{1 \over 2}(x-\mu)^T\Sigma^{-1}(x-\mu)\} \label{eq: multivariate_normal_distribution}\end{equation} </span></p>
 <p>此分布由两个参数决定，均值 <span class="math inline">\mu</span> 和协方差矩阵 <span class="math inline">\Sigma</span> 。均值 <span class="math inline">\mu</span> 是一个与状态值 <span class="math inline">x</span> 具有相同维度的列向量。协方差矩阵 <span class="math inline">\Sigma</span> 是一个二次型矩阵(Quadratic Matrix)，具有对称和半正定(positive-semidefinite)的特点，维度也与状态值 <span class="math inline">x</span> 的维度相同。</p>
 <h3 id="linear-gaussian-systems-1">Linear Gaussian Systems</h3>
 <p>卡尔曼滤波使用 <span class="math inline">t</span> 时刻的均值 <span class="math inline">\mu_t</span> 和协方差矩阵 <span class="math inline">\Sigma_t</span> 表示 <span class="math inline">t</span> 时刻的 <code>belief</code>。</p>
 <p>为了保证后验概率和已知的控制值 <span class="math inline">z</span> 、测量值 <span class="math inline">u</span> 具有一致的概率分布，即高斯分布。在贝叶斯滤波的马尔科夫假设之外，还需要满足三个条件：</p>
 <ol style="list-style-type: decimal">
-<li>状态值是这些参数的线性函数与高斯噪声的和。用等式表示为： <span class="math display">  \begin{equation} x_t = A_tx_{t-1} + B_tu_t + \varepsilon_t \label{eq: state_transition}\end{equation} </span> 其中 <span class="math inline">x_t</span>, <span class="math inline">x_{t-1}</span> 是状态值向量，维度为 n，<span class="math inline">u_t</span> 是控制值向量，维度为 m，即</li>
+<li>状态值是这些参数的线性函数与高斯噪声的和。用等式表示为： <span class="math display">\displaystyle  \begin{equation} x_t = A_tx_{t-1} + B_tu_t + \varepsilon_t \label{eq: state_transition}\end{equation} </span> 其中 <span class="math inline">x_t</span>, <span class="math inline">x_{t-1}</span> 是状态值向量，维度为 n，<span class="math inline">u_t</span> 是控制值向量，维度为 m，即</li>
 </ol>
-<p><span class="math display"> 
+<p><span class="math display">\displaystyle  \begin{equation}
 x_t = \left[\begin{matrix} x_{1,t} \\ x_{2,t} \\ \vdots \\ x_{n,t}\end{matrix}\right] 
-</span></p>
-<p><span class="math display"> 
+\end{equation} </span></p>
+<p><span class="math display">\displaystyle  \begin{equation}
 u_t = \left[\begin{matrix} u_{1,t} \\ u_{2,t} \\ \vdots \\ u_{m,t}\end{matrix}\right]
-</span></p>
+\end{equation} </span></p>
 <p><span class="math inline">A_t</span> 和 <span class="math inline">B_t</span> 是矩阵，<span class="math inline">A_t</span> 是一个大小为 n x n 的方阵，<span class="math inline">B_t</span> 是一个大小为 n x m 的矩阵。</p>
 <p><span class="math inline">\varepsilon_t</span> 是表示状态值 <span class="math inline">x_t</span> 随机性的随机变量，是一个具有和状态值一样维度 n 的向量。其均值为 0，协方差矩阵用 <span class="math inline">R_t</span> 表示，<span class="math inline">R_t</span> 的大小为 n x n。</p>
 <p>将公式  代入公式 ，可以得到状态值转变后概率分布 <span class="math inline">p(x_t|u_t,x_{t-1})</span> 的定义 ，这个后验概率分布依旧是高斯概率分布，可以使用均值 <span class="math inline">A_tx_{t-1} + B_tu_t</span> 和协方差矩阵 <span class="math inline">R_t</span> 表示。</p>
-<p><span class="math display">  \begin{equation} p(x_t|u_t,x_{t-1}) = det(2\pi R_t)^{-{1 \over 2}}exp\{ -{1\over2}(x_t - A_tx_{t-1} - B_tu_t)^T R^{-1}_t (x_t - A_tx_{t-1} - B_tu_t) \} \label{eq: state_probability} \end{equation} </span> 2. 测量值也是这些参数的线性函数与高斯噪声的和。用公式表示为： <span class="math display">  z_t = C_tx_t + \delta_t </span></p>
+<p><span class="math display">\displaystyle  \begin{equation}
+p(x_t|u_t,x_{t-1}) = det(2\pi R_t)^{-{1 \over 2}}exp\{ -{1\over2}(x_t - A_tx_{t-1} - B_tu_t)^T R^{-1}_t (x_t - A_tx_{t-1} - B_tu_t) \} \label{eq: state_probability}
+\end{equation} </span></p>
+<ol start="2" style="list-style-type: decimal">
+<li>测量值也是这些参数的线性函数与高斯噪声的和。用公式表示为： <span class="math display">\displaystyle  z_t = C_tx_t + \delta_t </span></li>
+</ol>
 <p>$ z_t $ 是测量值向量，维度为 k 。<span class="math inline">C_t</span> 的大小为 k x n。$ _t $ 描述测量值噪声，服从高斯分布，均值为 0，协方差矩阵用 <span class="math inline">Q_t</span> 表示。</p>
 <p>测量值 $ z_t $ 在已知状态值 <span class="math inline">x_t</span> 的条件下的概率分布 $ p(z_t|x_t) $ 为：</p>
-<p><span class="math display">  p(z_t|x_t) = det(2\pi Q_t)^{-{1 \over 2}}exp\{ -{1 \over 2}(z_t-C_tx_t)^TQ_t^{-1}(z_t-C_tx_t) \} </span> 3. <code>belief</code> 的初始值 <span class="math inline">bel(x_0)</span> 也需要正态分布。这个正态分布使用 <span class="math inline">\mu_0</span> 和 <span class="math inline">\Sigma_0</span> 表示：</p>
-<p><span class="math display">  bel(x_0) = p(x_0) = det(2\pi\Sigma_0)^{-{1 \over 2}}exp\{ -{1 \over 2}(x_0-\mu_0)^T\Sigma^{-1}_0(x_0-\mu_0) \} </span></p>
+<p><span class="math display">\displaystyle  p(z_t|x_t) = det(2\pi Q_t)^{-{1 \over 2}}exp\{ -{1 \over 2}(z_t-C_tx_t)^TQ_t^{-1}(z_t-C_tx_t) \} </span> 3. <code>belief</code> 的初始值 <span class="math inline">bel(x_0)</span> 也需要正态分布。这个正态分布使用 <span class="math inline">\mu_0</span> 和 <span class="math inline">\Sigma_0</span> 表示：</p>
+<p><span class="math display">\displaystyle 
+\begin{equation}
+bel(x_0) = p(x_0) = det(2\pi\Sigma_0)^{-{1 \over 2}}exp\{ -{1 \over 2}(x_0-\mu_0)^T\Sigma^{-1}_0(x_0-\mu_0) \}
+\end{equation}
+</span></p>
 <h2 id="卡尔曼滤波流程">卡尔曼滤波流程</h2>
 <blockquote>
 <p>Algorithm Kalman_filter(<span class="math inline">\mu_{t-1}</span>, <span class="math inline">\Sigma_{t-1}</span>, <span class="math inline">u_t</span>, <span class="math inline">z_t</span>): <span class="math inline">\overline{\mu}_t = A_t\mu_{t-1} +B_tu_t</span> <span class="math inline">\overline{\Sigma}_t = A_t\Sigma_{t-1}A_t^T + R_t</span> <span class="math inline">K_t = \overline{\Sigma}_tC_t^T(C_t\overline{\Sigma}_tC_t^T+Q_t)^{-1}</span> <span class="math inline">\mu_t = \overline{\mu}_t + K_t(z_t-C_t\overline{\mu}_t)</span> <span class="math inline">\Sigma_t = (I-K_tC_t)\overline{\Sigma}_t</span> ​ return <span class="math inline">\mu_t</span>, <span class="math inline">\Sigma_t</span></p>
@@ -369,95 +535,95 @@ u_t = \left[\begin{matrix} u_{1,t} \\ u_{2,t} \\ \vdots \\ u_{m,t}\end{matrix}\r
 <p>卡尔曼滤波数据推导的基础是贝叶斯滤波，整个流程是将贝叶斯滤波当中对 <span class="math inline">\overline{bel}(x_t)</span> 和 <span class="math inline">bel(x_t)</span> 的计算应用到高斯分布的特例中。</p>
 <h3 id="prediction">Prediction</h3>
 <p>Prediction 步骤在贝叶斯滤波中用公式表示是：</p>
-<p><span class="math display"> \begin{equation} \overline{bel}(x_t) = \int p(x_t|u_t, x_{t-1})bel(x_{t-1})\text{d}x_{t-1} \label{eq: bayes_prediction}\end{equation}</span></p>
+<p><span class="math display">\displaystyle \begin{equation} \overline{bel}(x_t) = \int p(x_t|u_t, x_{t-1})bel(x_{t-1})\text{d}x_{t-1} \label{eq: bayes_prediction}\end{equation}</span></p>
 <p>公式中的 <span class="math inline">p(x_t|u_t, x_{t-1})</span> 和 <span class="math inline">bel(x_{t-1})</span> 服从正态分布：</p>
-<p><span class="math display"> p(x_t|u_t, x_{t-1}) \sim \mathcal{N}(x_t;A_tx_{t-1}+B_tu_t, R_t)</span> <span class="math display"> bel(x_{t-1}) \sim \mathcal{N}(x_{t-1};\mu_{t-1}, \Sigma_{t-1})</span></p>
+<p><span class="math display">\displaystyle p(x_t|u_t, x_{t-1}) \sim \mathcal{N}(x_t;A_tx_{t-1}+B_tu_t, R_t)</span> <span class="math display">\displaystyle bel(x_{t-1}) \sim \mathcal{N}(x_{t-1};\mu_{t-1}, \Sigma_{t-1})</span></p>
 <p>所以公式  可以进一步写成：</p>
-<p><span class="math display">  \overline{bel}(x_t) = \eta\int exp\{ -{1 \over 2}(x_t-A_tx_{t-1}-B_tu_t)^TR_t^{-1}(x_t-A_tx_{t-1}-B_tu_t) \} \\ exp\{ -{1 \over 2}(x_{t-1}-\mu_{t-1})^T\Sigma_{t-1}^{-1}(x_{t-1}-\mu_{t-1}) \} \text{d}x_{t-1} \\ = \eta \int exp(-L_t) \text{d}x_{t-1} </span></p>
-<p>其中 <span class="math display">  \eta = det(2\pi R_t)^{-{1 \over 2}}det(2_\pi \Sigma_{t-1})^{-{1 \over 2}} </span> <span class="math display">  L_t = {1 \over 2}(x_t - A_tx_{t-1} - B_tu_t)^TR_t^{-1}(x_t - A_tx_{t-1} - B_tu_t) + {1 \over 2}(x_{t-1}-\mu_{t-1})^T\Sigma_{t-1}^{-1}(x_{t-1}-\mu_{t-1}) </span></p>
-<p>因为 <span class="math inline">\overline{bel}(x_t)</span> 表示的是一个概率分布，具有和为 1 的条件，在计算的最后需要进行单位化处理，现在 <span class="math inline">\eta</span> 的值并不重要。后面的积分项，是对 <span class="math inline">x_{t-1}</span> 求积分，所以可以将 <span class="math inline">L_t</span> 分解成含有 <span class="math inline">x_{t-1}</span> 的项和不含有 <span class="math inline">x_{t-1}</span> 的项，因为 <span class="math inline">x_{t-1}</span> 所在的位置是 e 指数，所以可以将 <span class="math inline">L_t</span> 分解成这个两项的和即 <span class="math inline">L_t = L_t(x_{t-1}, x_t) + L_t(x_t)</span> ，将不含有 <span class="math inline">x_{t-1}</span> 的项作为因子分解出去，用公式表示如下： <span class="math display">  \overline{bel}(x_t) = \eta\int exp(-L_t) \text{d}x_{t-1} \\ = \eta\int exp\{ -L_t(x_{t-1}, x_t) - L_t(x_t) \} \text{d}x_{t-1} \\ = \eta exp\{ -L_t(x_t) \}\int exp\{ -L_t(x_{t-1}, x_t) \}\text{d}x_{t-1} \\ = \eta exp\{ -L_t(x_t) \} </span></p>
+<p><span class="math display">\displaystyle  \overline{bel}(x_t) = \eta\int exp\{ -{1 \over 2}(x_t-A_tx_{t-1}-B_tu_t)^TR_t^{-1}(x_t-A_tx_{t-1}-B_tu_t) \} \\ exp\{ -{1 \over 2}(x_{t-1}-\mu_{t-1})^T\Sigma_{t-1}^{-1}(x_{t-1}-\mu_{t-1}) \} \text{d}x_{t-1} \\ = \eta \int exp(-L_t) \text{d}x_{t-1} </span></p>
+<p>其中 <span class="math display">\displaystyle  \eta = det(2\pi R_t)^{-{1 \over 2}}det(2_\pi \Sigma_{t-1})^{-{1 \over 2}} </span> <span class="math display">\displaystyle  L_t = {1 \over 2}(x_t - A_tx_{t-1} - B_tu_t)^TR_t^{-1}(x_t - A_tx_{t-1} - B_tu_t) + {1 \over 2}(x_{t-1}-\mu_{t-1})^T\Sigma_{t-1}^{-1}(x_{t-1}-\mu_{t-1}) </span></p>
+<p>因为 <span class="math inline">\overline{bel}(x_t)</span> 表示的是一个概率分布，具有和为 1 的条件，在计算的最后需要进行单位化处理，现在 <span class="math inline">\eta</span> 的值并不重要。后面的积分项，是对 <span class="math inline">x_{t-1}</span> 求积分，所以可以将 <span class="math inline">L_t</span> 分解成含有 <span class="math inline">x_{t-1}</span> 的项和不含有 <span class="math inline">x_{t-1}</span> 的项，因为 <span class="math inline">x_{t-1}</span> 所在的位置是 e 指数，所以可以将 <span class="math inline">L_t</span> 分解成这个两项的和即 <span class="math inline">L_t = L_t(x_{t-1}, x_t) + L_t(x_t)</span> ，将不含有 <span class="math inline">x_{t-1}</span> 的项作为因子分解出去，用公式表示如下： <span class="math display">\displaystyle  \overline{bel}(x_t) = \eta\int exp(-L_t) \text{d}x_{t-1} \\ = \eta\int exp\{ -L_t(x_{t-1}, x_t) - L_t(x_t) \} \text{d}x_{t-1} \\ = \eta exp\{ -L_t(x_t) \}\int exp\{ -L_t(x_{t-1}, x_t) \}\text{d}x_{t-1} \\ = \eta exp\{ -L_t(x_t) \} </span></p>
 <p>在上式中最后一个 <span class="math inline">\eta</span> 和前面的 <span class="math inline">\eta</span> 并不相同。如果我们可以将 <span class="math inline">\overline{bel}(x_t)</span> 写成这种形式，那么 Prediction 阶段 <span class="math inline">x_t</span> 的概率分布可以由 <span class="math inline">exp\{ -L_t(x_t) \}</span> 决定。当然其中还需要由一个要求，即 <span class="math inline">\int exp\{ -L_t(x_{t-1}, x_t) \}\text{d}x_{t-1}</span> 与 <span class="math inline">x_t</span> 无关，在积分之后是有可能与 <span class="math inline">x_t</span> 无关。</p>
 <p>现在的目标就是寻找一个 <span class="math inline">L_t(x_{t-1}, x_t)</span> 使得积分项中不含有 <span class="math inline">x_t</span>。如果将 <span class="math inline">L_t</span> 看作是关于 <span class="math inline">x_{t-1}</span> 的一元函数，那么 <span class="math inline">L_t</span> 就是 <span class="math inline">x_{t-1}</span> 的二次型。</p>
-<p>我们来看看一元二次多项式的分解： <span class="math display">  
+<p>我们来看看一元二次多项式的分解： <span class="math display">\displaystyle  
 y = ax^2+bx+c = a(x+{b \over 2a})^2 + (c-{b^2 \over 4a}) 
 </span></p>
 <p><span class="math inline">L_t(x_{t-1}, x_t)</span> 可以看作是 <span class="math inline">a(x+{b \over 2a})^2</span> 项，<span class="math inline">L_t(x_t)</span> 可以看作是 <span class="math inline">(c-{b^2 \over 4a})</span> 项。</p>
-<p>对 <span class="math inline">L_t</span> 求一阶导函数和二阶导函数，可以得到： <span class="math display"> 
-{ \partial L_t \over \partial x_{t-1} } = -{1 \over 2}A^TR_t^{-1}(x_t-A_tx_{t-1}-B_tu_t)+{1 \over 2}\Sigma^{-1}_{t-1}(x_{t-1}-\mu_{t-1}) </span> <span class="math display">  { \partial^2 L_t \over \partial x_{t-1}^2} = {1 \over 2}A^T_tR^{-1}_tA_t + {1 \over 2}\Sigma^{-1}_{t-1} =: \Psi^{-1}_t
+<p>对 <span class="math inline">L_t</span> 求一阶导函数和二阶导函数，可以得到： <span class="math display">\displaystyle 
+{ \partial L_t \over \partial x_{t-1} } = -{1 \over 2}A^TR_t^{-1}(x_t-A_tx_{t-1}-B_tu_t)+{1 \over 2}\Sigma^{-1}_{t-1}(x_{t-1}-\mu_{t-1}) </span> <span class="math display">\displaystyle  { \partial^2 L_t \over \partial x_{t-1}^2} = {1 \over 2}A^T_tR^{-1}_tA_t + {1 \over 2}\Sigma^{-1}_{t-1} =: \Psi^{-1}_t
 </span></p>
 <p>其中 <span class="math inline">\Psi_t</span> 表示 <span class="math inline">L_t(x_{t-1}, x_t)</span> 的曲率（curvature）。现在令 <span class="math inline">{ \partial L_t \over \partial x_{t-1} }</span> 等于0：</p>
-<p><span class="math display"> 
+<p><span class="math display">\displaystyle 
 A_t^TR^{-1}_t(x_t-A_tx_{t-1}-B_tu_t)=\Sigma_{t-1}^{-1}(x_{t-1}-\mu_{t-1}) \\ 
 A_t^TR^{-1}_tA_tx_{t-1}+\Sigma^{-1}_{t-1}x_{t-1}=A_t^TR^{-1}_t(x_t-B_tu_t)+\Sigma_{t-1}^{-1}\mu_{t-1} \\ 
 (A_t^TR^{-1}_tA_t+\Sigma^{-1}_{t-1})x_{t-1}=A_t^TR^{-1}_t(x_t-B_tu_t)+\Sigma_{t-1}^{-1}\mu_{t-1} \\ 
 \Psi^{-1}_tx_{t-1}=A_t^TR^{-1}_t(x_t-B_tu_t)+\Sigma_{t-1}^{-1}\mu_{t-1} \\ 
 x_{t-1}=\Psi_tA_t^TR^{-1}_t(x_t-B_tu_t)+\Sigma_{t-1}^{-1}\mu_{t-1}
 </span></p>
-<p>我们就可以定义（与 <span class="math inline">ax^2+bx+c</span> 的分解类比，就可以理解）： <span class="math display"> 
+<p>我们就可以定义（与 <span class="math inline">ax^2+bx+c</span> 的分解类比，就可以理解）： <span class="math display">\displaystyle 
 L_t(x_{t-1},x_t)={1 \over 2}(x_{t-1}-\Psi_t[A_t^TR^{-1}_t(x_t-B_tu_t)+\Sigma_{t-1}^{-1}\mu_{t-1}])^T\Psi^{-1}_t\\ (x_{t-1}-\Psi_t[A_t^TR^{-1}_t(x_t-B_tu_t)+\Sigma_{t-1}^{-1}\mu_{t-1}])
 </span></p>
-<p><span class="math inline">det(2\pi\Psi_t)^{-{1\over2}}exp\{-L_t(x_{t-1},x_t)\}</span> 是一个正态分布的形式，所以： <span class="math display"> 
+<p><span class="math inline">det(2\pi\Psi_t)^{-{1\over2}}exp\{-L_t(x_{t-1},x_t)\}</span> 是一个正态分布的形式，所以： <span class="math display">\displaystyle 
 \int det(2\pi\Psi_t)^{-{1\over2}}exp\{-L_t(x_{t-1},x_t)\} \text{d}x_{t-1} = 1
-</span> <span class="math display"> 
+</span> <span class="math display">\displaystyle 
 \int exp\{-L_t(x_{t-1},x_t)\} \text{d}x_{t-1} = det(2\pi\Psi_t)^{1\over2}
 </span></p>
-<p>至此，到了一个满足要求的 <span class="math inline">L_t(x_{t-1}, x_t)</span> ，可以将 <span class="math inline">\overline{bel}(x_t)</span> 写作： <span class="math display"> 
+<p>至此，到了一个满足要求的 <span class="math inline">L_t(x_{t-1}, x_t)</span> ，可以将 <span class="math inline">\overline{bel}(x_t)</span> 写作： <span class="math display">\displaystyle 
 \overline{bel}(x_t)= \eta exp\{ -L_t(x_t) \}
 </span></p>
 <p>那么现在要做的是求出 <span class="math inline">L_t(x_t)</span>，<span class="math inline">L_t(x_t)</span> 是关于 <span class="math inline">x_t</span> 的二次型，所以可将 <span class="math inline">L_t(x_t)</span> 进行分解，得到 <span class="math inline">L_t(x_t)</span> 的对称轴，这条对称轴也是 <span class="math inline">\overline{bel}(x_t)</span> 的均值。</p>
-<p><span class="math display"> 
+<p><span class="math display">\displaystyle 
 L_t(x_t) = L_t - L_t(x_{t-1},x_t) \\ 
 = {1\over2}(x_t-A_tx_{t-1}-B_tu_t)^TR_t^{-1}(x_t-A_tx_{t-1}-B_tu_t) \\ 
 + {1\over2}(x_{t-1}-\mu_{t-1})^T\Sigma^{-1}_{t-1}(x_{t-1}-\mu_{t-1}) \\ 
 - {1\over2}(x_{t-1}-\Psi_t[A_t^TR_t^{-1}(x_t-B_tu_t)+\Sigma^{-1}_{t-1}\mu_{t-1}])^T\Psi^{-1}_t \\ (x_{t-1}-\Psi_t[A_t^TR_t^{-1}(x_t-B_tu_t)+\Sigma^{-1}_{t-1}\mu_{t-1}])
 - </span></p>
-<p>经过一系列繁琐的化简： <span class="math display"> 
+<p>经过一系列繁琐的化简： <span class="math display">\displaystyle 
 L_t(x_t) = {1\over2}(x_t-B_tu_t)^TR_t^{-1}(x_t-B_tu_t)+{1\over2}\mu_{t-1}^T\Sigma_{t-1}^{-1}\mu_{t-1} \\
 -{1\over2}[A^T_tR_t^{-1}(x_t-B_tu_t)+\Sigma^{-1}_{t-1}\mu_{t-1}]^T(A_t^TR_t^{-1}A_t+\Sigma^{-1}_{t-1})^{-1} \\ 
 [A^T_tR_t^{-1}(x_t-B_tu_t)+\Sigma^{-1}_{t-1}\mu_{t-1}]
 </span></p>
 <p>求一阶导函数：</p>
-<p><span class="math display"> 
+<p><span class="math display">\displaystyle 
 {\partial L_t(x_t) \over \partial x_t} = R^{-1}_t(x_t-B_tu_t)-R^{-1}_tA_t(A^T_tR_t^{-1}A_t+\Sigma_{t-1}^{-1})^{-1} \\ 
 [A^T_tR_t^{-1}(x_t-B_tu_t)+\Sigma_{t-1}^{-1}\mu_{t-1}] \\ 
 = [R^{-1}_t-R^{-1}_tA_t(A^T_tR_t^{-1}A_t+\Sigma_{t-1}^{-1})^{-1}A_t^TR_t^{-1}](x_t-B_tu_t) \\ 
 -R^{-1}_tA_t(A^T_tR_t^{-1}A_t+\Sigma_{t-1}^{-1})^{-1}\Sigma_{t-1}^{-1}\mu_{t-1}
 </span></p>
-<p>由 <code>inversion lemma</code> 可以有化简： <span class="math display"> 
+<p>由 <code>inversion lemma</code> 可以有化简： <span class="math display">\displaystyle 
 R^{-1}_t-R^{-1}_tA_t(A^T_tR_t^{-1}A_t+\Sigma_{t-1}^{-1})^{-1}A_t^TR_t^{-1} = (R_t+A_t\Sigma_{t-1}A_t^T)^{-1}
 </span></p>
-<p>令一阶导函数为 0： <span class="math display"> 
+<p>令一阶导函数为 0： <span class="math display">\displaystyle 
 (R_t+A_t\Sigma_{t-1}A_t^T)^{-1}(x_t-B_tu_t) = R_t^{-1}A_t(A^T_tR^{-1}_tA_t+\Sigma^{-1}_{t-1})^{-1}\Sigma^{-1}_{t-1}\mu_{t-1}
 </span></p>
-<p><span class="math display"> 
+<p><span class="math display">\displaystyle 
 x_t = B_tu_t+(R_t+A_t\Sigma_{t-1}A_t^T)R_t^{-1}A_t(A_t^TR^{-1}_tA_t+\Sigma^{-1}_{t-1})^{-1}\Sigma^{-1}_{t-1}\mu_{t-1} \\ 
 = B_tu_t+A_t(I+\Sigma_{t-1}A_t^TR^{-1}_tA_t)(\Sigma_{t-1}A_t^TR^{-1}_tA_t+I)^{-1}\mu_{t-1} \\
 = B_tu_t+A_t\mu_{t-1}
 </span></p>
 <p>所以 <span class="math inline">\overline{bel}(x_t)</span> 的均值为 <span class="math inline">B_tu_t+A_t\mu_{t-1}</span> 。</p>
 <p>对 <span class="math inline">L_t(x_t)</span> 求二阶导数，可以得到协方差矩阵。</p>
-<p><span class="math display"> 
+<p><span class="math display">\displaystyle 
 {\partial^2L_t(x_t) \over \partial x^2_t} = (R_t+A_t\Sigma_{t-1}A_t^T)^{-1} =: \overline{\Sigma}_t^{-1}
 </span></p>
 <h3 id="update">Update</h3>
-<p>Update 步骤在贝叶斯滤波中用公式表示是： <span class="math display">  bel(x_t) = \eta p(z_t|x_t)\overline{bel}(x_t) </span></p>
-<p>其中 <span class="math display">  p(z_t|x_t) \sim \mathcal{N}(z_t;C_tx_t,Q_t) </span> <span class="math display">  \overline{bel}(x_t) \sim \mathcal{N}(x_t;\overline{\mu}_t,\overline{\Sigma}_t) </span></p>
+<p>Update 步骤在贝叶斯滤波中用公式表示是： <span class="math display">\displaystyle  bel(x_t) = \eta p(z_t|x_t)\overline{bel}(x_t) </span></p>
+<p>其中 <span class="math display">\displaystyle  p(z_t|x_t) \sim \mathcal{N}(z_t;C_tx_t,Q_t) </span> <span class="math display">\displaystyle  \overline{bel}(x_t) \sim \mathcal{N}(x_t;\overline{\mu}_t,\overline{\Sigma}_t) </span></p>
 <p>经过整理可以写成：</p>
-<p><span class="math display">  bel(x_t) = \eta exp\{-J_t\} </span></p>
-<p>其中 <span class="math display">  J_t = {1\over2}(z_t-C_tx_t)^TQ^{-1}_t(z_t-C_tx_t) \\ 
+<p><span class="math display">\displaystyle  bel(x_t) = \eta exp\{-J_t\} </span></p>
+<p>其中 <span class="math display">\displaystyle  J_t = {1\over2}(z_t-C_tx_t)^TQ^{-1}_t(z_t-C_tx_t) \\ 
 + {1\over2}(x_t-\overline{\mu})^T\overline{\Sigma}^{-1}_t(x_t-\overline{\mu}_t) </span></p>
-<p>对 <span class="math inline">J_t</span> 求一阶导函数和二阶导函数： <span class="math display">  {\partial J \over \partial x_t} = -C^T_tQ^{-1}_t(z_t-C_tx_t)+\overline{\Sigma}^{-1}_t(x_t-\overline{\mu}_t) </span> <span class="math display">  {\partial^2 J \over \partial x^2_t} = C^T_tQ^{-1}_tC_t+\overline{\Sigma}^{-1}_t </span></p>
-<p>所以得到了 <span class="math inline">bel(x_t)</span> 的协方差矩阵： <span class="math display">  \begin{equation} \Sigma_t = (C^T_tQ^{-1}_tC_t+\overline{\Sigma}^{-1}_t)^{-1} \label{eq: bel_sigma} \end{equation}</span></p>
-<p>令一阶导数等于 0，能够得到 <span class="math inline">bel(x_t)</span> 的均值 <span class="math inline">\mu_t</span>。现将 <span class="math inline">\mu_t</span> 直接带入，并令一阶导数等于 0。 <span class="math display">  \begin{equation} C_t^TQ^{-1}_t(z_t-C_t\mu_t) = \overline{\Sigma}^{-1}_t(\mu_t-\overline{\mu}_t) \label{eq: partial_J_one_eq_zero} \end{equation}</span></p>
-<p>等式  的左边可以展开： <span class="math display">  \begin{equation} C_t^TQ_t^{-1}(z_t-C_t\mu_t) \\ 
+<p>对 <span class="math inline">J_t</span> 求一阶导函数和二阶导函数： <span class="math display">\displaystyle  {\partial J \over \partial x_t} = -C^T_tQ^{-1}_t(z_t-C_tx_t)+\overline{\Sigma}^{-1}_t(x_t-\overline{\mu}_t) </span> <span class="math display">\displaystyle  {\partial^2 J \over \partial x^2_t} = C^T_tQ^{-1}_tC_t+\overline{\Sigma}^{-1}_t </span></p>
+<p>所以得到了 <span class="math inline">bel(x_t)</span> 的协方差矩阵： <span class="math display">\displaystyle  \begin{equation} \Sigma_t = (C^T_tQ^{-1}_tC_t+\overline{\Sigma}^{-1}_t)^{-1} \label{eq: bel_sigma} \end{equation}</span></p>
+<p>令一阶导数等于 0，能够得到 <span class="math inline">bel(x_t)</span> 的均值 <span class="math inline">\mu_t</span>。现将 <span class="math inline">\mu_t</span> 直接带入，并令一阶导数等于 0。 <span class="math display">\displaystyle  \begin{equation} C_t^TQ^{-1}_t(z_t-C_t\mu_t) = \overline{\Sigma}^{-1}_t(\mu_t-\overline{\mu}_t) \label{eq: partial_J_one_eq_zero} \end{equation}</span></p>
+<p>等式  的左边可以展开： <span class="math display">\displaystyle  \begin{equation} C_t^TQ_t^{-1}(z_t-C_t\mu_t) \\ 
 = C^T_tQ^{-1}_t(z_t-C_t\mu_t+C_t\overline{\mu}_t-C_t\overline{\mu}_t) \\ 
 = C^T_tQ^{-1}_t(z_t-C_t\overline{\mu}_t)-C^T_tQ^{-1}_tC_t(\mu_t-\overline{\mu}_t) \label{eq: partial_J_one_eq_zero_ex} \end{equation}</span></p>
-<p>将  代回  得到： <span class="math display">  C_t^TQ^{-1}_t(z_t-C_t\overline{\mu}_t) = (C^T_tQ^{-1}_tC_t+\overline{\Sigma}^{-1}_t)(\mu_t-\overline{\mu}_t) </span></p>
-<p>而由公式  可以化简： <span class="math display">  \mu_t = \overline{\mu}_t + \Sigma_tC_t^TQ^{-1}_t(z_t-C_t\overline{\mu}_t) </span></p>
-<p>现在定义 <span class="math inline">t</span> 时刻的卡尔曼增益为： <span class="math display">  K_t=\Sigma_tC^T_tQ^{-1}_t </span></p>
+<p>将  代回  得到： <span class="math display">\displaystyle  C_t^TQ^{-1}_t(z_t-C_t\overline{\mu}_t) = (C^T_tQ^{-1}_tC_t+\overline{\Sigma}^{-1}_t)(\mu_t-\overline{\mu}_t) </span></p>
+<p>而由公式  可以化简： <span class="math display">\displaystyle  \mu_t = \overline{\mu}_t + \Sigma_tC_t^TQ^{-1}_t(z_t-C_t\overline{\mu}_t) </span></p>
+<p>现在定义 <span class="math inline">t</span> 时刻的卡尔曼增益为： <span class="math display">\displaystyle  K_t=\Sigma_tC^T_tQ^{-1}_t </span></p>
 <p>将 <span class="math inline">K_t</span> 代入 <span class="math inline">\mu_t</span>：</p>
-<p><span class="math display">  \mu_t = \overline{\mu}_t + K_t(z_t-C_t\overline{\mu}_t) </span></p>
-<p>卡尔曼增益 <span class="math inline">K_t</span> 可以经过一些列的运算，将其中的 <span class="math inline">\Sigma_t</span> 去除。 <span class="math display">  K_t = \Sigma_tC^T_tQ^{-1}_t \\ 
+<p><span class="math display">\displaystyle  \mu_t = \overline{\mu}_t + K_t(z_t-C_t\overline{\mu}_t) </span></p>
+<p>卡尔曼增益 <span class="math inline">K_t</span> 可以经过一些列的运算，将其中的 <span class="math inline">\Sigma_t</span> 去除。 <span class="math display">\displaystyle  K_t = \Sigma_tC^T_tQ^{-1}_t \\ 
 = \Sigma_tC^T_tQ^{-1}_t(C_t\overline{\Sigma}_tC^T_t+Q_t)(C_t\overline{\Sigma}_tC^T_t+Q_t)^{-1} \\ 
 = \Sigma_t(C^T_tQ^{-1}_tC_t\overline{\Sigma}_tC^T_t+C^T_tQ^{-1}_tQ_t)(C_t\overline{\Sigma}_tC^T_t+Q_t)^{-1} \\
 = \Sigma_t(C^T_tQ^{-1}_tC_t\overline{\Sigma}_tC^T_t+C^T_t)(C_t\overline{\Sigma}_tC^T_t+Q_t)^{-1} \\ 
@@ -465,7 +631,7 @@ x_t = B_tu_t+(R_t+A_t\Sigma_{t-1}A_t^T)R_t^{-1}A_t(A_t^TR^{-1}_tA_t+\Sigma^{-1}_
 = \Sigma_t(C_t^TQ_t^{-1}C_t+\overline{\Sigma}_t^{-1})\overline{\Sigma}_tC^T_t(C_t\overline{\Sigma}_tC^T_t+Q_t)^{-1} \\ 
 = \Sigma_t\Sigma_t^{-1}\overline{\Sigma}_tC^T_t(C_t\overline{\Sigma}_tC^T_t+Q_t)^{-1} \\ 
 = \overline{\Sigma}_tC^T_t(C_t\overline{\Sigma}_tC^T_t+Q_t)^{-1} </span></p>
-<p>随后使用 <code>inversion lemma</code>，可以将  化简： <span class="math display">  \Sigma_t = (C_t^TQ^{-1}_tC_t+\overline{\Sigma}^{-1}_t)^{-1} \\ 
+<p>随后使用 <code>inversion lemma</code>，可以将  化简： <span class="math display">\displaystyle  \Sigma_t = (C_t^TQ^{-1}_tC_t+\overline{\Sigma}^{-1}_t)^{-1} \\ 
 = \overline{\Sigma}_t-\overline{\Sigma}_tC^T_t(Q_t+C_t\overline{\Sigma}_tC^T_t)^{-1}C_t\overline{\Sigma}_t \\ 
 = [I - \overline{\Sigma}_tC^T_t(Q_t+C_t\overline{\Sigma}_tC^T_t)^{-1}C_t]\overline{\Sigma}_t \\ 
 = (I-K_tC_t)\overline{\Sigma}_t </span></p>
@@ -503,9 +669,9 @@ x_t = B_tu_t+(R_t+A_t\Sigma_{t-1}A_t^T)R_t^{-1}A_t(A_t^TR^{-1}_tA_t+\Sigma^{-1}_
 <p>Belief Distribution 是一个后验概率的概率分布。是在已经获得所有数据的条件下，状态值 <span class="math inline">x</span> 的概率分布。所有数据指的是机器人的控制值 <span class="math inline">u</span> 与测量值 <span class="math inline">z</span> 。</p>
 <p>对于 <span class="math inline">t</span> 时刻机器人的状态值 <span class="math inline">x_t</span> ，与开始时 1 时刻到 <span class="math inline">t</span> 时刻的所有控制值、测量值都有关系。从 0 时刻机器人初始位置开始，机器人通过所有的控制值 <span class="math inline">u_{1:t}</span> 可以计算出机器人在 <span class="math inline">t</span> 时刻的状态值，同时所有的测量值 <span class="math inline">z_{1:t}</span> 可以验证机器人的状态值，因为机器人的控制值存在误差，如机器人运动轮打滑。</p>
 <p>对于这个后验概率的概率分布 <code>belief</code> 可以写成一个条件概率：</p>
-<p><span class="math display">  bel(x_t) = p(x_t|z_{1:t}, u_{1:t}) </span></p>
+<p><span class="math display">\displaystyle  bel(x_t) = p(x_t|z_{1:t}, u_{1:t}) </span></p>
 <p>如果在 <span class="math inline">t</span> 时刻不考虑测量值 <span class="math inline">z_t</span> ，只考虑控制值 <span class="math inline">u_t</span> ，在使用控制值 <span class="math inline">u_t</span> 计算出 <span class="math inline">t</span> 时刻的状态值 <span class="math inline">x_t</span> 之后再使用测量值 <span class="math inline">z_t</span> 验证得到的状态值 <span class="math inline">x_t</span> 。那么只考虑控制值 <span class="math inline">u_t</span> 得到的状态值 <span class="math inline">x_t</span> 的概率分布可以看做是一个预测 <code>prediction</code> ，这种方式得到的后验概率，可以写作：</p>
-<p><span class="math display"> \overline{bel}(x_t) = p(x_t|z_{1:t-1}, u_{1:t})</span></p>
+<p><span class="math display">\displaystyle \overline{bel}(x_t) = p(x_t|z_{1:t-1}, u_{1:t})</span></p>
 <h3 id="markov-assumption">Markov Assumption</h3>
 <p>Markov Assumption 也可以称作是 complete state assumption。这个假设是说在知道当前的状态值的条件下，以前获得的所有数据和以后获得的所有数据之间是相互独立的。即预测未来状态值这件事情上，在当前除了当前的状态值 <span class="math inline">x_t</span> 以外，没有什么其他的数据值能够比 <span class="math inline">x_t</span> 预测得更好。也就是说 <span class="math inline">x_t</span> 中蕴含了 <span class="math inline">z_{1:t}</span> 和 <span class="math inline">u_{1:t}</span> 的信息，当然也蕴含了 <span class="math inline">x_{t-1}</span> 的信息，因为 <span class="math inline">x_{t-1}</span> 是由 <span class="math inline">z_{1:t-1}, u_{1:t-1}</span> 计算得到的。</p>
 <h2 id="贝叶斯滤波器流程">贝叶斯滤波器流程</h2>
@@ -521,10 +687,10 @@ x_t = B_tu_t+(R_t+A_t\Sigma_{t-1}A_t^T)R_t^{-1}A_t(A_t^TR^{-1}_tA_t+\Sigma^{-1}_
 <p>贝叶斯滤波器的目的是估计系统在各个时刻的状态值的概率分布。即已知系统在初始时刻的状态值和初始时刻到 <span class="math inline">t</span> 时刻之间各个时刻的控制命令 <span class="math inline">u_{1:t}</span> 和测量值 <span class="math inline">z_{1:t}</span> 的情况下，求取 <span class="math inline">t</span> 时刻系统的状态值 <span class="math inline">x_t</span> 概率分布。</p>
 <p>这个概率分布可以用 <span class="math inline">p(x_t|z_{1:t},u_{1:t})</span> 表示。</p>
 <p>而对于三个随机变量<span class="math inline">x, y, z</span>，贝叶斯理论有下面的公式：</p>
-<p><span class="math display"> p(x|y,z) = \frac{p(y|x,z)p(x|z)}{p(y|z)}</span></p>
+<p><span class="math display">\displaystyle p(x|y,z) = \frac{p(y|x,z)p(x|z)}{p(y|z)}</span></p>
 <p>将 <span class="math inline">p(x_t|z_{1:t},u_{1:t})</span> 中的 <span class="math inline">x_t</span> 对应 <span class="math inline">x</span> ，<span class="math inline">z_t</span> 对应 <span class="math inline">y</span> ，<span class="math inline">(z_{1:t-1}, u_{1:t})</span> 对应 <span class="math inline">z</span> ，就能写出下面的式子：</p>
-<p><span class="math display"> p(x_t|z_{1:t},u_{1:t})=\frac{p(z_t|x_t,z_{1:t-1},u_{1:t})p(x_t|z_{1:t-1},u_{1:t})}{p(z_t|x_t,z_{1:t-1},u_{1:t})} \\ = \eta p(z_t|x_t,z_{1:t-1},u_{1:t})p(x_t|z_{1:t-1},u_{1:t})</span><span class="math inline">p(z_t|x_t,z_{1:t-1},u_{1:t})</span> 表示的是在已知 <span class="math inline">x_t,z_{1:t-1},u_{1:t}</span> 的条件下，<span class="math inline">z_t</span> 的条件概率。由马尔科夫假设， <span class="math inline">x_t</span> 中蕴含了 <span class="math inline">z_{1:t-1},u_{1:t}</span> 的信息，所以</p>
-<p><span class="math display"> p(z_t|x_t,z_{1:t-1},u_{1:t}) = p(z_t|x_t)</span></p>
+<p><span class="math display">\displaystyle p(x_t|z_{1:t},u_{1:t})=\frac{p(z_t|x_t,z_{1:t-1},u_{1:t})p(x_t|z_{1:t-1},u_{1:t})}{p(z_t|x_t,z_{1:t-1},u_{1:t})} \\ = \eta p(z_t|x_t,z_{1:t-1},u_{1:t})p(x_t|z_{1:t-1},u_{1:t})</span><span class="math inline">p(z_t|x_t,z_{1:t-1},u_{1:t})</span> 表示的是在已知 <span class="math inline">x_t,z_{1:t-1},u_{1:t}</span> 的条件下，<span class="math inline">z_t</span> 的条件概率。由马尔科夫假设， <span class="math inline">x_t</span> 中蕴含了 <span class="math inline">z_{1:t-1},u_{1:t}</span> 的信息，所以</p>
+<p><span class="math display">\displaystyle p(z_t|x_t,z_{1:t-1},u_{1:t}) = p(z_t|x_t)</span></p>
 <p>注意，此处的 <span class="math inline">x_t</span> 指只经过 <span class="math inline">x_{t-1}</span> 与 <span class="math inline">u_t</span> 计算的 <span class="math inline">x_t</span> 并没有使用 <span class="math inline">z_t</span> 。</p>
 <p>将</p>
 <p><span class="math inline">bel(x_t) = p(x_t|z_{1:t}, u_{1:t})</span></p>
@@ -535,13 +701,13 @@ x_t = B_tu_t+(R_t+A_t\Sigma_{t-1}A_t^T)R_t^{-1}A_t(A_t^TR^{-1}_tA_t+\Sigma^{-1}_
 <p><span class="math inline">bel(x_t) = \eta p(z_t|x_t)\overline{bel}(x_t)</span></p>
 <p>上面这个式子指的是，在整合了 <span class="math inline">z_t, u_t</span> 之后状态值 <span class="math inline">x_t</span> 的概率分布。</p>
 <p>对于 <span class="math inline">\overline{bel}(x_t)</span> 的计算可以用用公式</p>
-<p><span class="math display"> p(x) = \int p(x|y)p(y) \text{d}y</span></p>
+<p><span class="math display">\displaystyle p(x) = \int p(x|y)p(y) \text{d}y</span></p>
 <p>推导得到。</p>
-<p><span class="math display"> \overline{bel}(x_t) = p(x_t|z_{1:t-1}, u_{1:t}) \\ = \int p(x_t|x_{t-1}, z_{1:t-1}, u_{1:t})p(x_{t-1}|z_{1:t-1}, u_{1:t})\text{d}x_{t-1} \\ = \int p(x_t|x_{t-1}, z_{1:t-1}, u_{1:t-1})p(x_{t-1}|z_{1:t-1}, u_{1:t-1})\text{d}x_{t-1}</span></p>
+<p><span class="math display">\displaystyle \overline{bel}(x_t) = p(x_t|z_{1:t-1}, u_{1:t}) \\ = \int p(x_t|x_{t-1}, z_{1:t-1}, u_{1:t})p(x_{t-1}|z_{1:t-1}, u_{1:t})\text{d}x_{t-1} \\ = \int p(x_t|x_{t-1}, z_{1:t-1}, u_{1:t-1})p(x_{t-1}|z_{1:t-1}, u_{1:t-1})\text{d}x_{t-1}</span></p>
 <p>由马尔科夫假设</p>
-<p><span class="math display"> p(x_t|x_{t-1}, z_{1:t-1}, u_{1:t}) = p(x_t|x_{t-1},u_t)</span></p>
+<p><span class="math display">\displaystyle p(x_t|x_{t-1}, z_{1:t-1}, u_{1:t}) = p(x_t|x_{t-1},u_t)</span></p>
 <p>所以就有</p>
-<p><span class="math display"> \overline{bel}(x_t) = \int p(x_t|x_{t-1},u_t)p(x_{t-1}|z_{1:t-1}, u_{1:t-1})\text{d}x_{t-1} = \int p(x_t|x_{t-1},u_t)bel(x_{t-1})\text{d}x_{t-1}</span></p>
+<p><span class="math display">\displaystyle \overline{bel}(x_t) = \int p(x_t|x_{t-1},u_t)p(x_{t-1}|z_{1:t-1}, u_{1:t-1})\text{d}x_{t-1} = \int p(x_t|x_{t-1},u_t)bel(x_{t-1})\text{d}x_{t-1}</span></p>
 ]]></content>
     
     <summary type="html">
@@ -574,7 +740,7 @@ x_t = B_tu_t+(R_t+A_t\Sigma_{t-1}A_t^T)R_t^{-1}A_t(A_t^TR^{-1}_tA_t+\Sigma^{-1}_
 <h3 id="测量范围">测量范围</h3>
 <p>在选择 IMU 时需要注意到使用环境下的最大加速度或者角速度有多少，要避免响应饱和使得测量值不准确。</p>
 <h3 id="偏移值bias">偏移值（Bias）</h3>
-<p>真实值与测量值之间的关系可以使用公式 <span class="math display">  x = Sf(x) + b </span> 表示。</p>
+<p>真实值与测量值之间的关系可以使用公式 <span class="math display">\displaystyle  x = Sf(x) + b </span> 表示。</p>
 <p>其中的 $ b $ 就是偏移值。</p>
 <p>单位 $ deg/hr, m/s^2 $</p>
 <h3 id="偏移值可重复性bias-repeatability">偏移值可重复性（Bias Repeatability）</h3>
@@ -588,7 +754,7 @@ x_t = B_tu_t+(R_t+A_t\Sigma_{t-1}A_t^T)R_t^{-1}A_t(A_t^TR^{-1}_tA_t+\Sigma^{-1}_
 <p>使用 IMU 的时候需要将其它信息一起接收，然后估计偏移值。</p>
 <p>单位 $ deg/hr/hr, m/s^2/hr $</p>
 <h3 id="比例因子scale-factor">比例因子（Scale Factor）</h3>
-<p>比例因子即公式 <span class="math display">  x = Sf(x) + b </span> 中的 $ S $。比例因子描述的是其中的线性部分。</p>
+<p>比例因子即公式 <span class="math display">\displaystyle  x = Sf(x) + b </span> 中的 $ S $。比例因子描述的是其中的线性部分。</p>
 <p>单位 $ ppm $</p>
 <p>如果有 2％ 的误差，那么就说有 20000ppm 的误差。这个单位的意思不太懂。</p>
 <h3 id="比例因子线性度scale-factor-linearity">比例因子线性度（Scale Factor Linearity）</h3>
@@ -749,11 +915,11 @@ x_t = B_tu_t+(R_t+A_t\Sigma_{t-1}A_t^T)R_t^{-1}A_t(A_t^TR^{-1}_tA_t+\Sigma^{-1}_
 <p>C++ :</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">class Solution &#123;</div><div class="line">public:</div><div class="line">    int addDigits(int num) &#123;</div><div class="line">        if(num == 0) return 0;</div><div class="line">        if(num%9 == 0) return 9;</div><div class="line">        return num%9;</div><div class="line">    &#125;</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
 <p>这道题的就是求 Digit Root （这里简称 DR ）。求 DR 有公式可以求，其利用的技巧是10的幂数对9求余结果总是1。以上的求 DR 过程就可以看成是分部对9求余的过程。这一性质可以用以下的公式描述。</p>
-<p><span class="math display"> 
+<p><span class="math display">\displaystyle 
 \text{dr}(abc) = a\cdot10^2+b\cdot10+c\cdot1=a+b+c
 </span></p>
 <p>求DR的公式：</p>
-<p><span class="math display"> 
+<p><span class="math display">\displaystyle 
 \text{dr}(n) =
 \begin{cases}
 0,&amp;\text{if$n=0$,} \\

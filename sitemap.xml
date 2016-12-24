@@ -2,9 +2,23 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://jingetu.github.io/2016/12/24/JavaScript-Ninja-Notes/</loc>
+    
+    <lastmod>2016-12-24T12:12:41.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://jingetu.github.io/2016/12/05/Java-Concurrency/</loc>
+    
+    <lastmod>2016-12-08T04:42:41.000Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://jingetu.github.io/2016/07/12/Kalman-Filter-Probabilistic-Robotics/</loc>
     
-    <lastmod>2016-12-04T03:44:32.000Z</lastmod>
+    <lastmod>2016-12-04T06:56:07.000Z</lastmod>
     
   </url>
   

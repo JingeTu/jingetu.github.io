@@ -1,0 +1,80 @@
+<!DOCTYPE html><html><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description" content="Jinge's Blog on Github"><title>Java Concurrency | Jinge's Blog</title><link rel="stylesheet" type="text/css" href="/css/normalize.css"><link rel="stylesheet" type="text/css" href="/css/highlight.css"><link rel="stylesheet" type="text/css" href="/css/noise.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/font-awesome/4.5.0/css/font-awesome.min.css"><link rel="Shortcut Icon" type="image/x-icon" href="/favicon.ico"><link rel="alternate" type="application/atom+xml" href="/atom.xml"></head><body><!-- gallery that comes before the header--><article class="wrapper"><div class="post-main"><div class="nav"><nav class="container"><a href="/" class="sidebar-nav-item active">Home</a><a href="/archives" class="sidebar-nav-item">Archives</a></nav><div class="container post-meta"><div class="post-tags"><a class="post-tag-link" href="/tags/Coding/">Coding</a></div><div class="post-time">2016-12-05</div></div></div><div class="container post-header"><h1>Java Concurrency</h1></div><div class="container post-content"><h2 id="concurrency-models">4. Concurrency Models</h2>
+<p>三种模式：</p>
+<ol style="list-style-type: decimal">
+<li><p>Parallel Workers</p>
+<p>任务分发的模式。</p>
+<div class="figure">
+<img src="http://tutorials.jenkov.com/images/java-concurrency/concurrency-models-1.png" alt="">
+
+</div>
+<p>优点：易于理解。<br>
+缺点：Workers 是无状态的，不同的任务之间协同工作需要有状态信息，不同的 Workers 之间通过读取共享内存进行状态信息的获取。</p></li>
+<li><p>Assembly Line</p>
+<div class="figure">
+<img src="http://tutorials.jenkov.com/images/java-concurrency/concurrency-models-4.png" alt="">
+
+</div>
+<div class="figure">
+<img src="http://tutorials.jenkov.com/images/java-concurrency/concurrency-models-6.png" alt="">
+
+</div>
+<p>事件驱动的模式，Worker 在需要进行 IO 操作时释放 CPU，在 IO 操作完成之后有 Worker 接手剩余的操作。</p>
+<p>具体可以分为两种类型 Actor 和 Channel。</p>
+<div class="figure">
+<img src="http://tutorials.jenkov.com/images/java-concurrency/concurrency-models-7.png" alt="">
+
+</div>
+<p>在 Acotr 模式下，Worker 被称作是 Actor，Actor 之间可以直接进行通信。</p>
+<div class="figure">
+<img src="http://tutorials.jenkov.com/images/java-concurrency/concurrency-models-8.png" alt="">
+
+</div>
+<p>Channel 模式类似于广播者与收听者模式，Worker 通过发布信息在 Channel 上，或者订阅 Channel 的信息，实现协同工作。</p>
+<p>优点：所有的 Worker 都认为自己是这项任务中唯一的 Worker，所以没有共享状态的问题。 缺点：很难弄清楚是哪一个 Worker 执行了这一部分的代码；一般通过回调函数（Callback Functions）实现任务的转发，很容易出现嵌套很深的回调函数，这一点被称作是 Callback Hell。</p></li>
+<li><p>Functional Parallelism</p>
+<p>通过函数调用的形式，函数调用使得不同部分的流程可以由不同的 CPU 处理。</p></li>
+</ol>
+<h2 id="same-threading">5. Same-Threading</h2>
+<p>一个 CPU 中一直都只有一个 Thread 在运行。</p>
+<div class="figure">
+<img src="http://tutorials.jenkov.com/images/java-concurrency/same-threading-3.png" alt="">
+
+</div>
+<p>Thread 之间通过 msg 通信。</p>
+<h2 id="concurrency-vs.parallelism">6. Concurrency vs. Parallelism</h2>
+<div class="figure">
+<img src="http://tutorials.jenkov.com/images/java-concurrency/concurrency-vs-parallelism-1.png" alt="">
+
+</div>
+<div class="figure">
+<img src="http://tutorials.jenkov.com/images/java-concurrency/concurrency-vs-parallelism-2.png" alt="">
+
+</div>
+<p>Concurrency 是多个任务同时执行，而 Parallelism 是一个任务分解成多个子任务执行。Parallelism 要在多个 CPU 将多个子任务都执行完了才算是完成。</p>
+<h2 id="creating-and-starting-java-threads">7. Creating and Starting Java Threads</h2>
+<p>两种方式开启新的线程： 1. 生成 Thread 的子类。 2. 使用 Runnable。</p>
+<h2 id="race-conditions-and-critical-sections">8. Race Conditions and Critical Sections</h2>
+<p>Critical Section: 是指一块代码段，代码段被多个线程执行，线程执行的顺序不同，最终的结果也不同。</p>
+<p>Race Condition: 当多个线程，同时执行一个 Critical Section 时， Race Condition 就形成了。</p>
+<p>应防止 Critical Section 过大，当 Critical Section 比较大时应切分成小块，以缩减线程的空闲时间。</p>
+<h2 id="readwrite-locks-in-java">22. Read/Write Locks in Java</h2>
+<p>读写权限授予的原则： 1. 读权限：没有其他线程正在拥有写权限，也没有其他线程已经申请了写权限并且正在等待； 2. 写权限：没有其他线程正在拥有写权限或读权限。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div></pre></td><td class="code"><pre><div class="line">public class ReadWriteLock&#123;</div><div class="line"></div><div class="line">  private int readers       = 0; // 现在具有读权限的线程数量</div><div class="line">  private int writers       = 0; // 现在具有写权限的线程数量</div><div class="line">  private int writeRequests = 0; // 现在等待被授予写权限的线程数量</div><div class="line"></div><div class="line">  public synchronized void lockRead() throws InterruptedException&#123;</div><div class="line">    while(writers &gt; 0 || writeRequests &gt; 0)&#123;</div><div class="line">    // 若是现在有线程正在拥有写权限，或现在有线程正在等待被授予写权限，等待</div><div class="line">      wait();</div><div class="line">    &#125;</div><div class="line">    readers++; // 获得读权限，具有读权限的线程数量加1</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  public synchronized void unlockRead()&#123;</div><div class="line">    readers--; // 释放读权限，具有读权限的线程数量减1</div><div class="line">    notifyAll();</div><div class="line">    // 通知所有正在等待的线程，让它们检查自己是否可以获得所需权限</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  public synchronized void lockWrite() throws InterruptedException&#123;</div><div class="line">    writeRequests++;</div><div class="line">    // 因为不一定能直接获得写权限，而写权限的等待需要让其他所有的线程都知道，</div><div class="line">    // 以保证尽快获得写权限，所以需要使用 writeRequests。</div><div class="line"></div><div class="line">    while(readers &gt; 0 || writers &gt; 0)&#123;</div><div class="line">    // 写权限需要在其他任何线程不具有任何权限的情况下获得</div><div class="line">      wait();</div><div class="line">    &#125;</div><div class="line">    writeRequests--;</div><div class="line">    writers++;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  public synchronized void unlockWrite() throws InterruptedException&#123;</div><div class="line">    writers--;</div><div class="line">    notifyAll();</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</div></div><div class="post-main post-comment"></div></article><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.css"><script src="//cdn.bootcss.com/jquery/2.0.3/jquery.min.js"></script><script src="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.pack.js"></script><script>$(document).ready(function() {
+    $(".fancybox").fancybox();
+});
+</script></body><script type="text/x-mathjax-config">MathJax.Hub.Config({
+  tex2jax: {
+  inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+  processEscapes: true
+  }
+});</script><script type="text/x-mathjax-config">MathJax.Hub.Config({
+  tex2jax: {
+  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+  }
+});</script><script type="text/x-mathjax-config">MathJax.Hub.Queue(function() {
+   var all = MathJax.Hub.getAllJax(), i;
+   for(i=0; i < all.length; i += 1) {
+       all[i].SourceElement().parentNode.className += ' has-jax';
+   }
+});</script><script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script></html>

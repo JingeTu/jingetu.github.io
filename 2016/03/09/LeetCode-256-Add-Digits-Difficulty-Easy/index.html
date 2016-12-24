@@ -5,11 +5,11 @@
 <p>C++ :</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">class Solution &#123;</div><div class="line">public:</div><div class="line">    int addDigits(int num) &#123;</div><div class="line">        if(num == 0) return 0;</div><div class="line">        if(num%9 == 0) return 9;</div><div class="line">        return num%9;</div><div class="line">    &#125;</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
 <p>这道题的就是求 Digit Root （这里简称 DR ）。求 DR 有公式可以求，其利用的技巧是10的幂数对9求余结果总是1。以上的求 DR 过程就可以看成是分部对9求余的过程。这一性质可以用以下的公式描述。</p>
-<p><span class="math display"> 
+<p><span class="math display">\displaystyle 
 \text{dr}(abc) = a\cdot10^2+b\cdot10+c\cdot1=a+b+c
 </span></p>
 <p>求DR的公式：</p>
-<p><span class="math display"> 
+<p><span class="math display">\displaystyle 
 \text{dr}(n) =
 \begin{cases}
 0,&amp;\text{if$n=0$,} \\
