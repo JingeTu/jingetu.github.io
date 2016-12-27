@@ -1,34 +1,15 @@
-<!DOCTYPE html><html><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description" content="Jinge's Blog on Github"><title>Java Concurrency | Jinge's Blog</title><link rel="stylesheet" type="text/css" href="/css/normalize.css"><link rel="stylesheet" type="text/css" href="/css/highlight.css"><link rel="stylesheet" type="text/css" href="/css/noise.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/font-awesome/4.5.0/css/font-awesome.min.css"><link rel="Shortcut Icon" type="image/x-icon" href="/favicon.ico"><link rel="alternate" type="application/atom+xml" href="/atom.xml"></head><body><!-- gallery that comes before the header--><article class="wrapper"><div class="post-main"><div class="nav"><nav class="container"><a href="/" class="sidebar-nav-item active">Home</a><a href="/archives" class="sidebar-nav-item">Archives</a></nav><div class="container post-meta"><div class="post-tags"><a class="post-tag-link" href="/tags/Coding/">Coding</a></div><div class="post-time">2016-12-05</div></div></div><div class="container post-header"><h1>Java Concurrency</h1></div><div class="container post-content"><h2 id="concurrency-models">4. Concurrency Models</h2>
+<!DOCTYPE html><html><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description" content="Jinge's Blog on Github"><title>Java Concurrency Notes | Jinge's Blog</title><link rel="stylesheet" type="text/css" href="/css/normalize.css"><link rel="stylesheet" type="text/css" href="/css/highlight.css"><link rel="stylesheet" type="text/css" href="/css/noise.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/font-awesome/4.5.0/css/font-awesome.min.css"><link rel="Shortcut Icon" type="image/x-icon" href="/favicon.ico"><link rel="alternate" type="application/atom+xml" href="/atom.xml"></head><body><!-- gallery that comes before the header--><article class="wrapper"><div class="post-main"><div class="nav"><nav class="container"><a href="/" class="sidebar-nav-item active">Home</a><a href="/archives" class="sidebar-nav-item">Archives</a></nav><div class="container post-meta"><div class="post-tags"><a class="post-tag-link" href="/tags/Coding/">Coding</a></div><div class="post-time">2016-12-05</div></div></div><div class="container post-header"><h1>Java Concurrency Notes</h1></div><div class="container post-content"><p>Jakob Jenkov 的 Java Concurrency 教程笔记。 教程地址：http://tutorials.jenkov.com/java-concurrency/</p>
+<h2 id="concurrency-models">4. Concurrency Models</h2>
 <p>三种模式：</p>
 <ol style="list-style-type: decimal">
 <li><p>Parallel Workers</p>
-<p>任务分发的模式。</p>
-<div class="figure">
-<img src="http://tutorials.jenkov.com/images/java-concurrency/concurrency-models-1.png" alt="">
-
-</div>
-<p>优点：易于理解。<br>
-缺点：Workers 是无状态的，不同的任务之间协同工作需要有状态信息，不同的 Workers 之间通过读取共享内存进行状态信息的获取。</p></li>
+<p>任务分发的模式，由 Delegator 将任务分发给多个 Worker。</p>
+<p>优点：易于理解。</p>
+<p>缺点：Workers 是无状态的，不同的任务之间协同工作需要有状态信息，不同的 Workers 之间通过读取共享内存进行状态信息的获取。</p></li>
 <li><p>Assembly Line</p>
-<div class="figure">
-<img src="http://tutorials.jenkov.com/images/java-concurrency/concurrency-models-4.png" alt="">
-
-</div>
-<div class="figure">
-<img src="http://tutorials.jenkov.com/images/java-concurrency/concurrency-models-6.png" alt="">
-
-</div>
 <p>事件驱动的模式，Worker 在需要进行 IO 操作时释放 CPU，在 IO 操作完成之后有 Worker 接手剩余的操作。</p>
 <p>具体可以分为两种类型 Actor 和 Channel。</p>
-<div class="figure">
-<img src="http://tutorials.jenkov.com/images/java-concurrency/concurrency-models-7.png" alt="">
-
-</div>
-<p>在 Acotr 模式下，Worker 被称作是 Actor，Actor 之间可以直接进行通信。</p>
-<div class="figure">
-<img src="http://tutorials.jenkov.com/images/java-concurrency/concurrency-models-8.png" alt="">
-
-</div>
+<p>在 Acotr 模式下，Worker 被称作 Actor，Actor 之间可以直接进行通信。</p>
 <p>Channel 模式类似于广播者与收听者模式，Worker 通过发布信息在 Channel 上，或者订阅 Channel 的信息，实现协同工作。</p>
 <p>优点：所有的 Worker 都认为自己是这项任务中唯一的 Worker，所以没有共享状态的问题。 缺点：很难弄清楚是哪一个 Worker 执行了这一部分的代码；一般通过回调函数（Callback Functions）实现任务的转发，很容易出现嵌套很深的回调函数，这一点被称作是 Callback Hell。</p></li>
 <li><p>Functional Parallelism</p>
@@ -36,21 +17,9 @@
 </ol>
 <h2 id="same-threading">5. Same-Threading</h2>
 <p>一个 CPU 中一直都只有一个 Thread 在运行。</p>
-<div class="figure">
-<img src="http://tutorials.jenkov.com/images/java-concurrency/same-threading-3.png" alt="">
-
-</div>
 <p>Thread 之间通过 msg 通信。</p>
 <h2 id="concurrency-vs.parallelism">6. Concurrency vs. Parallelism</h2>
-<div class="figure">
-<img src="http://tutorials.jenkov.com/images/java-concurrency/concurrency-vs-parallelism-1.png" alt="">
-
-</div>
-<div class="figure">
-<img src="http://tutorials.jenkov.com/images/java-concurrency/concurrency-vs-parallelism-2.png" alt="">
-
-</div>
-<p>Concurrency 是多个任务同时执行，而 Parallelism 是一个任务分解成多个子任务执行。Parallelism 要在多个 CPU 将多个子任务都执行完了才算是完成。</p>
+<p>Concurrency 是多个任务同时执行，而 Parallelism 是一个任务分解成多个子任务同时执行，Parallelism 实际上是一个任务同时使用多个 CPU 执行。Parallelism 要在多个 CPU 将多个子任务都执行完才算完成。</p>
 <h2 id="creating-and-starting-java-threads">7. Creating and Starting Java Threads</h2>
 <p>两种方式开启新的线程： 1. 生成 Thread 的子类。 2. 使用 Runnable。</p>
 <h2 id="race-conditions-and-critical-sections">8. Race Conditions and Critical Sections</h2>
